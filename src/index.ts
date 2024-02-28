@@ -20,10 +20,11 @@ function getSessionUser(request: express.Request) {
 
 const handler = RestApiHandler({ endpoint: 'http://localhost:3000/api' });
 
-app.use('/api/models', ZenStackMiddleware({ 
+app.use('/api', ZenStackMiddleware({ 
     // switch for authentication
-    getPrisma: (request: express.Request) => enhance(prisma, { user: getSessionUser(request) }),
-    // getPrisma: () => prisma,
+    /// getPrisma: (request: express.Request) => enhance(prisma, { user: getSessionUser(request) }),
+    getPrisma: () => prisma,
+    
     handler: handler 
 }));
 
