@@ -1,50 +1,57 @@
-FROM node:21-alpine AS base
-
-# install pnpm in the base image
-RUN npm i -g pnpm
+FROM node:21-bookworm AS base
 
 # ------------------------------------------------------------------------------
 
-FROM base AS deps
+FROM base AS dependencies
 
-# For the dependencies, we only need the package.json and pnpm-lock.yaml
-# we copy these to the container and run pnpm install
+WORKDIR /deps/dev
+COPY package.json ./
+RUN npm install
+
+WORKDIR /deps/prod
+COPY package.json ./
+RUN npm install --prod
+
+# ------------------------------------------------------------------------------
+
+FROM base AS gen-schema
+
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+COPY --from=dependencies /deps/dev/node_modules ./node_modules
+COPY package.json ./
+COPY ./schema ./schema
+RUN npx zenstack generate
 
 # ------------------------------------------------------------------------------
 
 FROM base AS build
 
-# For the build step, we copy the entire project to the container and run
-# pnpm build. See package.json for the build script.
 WORKDIR /app
-COPY . . 
-# we also need the node_modules from the deps stage
-COPY --from=deps /app/node_modules ./node_modules
-RUN pnpm build
+COPY . .
+COPY --from=dependencies /deps/dev/node_modules ./node_modules
+
+RUN npm run build
 
 # ------------------------------------------------------------------------------
 
-FROM base AS prod
+FROM node:21-alpine AS prod
 
-# For the deploy step, we copy the build and node_modules to the container
-# and run the app using node.
 WORKDIR /app
+
 COPY --from=build /app/build ./build
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=dependencies /deps/prod/node_modules ./node_modules
+COPY --from=gen-schema /app/node_modules/.zenstack ./node_modules/.zenstack
+COPY --from=gen-schema /app/node_modules/.prisma ./node_modules/.prisma
 
-CMD ["node", "build/index.js"]
+ENV NODE_ENV=production
+ENTRYPOINT ["node", "build/index.js"]
 
-FROM base as dev
+# ------------------------------------------------------------------------------
 
-# For the dev step, we copy the entire project to the container and run
-# pnpm dev. See package.json for the dev script.
+FROM base AS dev
 
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+COPY --from=gen-schema /app/node_modules ./node_modules
 
-CMD ["pnpm", "start:dev"]
-
+ENTRYPOINT [ "npm", "run", "start:dev" ]
