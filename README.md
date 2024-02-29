@@ -34,13 +34,12 @@ docker compose up db
 
 ### Run locally
 If you prefer to run the backend locally instead, follow these instructions:
-- Run `pnpm i`
-- Run `pnpm start:dev`
+- Run `npm i`
+- Run `npm start:dev`
 
 ### Prisma Studio
 To edit the contents for the database, we recommend you use Prisma Studio. To
 open prisma studio, run:
 ```sh
-pnpx prisma studio
+npx prisma studio
 ```
-Make sure the database is running on the address specified in `.env`.
