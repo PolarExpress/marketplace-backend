@@ -2,29 +2,16 @@ version: '3.9'
 
 services:
   db: # database service
-    container_name: polarexpress-db
-    image: postgres:16.2
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
+    container_name: gp-marketplace-db
+    extends:
+      file: docker-compose.base.yml
+      service: db
     profiles: [prod, dev]
-  
-  backend-base: # base service for backend, do not run! 
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    ports: 
-      - 3000:3000
-    profiles: [never]
 
   backend-prod: 
-    container_name: polarexpress-backend
+    container_name: gp-marketplace-backend
     extends:
+      file: docker-compose.base.yml
       service: backend-base
     build:
       target: prod
@@ -33,8 +20,9 @@ services:
     profiles: [prod]     
 
   backend-dev:
-    container_name: polarexpress-backend-dev
+    container_name: gp-marketplace-backend
     extends:
+      file: docker-compose.base.yml
       service: backend-base
     build:
       target: dev
