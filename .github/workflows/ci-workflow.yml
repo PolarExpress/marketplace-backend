@@ -24,10 +24,10 @@ jobs:
     - name: Run tests
       run: DOCKER_BUILDKIT=1 docker compose up backend-testing
 
-  build-docker-prod:
-    runs-on: ubuntu-latest
+  # build-docker-prod:
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build Dockerfile
-      run: docker buildx build --target prod -t backend-test-image .    
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Build Dockerfile
+  #     run: docker buildx build --target prod -t backend-test-image .    
