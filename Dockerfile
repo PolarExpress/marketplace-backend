@@ -55,3 +55,7 @@ COPY . .
 COPY --from=gen-schema /app/node_modules ./node_modules
 
 ENTRYPOINT [ "npm", "run", "start:dev" ]
+
+FROM dev AS testing
+
+ENTRYPOINT [ "npm", "run", "test" ]
