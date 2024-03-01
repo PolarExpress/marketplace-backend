@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build Dockerfile
-      run: docker buildx --target testing -t backend-test-image .
+      run: docker buildx build --target testing -t backend-test-image .
 
   jest:
     runs-on: ubuntu-latest
@@ -29,4 +29,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build Dockerfile
-      run: docker buildx --target prod -t backend-test-image .    
+      run: docker buildx build --target prod -t backend-test-image .    
