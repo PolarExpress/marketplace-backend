@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-docker-testing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Dockerfile
+      run: docker buildx --target testing -t backend-test-image .
+
+  jest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run tests
+      run: DOCKER_BUILDKIT=1 docker compose up backend-testing
+
+  build-docker-prod:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Dockerfile
+      run: docker buildx --target prod -t backend-test-image .    
