@@ -32,3 +32,4 @@ services:
 
 volumes:
   db-data:
+    name: gp-marketplace-db-data
