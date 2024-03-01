@@ -29,6 +29,15 @@ services:
     depends_on:
       - db
     profiles: [dev]
+  
+  backend-testing:
+    container_name: gp-marketplace-backend-testing
+    extends:
+      file: docker-compose.base.yml
+      service: backend-base
+    build:
+      target: testing
+    profiles: [test]
 
 volumes:
   db-data:
