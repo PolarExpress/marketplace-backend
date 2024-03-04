@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-docker-testing:
+    name: build testing docker stage
     runs-on: ubuntu-latest
 
     steps:
@@ -17,13 +18,36 @@ jobs:
 
 
   jest:
+    name: Run Jest unit tests
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
     - name: Run tests
       run: DOCKER_BUILDKIT=1 docker compose up backend-testing
+      
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      # ESLint and Prettier must be in `package.json`
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          prettier: true
   # build-docker-prod:
   #   runs-on: ubuntu-latest
 
