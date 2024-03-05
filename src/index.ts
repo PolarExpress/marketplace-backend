@@ -1,21 +1,24 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import { enhance } from "@zenstackhq/runtime"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { ZenStackMiddleware } from "@zenstackhq/server/express";
 import RestApiHandler from "@zenstackhq/server/api/rest";
+// import { enhance } from "@zenstackhq/runtime";
 
 const prisma = new PrismaClient();
 const app = express();
 
 app.use(express.json());
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getSessionUser(request: express.Request) {
-  // This is a placeholder for your auth solution
-  return {
-    id: "",
-  };
-}
+// --- dummy authentication
+
+// function getSessionUser(request: express.Request) {
+//   // This is a placeholder for your auth solution
+//   return {
+//     id: "",
+//   };
+// }
+
+// ---
 
 const handler = RestApiHandler({ endpoint: "http://localhost:3000/api" });
 
