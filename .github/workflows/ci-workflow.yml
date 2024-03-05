@@ -44,6 +44,9 @@ jobs:
 
       - name: Run linter
         run: npx eslint .
+
+      - name: Run Prettier
+        run: npx prettier --check .
   # build-docker-prod:
   #   runs-on: ubuntu-latest
 
