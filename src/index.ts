@@ -29,8 +29,8 @@ app.use(
     /// getPrisma: (request: express.Request) => enhance(prisma, { user: getSessionUser(request) }),
     getPrisma: () => prisma,
 
-    handler: handler,
-  }),
+    handler: handler
+  })
 );
 
 app.listen(3000, () => {
