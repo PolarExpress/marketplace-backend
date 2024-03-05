@@ -17,34 +17,31 @@ datasource db {
  * User model
  */
 model User {
-    id String @id @default(cuid())
-    email String @unique @email
-    password String @password @omit @length(8, 16)
-    posts Post[]
+  id        String          @id @default(cuid())
+  email     String          @unique @email
 
-    // everybody can signup
-    @@allow('create', true)
+  installs  AddonInstall[]
+}
 
-    // full access by self
-    @@allow('all', auth() == this)
+model AddonInstall {
+  id      String  @id @default(cuid())
+
+  user    User    @relation(fields: [userId], references: [id])
+  userId  String
+
+  addon   Addon   @relation(fields: [addonId], references: [id])
+  addonId String  
 }
 
 /**
- * Post model
- */
-model Post {
-    id String @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    title String @length(1, 256)
-    content String
-    published Boolean @default(false)
-    author User @relation(fields: [authorId], references: [id])
-    authorId String
+Addon model
+*/
+model Addon {
+  id          String          @id @default(cuid())
+  name        String          
+  summary     String
+  icon        String          
 
-    // allow read for all signin users
-    @@allow('read', auth() != null && published)
-
-    // full access by author
-    @@allow('all', author == auth())
+  installedBy AddonInstall[]
 }
+
