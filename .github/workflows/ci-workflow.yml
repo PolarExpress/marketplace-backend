@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-docker-testing:
@@ -12,20 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build Dockerfile
-      run: docker buildx build --target testing -t backend-test-image .
-
+      - uses: actions/checkout@v3
+      - name: Build Dockerfile
+        run: docker buildx build --target testing -t backend-test-image .
 
   jest:
     name: Run Jest unit tests
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Run tests
-      run: DOCKER_BUILDKIT=1 docker compose up backend-testing
-      
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: DOCKER_BUILDKIT=1 docker compose up backend-testing
+
   run-linters:
     name: Run linters
     runs-on: ubuntu-latest
@@ -51,4 +50,4 @@ jobs:
   #   steps:
   #   - uses: actions/checkout@v3
   #   - name: Build Dockerfile
-  #     run: docker buildx build --target prod -t backend-test-image .    
+  #     run: docker buildx build --target prod -t backend-test-image .
