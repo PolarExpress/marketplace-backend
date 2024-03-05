@@ -1,6 +1,4 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
-  clearMocks: true,
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-};
+export const clearMocks = true;
+export const preset = "ts-jest";
+export const testEnvironment = "node";
