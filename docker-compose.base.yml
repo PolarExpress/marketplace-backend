@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   db:
@@ -11,9 +11,9 @@ services:
       - db-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-  backend-base: # base service for backend, do not run! 
-    build: 
+  backend-base: # base service for backend, do not run!
+    build:
       context: .
       dockerfile: Dockerfile
-    ports: 
+    ports:
       - 3000:3000
