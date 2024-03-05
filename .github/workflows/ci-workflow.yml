@@ -7,15 +7,6 @@ on:
     branches: ["main"]
 
 jobs:
-  build-docker-testing:
-    name: build testing docker stage
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build Dockerfile
-        run: docker buildx build --target testing -t backend-test-image .
-
   jest:
     name: Run Jest unit tests
     runs-on: ubuntu-latest
