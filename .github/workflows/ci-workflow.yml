@@ -48,10 +48,3 @@ jobs:
 
       - name: Run Prettier
         run: npx prettier --check .
-  # build-docker-prod:
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - name: Build Dockerfile
-  #     run: docker buildx build --target prod -t backend-test-image .
