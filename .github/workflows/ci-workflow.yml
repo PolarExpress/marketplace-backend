@@ -21,6 +21,14 @@ jobs:
       - name: Run Jest
         run: npm run test
 
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: ./coverage/lcov-report
+          retention-days: 30          
+          if-no-files-found: error # this should never fail!
+
   eslint:
     name: ESLint (linting)
     runs-on: ubuntu-latest
