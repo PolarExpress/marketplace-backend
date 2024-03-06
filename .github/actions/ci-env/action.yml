@@ -1,0 +1,15 @@
+name: 'Setup CI environment'
+description: 'Set up Node.js environment for CI'
+
+runs:
+  using: 'composite'
+
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 21
+        cache: "npm"
+
+    - name: Install Node.js dependencies
+      run: npm ci
