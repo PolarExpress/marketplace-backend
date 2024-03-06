@@ -26,8 +26,7 @@ function seed_addon(): Seeded<Addon> {
 
 async function main() {
   // Set the seed if one is given.
-  const [_1, _2, seed_constant] = process.argv;
-  seed(seed_constant);
+  seed(process.argv[2]);
 
   // Delete all the data that is already there, ...
   await prisma.user.deleteMany();

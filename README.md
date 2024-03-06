@@ -53,7 +53,7 @@ npm run prisma-migrate
 
 # Prepopulate the database with some sample data
 # Add "-- <seed>" to set a fixed seed for the random generator
-npm run prisma-seed 
+npm run prisma-seed
 
 # Start the dev server
 npm run start:dev
