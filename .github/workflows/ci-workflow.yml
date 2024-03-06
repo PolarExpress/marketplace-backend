@@ -8,41 +8,43 @@ on:
 
 jobs:
   jest:
-    name: Run Jest unit tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run tests
-        run: DOCKER_BUILDKIT=1 docker compose up backend-testing
-
-  run-linters:
-    name: Run linters
+    name: Jest (unit tests)
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 21
+      - name: Set up environment
+        uses: ./.github/actions/ci-env
 
-      # ESLint and Prettier must be in `package.json`
-      - name: Install Node.js dependencies
-        run: npm ci
+      - name: Run Jest
+        run: npm run test
+
+  eslint:
+    name: ESLint (linting)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up environment
+        uses: ./.github/actions/ci-env
 
       - name: Run linter
-        run: npx eslint .
+        run: npm run lint
+
+  prettier:
+    name: Prettier (formatting)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up environment
+        uses: ./.github/actions/ci-env
 
       - name: Run Prettier
         run: npx prettier --check .
-
-  # build-docker-prod:
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - name: Build Dockerfile
-  #     run: docker buildx build --target prod -t backend-test-image .
