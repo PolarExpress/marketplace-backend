@@ -11,6 +11,14 @@ runs:
         node-version: 21
         cache: "npm"
 
+    - name: Cache dependencies
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: ./node_modules
+        key: modules-${{ hashFiles('package-lock.json') }}
+
     - name: Install Node.js dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       run: npm ci
       shell: bash
