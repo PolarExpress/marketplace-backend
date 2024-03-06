@@ -47,7 +47,7 @@ jobs:
         uses: ./.github/actions/ci-env
 
       - name: Run Prettier
-        run: npm run format
+        run: npx prettier --check .
   # build-docker-prod:
   #   runs-on: ubuntu-latest
 

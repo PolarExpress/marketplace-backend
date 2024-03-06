@@ -1,8 +1,8 @@
-name: 'Setup CI environment'
-description: 'Set up Node.js environment for CI'
+name: "Setup CI environment"
+description: "Set up Node.js environment for CI"
 
 runs:
-  using: 'composite'
+  using: "composite"
 
   steps:
     - name: Set up Node.js
