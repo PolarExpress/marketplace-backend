@@ -10,7 +10,8 @@
     "prisma-migrate": "prisma migrate dev",
     "prisma-seed": "prisma db seed --preview-feature",
     "test": "jest --passWithNoTests",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prettify": "prettier --write ."
   },
   "dependencies": {
     "@prisma/client": "5.10.2",
