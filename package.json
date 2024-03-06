@@ -34,5 +34,8 @@
   },
   "zenstack": {
     "schema": "./schema/schema.zmodel"
+  },
+  "prisma": {
+    "schema": "./schema/prisma/schema.prisma"
   }
 }
