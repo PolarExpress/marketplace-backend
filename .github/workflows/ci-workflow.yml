@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/ci-env
 
       - name: Run Jest
-        run: npx jest
+        run: npm run test
 
   eslint:
     name: ESLint (linting)
@@ -33,7 +33,7 @@ jobs:
         uses: ./.github/actions/ci-env
 
       - name: Run linter
-        run: npx eslint .
+        run: npm run lint
 
   prettier:
     name: Prettier (formatting)
@@ -47,7 +47,7 @@ jobs:
         uses: ./.github/actions/ci-env
 
       - name: Run Prettier
-        run: npx prettier --check .
+        run: npm run format
   # build-docker-prod:
   #   runs-on: ubuntu-latest
 
