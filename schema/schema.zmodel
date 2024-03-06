@@ -1,11 +1,11 @@
 // This is a sample model to get you started.
 
 /**
- * A sample data source using local sqlite db.
- */
+A sample data source using local sqlite db.
+*/
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-1.1.x"]
+  binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -13,38 +13,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AddonCategory {
+  VISUALISATION
+  MACHINE_LEARNING
+  DATA_SOURCE
+}
+
 /**
- * User model
- */
+User model
+*/
 model User {
-    id String @id @default(cuid())
-    email String @unique @email
-    password String @password @omit @length(8, 16)
-    posts Post[]
+  id        String  @id @default(cuid())
+  email     String  @unique @email  
 
-    // everybody can signup
-    @@allow('create', true)
-
-    // full access by self
-    @@allow('all', auth() == this)
+  installs  Addon[]
 }
+
 
 /**
- * Post model
- */
-model Post {
-    id String @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    title String @length(1, 256)
-    content String
-    published Boolean @default(false)
-    author User @relation(fields: [authorId], references: [id])
-    authorId String
+Addon model
+*/
+model Addon {
+  id          String  @id @default(cuid())
+  name        String          
+  summary     String
+  icon        String
 
-    // allow read for all signin users
-    @@allow('read', auth() != null && published)
+  category    AddonCategory
 
-    // full access by author
-    @@allow('all', author == auth())
+  installedBy User[]
 }
+
