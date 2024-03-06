@@ -1,0 +1,8 @@
+{
+  "collectCoverage": true,
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["lcov"],
+  "clearMocks": true,
+  "preset": "ts-jest",
+  "testEnvironment": "node"
+}
