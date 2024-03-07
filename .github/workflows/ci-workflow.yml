@@ -4,6 +4,7 @@ on:
   push:
     branches: ["main"]
   pull_request:    
+    types: ["opened", "synchronize", "reopened", "ready_for_review"]
     branches: ["main"]
 
 jobs:
@@ -49,7 +50,7 @@ jobs:
     name: Prettier (formatting)
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
-    
+
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v3
