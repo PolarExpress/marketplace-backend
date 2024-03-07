@@ -9,7 +9,6 @@ Backend and infrastructure for the GraphPolaris marketplace.
 For development or running bare metal, the following are also required:
 
 - Node.js 21 or above
-- pnpm
 
 ## How to run
 
@@ -44,8 +43,21 @@ docker compose up db
 
 If you prefer to run the backend locally instead, follow these instructions:
 
-- Run `npm i`
-- Run `npm start:dev`
+```sh
+# Install dependencies
+npm i
+
+# Compile the schema and run migrations
+npm run gen-schema
+npm run prisma-migrate
+
+# Prepopulate the database with some sample data
+# Add "-- <seed>" to set a fixed seed for the random generator
+npm run prisma-seed
+
+# Start the dev server
+npm run start:dev
+```
 
 ### Prisma Studio
 
