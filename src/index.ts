@@ -5,13 +5,13 @@
  * © Copyright Utrecht University
  * (Department of Information and Computing Sciences)
  */
+
 import { createContext } from "./context";
 import { buildApp } from "./app";
 
+// Create the app and start the server
 const app = buildApp(createContext());
 
-if (require.main === module) {
-  app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
-  });
-}
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});

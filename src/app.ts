@@ -6,26 +6,13 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express, { NextFunction } from "express";
+import express from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
 import { installRoute, uninstallRoute } from "./install";
-import { body, validationResult } from "express-validator";
+import { body } from "express-validator";
 import { asyncCatch } from "./utils";
-
-// import { enhance } from "@zenstackhq/runtime";
-
-function handleValidationResult(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const result = validationResult(req);
-  if (!result.isEmpty()) {
-    return res.status(400).json({ errors: result.array() });
-  }
-  next();
-}
+import { handleValidationResult } from "./validate";
 
 export function buildApp(ctx: Context) {
   const app = express();
