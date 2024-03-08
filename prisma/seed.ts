@@ -50,7 +50,7 @@ async function main() {
     await prisma.user.create({
       data: {
         ...seed_user(),
-        installs: { connect: chooseFromN(addons, installs) }
+        installedAddons: { connect: chooseFromN(addons, installs) }
       }
     });
   }
