@@ -6,7 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express from "express";
+import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
 import { installRoute, uninstallRoute } from "./install";
@@ -35,10 +35,13 @@ export function buildApp(ctx: Context) {
     asyncCatch(uninstallRoute(ctx))
   );
 
-  app.use((err: Error, req: Request, res: Response) => {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  });
+  app.use(
+    (err: Error, req: Request, res: Response, next: NextFunction): void => {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+      next();
+    }
+  );
 
   return app;
 }
