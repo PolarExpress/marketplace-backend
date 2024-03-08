@@ -23,10 +23,10 @@ enum AddonCategory {
 User model
 */
 model User {
-  id        String  @id @default(cuid())
-  email     String  @unique @email  
+  id               String  @id @default(cuid())
+  email            String  @unique @email
 
-  installs  Addon[]
+  installedAddons  Addon[] 
 }
 
 

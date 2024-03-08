@@ -23,7 +23,7 @@ model User {
     id String @id() @default(cuid())
     /// @email
     email String @unique()
-    installs Addon[]
+    installedAddons Addon[]
 }
 
 model Addon {
