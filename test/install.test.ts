@@ -109,7 +109,7 @@ test("install::500-on-already-installed-addon", async () => {
 });
 
 test("install::400-on-missing-user-id", async () => {
-  const [_, ctx] = createMockContext();
+  const [, ctx] = createMockContext();
 
   const app = buildApp(ctx);
   const response = await request(app)
@@ -120,7 +120,7 @@ test("install::400-on-missing-user-id", async () => {
 });
 
 test("install::400-on-missing-addon-id", async () => {
-  const [_, ctx] = createMockContext();
+  const [, ctx] = createMockContext();
 
   const app = buildApp(ctx);
   const response = await request(app)
@@ -217,7 +217,7 @@ test("uninstall::500-on-not-installed-addon", async () => {
 });
 
 test("uninstall::400-on-missing-user-id", async () => {
-  const [_, ctx] = createMockContext();
+  const [, ctx] = createMockContext();
 
   const app = buildApp(ctx);
   const response = await request(app)
@@ -228,7 +228,7 @@ test("uninstall::400-on-missing-user-id", async () => {
 });
 
 test("uninstall::400-on-missing-addon-id", async () => {
-  const [_, ctx] = createMockContext();
+  const [, ctx] = createMockContext();
 
   const app = buildApp(ctx);
   const response = await request(app)
