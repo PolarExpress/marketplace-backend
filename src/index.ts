@@ -8,7 +8,6 @@
 import { createContext } from "./context";
 import { buildApp } from "./app";
 
-
 const app = buildApp(createContext());
 
 if (require.main === module) {
