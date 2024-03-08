@@ -7,7 +7,6 @@
  */
 import { createContext } from "./context";
 import { buildApp } from "./app";
-      import { PrismaClient } from "@prisma/client";
 
 const app = buildApp(createContext());
 
