@@ -5,18 +5,15 @@
     "build": "tsc",
     "start:dev": "ts-node src/index.ts",
     "start": "node build/index.js",
-    "gen-schema": "zenstack generate",
-    "prisma-push": "prisma db push",
-    "prisma-migrate": "prisma migrate dev",
-    "prisma-seed": "prisma db seed",
+    "gen-schema": "npx prisma generate && npx prisma db push",
+    "migrate": "prisma migrate dev",
+    "db-seed": "prisma db seed",
     "test": "jest --passWithNoTests",
     "lint": "eslint .",
     "prettify": "prettier --write ."
   },
   "dependencies": {
     "@prisma/client": "5.10.2",
-    "@zenstackhq/runtime": "1.9.0",
-    "@zenstackhq/server": "^1.9.0",
     "express": "4.18.2",
     "express-validator": "^7.0.1"
   },
@@ -34,14 +31,9 @@
     "ts-jest": "^29.1.2",
     "ts-node": "10.9.2",
     "typescript": "5.3.3",
-    "typescript-eslint": "^7.1.0",
-    "zenstack": "1.9.0"
-  },
-  "zenstack": {
-    "schema": "./schema/schema.zmodel"
+    "typescript-eslint": "^7.1.0"
   },
   "prisma": {
-    "schema": "./schema/prisma/schema.prisma",
-    "seed": "ts-node schema/seed.ts"
+    "seed": "ts-node prisma/seed.ts"
   }
 }
