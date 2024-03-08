@@ -9,7 +9,7 @@
 import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
-import { installRoute } from "./install";
+import { installRoute, uninstallRoute } from "./install";
 import { body, validationResult } from "express-validator";
 import { asyncCatch } from "./utils";
 
@@ -45,7 +45,7 @@ export function buildApp(ctx: Context) {
     body("userId").exists().isString(),
     body("addonId").exists().isString(),
     handleValidationResult,
-    asyncCatch(installRoute(ctx))
+    asyncCatch(uninstallRoute(ctx))
   );
 
   app.use((err: Error, req: Request, res: Response) => {

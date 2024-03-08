@@ -10,6 +10,9 @@ import { Addon, AddonCategory, User } from "@prisma/client";
 import { buildApp } from "../src/app";
 import { createMockContext } from "./mock-context";
 import request from "supertest";
+import { installRoute } from "../src/install";
+import { throwFn } from "../src/utils";
+import { mock } from "node:test";
 
 const dummyUser = (id: string): User => ({
   id,
