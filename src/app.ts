@@ -40,6 +40,14 @@ export function buildApp(ctx: Context) {
     asyncCatch(installRoute(ctx))
   );
 
+  app.post(
+    "/uninstall",
+    body("userId").exists().isString(),
+    body("addonId").exists().isString(),
+    handleValidationResult,
+    asyncCatch(installRoute(ctx))
+  );
+
   app.use((err: Error, req: Request, res: Response) => {
     console.error(err);
     res.status(500).json({ error: err.message });

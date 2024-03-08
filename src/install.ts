@@ -50,3 +50,37 @@ export const installRoute =
       })
     );
   };
+
+export const uninstallRoute =
+  (ctx: Context) => async (req: InstallRequest, res: Response) => {
+    const { userId, addonId } = req.body;
+
+    const user =
+      (await ctx.prisma.user.findUnique({
+        where: { id: userId },
+        include: { installedAddons: true }
+      })) ?? throwFn(new Error(`User "${userId}" not found`));
+
+    const addon =
+      (await ctx.prisma.addon.findUnique({
+        where: { id: addonId }
+      })) ?? throwFn(new Error(`Addon "${addonId}" not found`));
+
+    // check if user doesn't already have the addon installed
+    if (!user.installedAddons.some(a => a.id === addon.id)) {
+      throw new Error(
+        `User "${user.id}" does not have addon "${addon.id}" installed`
+      );
+    }
+    // add relation between user and addon
+    res.json(
+      await ctx.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          installedAddons: {
+            disconnect: { id: addon.id }
+          }
+        }
+      })
+    );
+  };
