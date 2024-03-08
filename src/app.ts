@@ -9,10 +9,10 @@
 import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
-import { installRoute, uninstallRoute } from "./install";
+import { installRoute, uninstallRoute } from "./routes/install";
 import { body } from "express-validator";
 import { asyncCatch } from "./utils";
-import { handleValidationResult } from "./validate";
+import { handleValidationResult } from "./middlewares/validation";
 
 export function buildApp(ctx: Context) {
   const app = express();

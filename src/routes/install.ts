@@ -7,8 +7,8 @@
  */
 
 import { Request, Response } from "express";
-import { throwFn } from "./utils";
-import { Context } from "./context";
+import { throwFn } from "../utils";
+import { Context } from "../context";
 
 /**
  * The request type for the installation of an addon.
