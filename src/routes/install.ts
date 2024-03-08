@@ -7,7 +7,7 @@
  */
 
 import { Request, Response } from "express";
-import { Context } from "./context";
+import { Context } from "../context";
 
 /**
  * The request type for the installation of an addon.
