@@ -13,11 +13,15 @@ import { installRoute, uninstallRoute } from "./routes/install";
 import { body } from "express-validator";
 import { asyncCatch } from "./utils";
 import { handleValidationResult } from "./middlewares/validation";
+import { getAddonsRoute } from "./routes/addons";
 
 export function buildApp(ctx: Context) {
   const app = express();
-
   app.use(express.json());
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Routes
+  //////////////////////////////////////////////////////////////////////////////
 
   app.post(
     "/install",
@@ -34,6 +38,16 @@ export function buildApp(ctx: Context) {
     handleValidationResult,
     asyncCatch(uninstallRoute(ctx))
   );
+
+  app.get(
+    "/addons",
+    // insert validation middleware here
+    // see https://express-validator.github.io/docs for documentation
+    handleValidationResult, // handle validation
+    asyncCatch(getAddonsRoute(ctx)) // handle request
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
