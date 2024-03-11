@@ -7,7 +7,6 @@
  */
 
 import { Request, Response } from "express";
-import { throwFn } from "./utils";
 import { Context } from "./context";
 
 /**
@@ -34,23 +33,32 @@ export const installRoute =
     const { userId, addonId } = req.body;
 
     // Find the user by id. If the user is not found, throw an error.
-    const user =
-      (await ctx.prisma.user.findUnique({
-        where: { id: userId },
-        include: { installedAddons: true }
-      })) ?? throwFn(new Error(`User "${userId}" not found`));
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: userId },
+      include: { installedAddons: true }
+    });
+
+    if (!user) {
+      res.status(400).json({ error: `User "${userId}" not found` });
+      return;
+    }
 
     // Find the addon by id. If the addon is not found, throw an error.
-    const addon =
-      (await ctx.prisma.addon.findUnique({
-        where: { id: addonId }
-      })) ?? throwFn(new Error(`Addon "${addonId}" not found`));
+    const addon = await ctx.prisma.addon.findUnique({
+      where: { id: addonId }
+    });
 
-    // Check if user doesn't already have the addon installed
+    if (!addon) {
+      res.status(400).json({ error: `Addon "${addonId}" not found` });
+      return;
+    }
+
+    // Check if user actually has the addon installed
     if (user.installedAddons.some(a => a.id === addon.id)) {
-      throw new Error(
-        `User "${user.id}" already has addon "${addon.id}" installed`
-      );
+      res.status(400).json({
+        error: `User "${user.id}" does not have addon "${addon.id}" installed`
+      });
+      return;
     }
 
     // Add relation between user and addon
@@ -77,23 +85,32 @@ export const uninstallRoute =
     const { userId, addonId } = req.body;
 
     // Find the user by id. If the user is not found, throw an error.
-    const user =
-      (await ctx.prisma.user.findUnique({
-        where: { id: userId },
-        include: { installedAddons: true }
-      })) ?? throwFn(new Error(`User "${userId}" not found`));
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: userId },
+      include: { installedAddons: true }
+    });
+
+    if (!user) {
+      res.status(400).json({ error: `User "${userId}" not found` });
+      return;
+    }
 
     // Find the addon by id. If the addon is not found, throw an error.
-    const addon =
-      (await ctx.prisma.addon.findUnique({
-        where: { id: addonId }
-      })) ?? throwFn(new Error(`Addon "${addonId}" not found`));
+    const addon = await ctx.prisma.addon.findUnique({
+      where: { id: addonId }
+    });
+
+    if (!addon) {
+      res.status(400).json({ error: `Addon "${addonId}" not found` });
+      return;
+    }
 
     // Check if user actually has the addon installed
     if (!user.installedAddons.some(a => a.id === addon.id)) {
-      throw new Error(
-        `User "${user.id}" does not have addon "${addon.id}" installed`
-      );
+      res.status(400).json({
+        error: `User "${user.id}" does not have addon "${addon.id}" installed`
+      });
+      return;
     }
 
     // Remove relation between user and addon

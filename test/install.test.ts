@@ -52,7 +52,7 @@ test("install::correct-response-code-and-body", async () => {
   expect(response.body).toEqual(newUser);
 });
 
-test("install::500-on-unknown-user-id", async () => {
+test("install::400-on-unknown-user-id", async () => {
   const addon: Addon = dummyAddon("addon-id");
 
   const [mockCtx, ctx] = createMockContext();
@@ -65,10 +65,10 @@ test("install::500-on-unknown-user-id", async () => {
     .post("/install")
     .send({ userId: "wrongId", addonId: addon.id });
 
-  expect(response.status).toBe(500);
+  expect(response.status).toBe(400);
 });
 
-test("install::500-on-unknown-addon-id", async () => {
+test("install::400-on-unknown-addon-id", async () => {
   const user: User & { installedAddons: Addon[] } = {
     ...dummyUser("user-id"),
     installedAddons: []
@@ -84,10 +84,10 @@ test("install::500-on-unknown-addon-id", async () => {
     .post("/install")
     .send({ userId: user.id, addonId: "wrongId" });
 
-  expect(response.status).toBe(500);
+  expect(response.status).toBe(400);
 });
 
-test("install::500-on-already-installed-addon", async () => {
+test("install::400-on-already-installed-addon", async () => {
   const addon: Addon = dummyAddon("addon-id");
 
   const user: User & { installedAddons: Addon[] } = {
@@ -105,7 +105,7 @@ test("install::500-on-already-installed-addon", async () => {
     .post("/install")
     .send({ userId: user.id, addonId: "addon-id" });
 
-  expect(response.status).toBe(500);
+  expect(response.status).toBe(400);
 });
 
 test("install::400-on-missing-user-id", async () => {
@@ -160,7 +160,7 @@ test("uninstall::correct-response-code-and-body", async () => {
   expect(response.body).toEqual(newUser);
 });
 
-test("uninstall::500-on-unknown-user-id", async () => {
+test("uninstall::400-on-unknown-user-id", async () => {
   const addon: Addon = dummyAddon("addon-id");
 
   const [mockCtx, ctx] = createMockContext();
@@ -173,10 +173,10 @@ test("uninstall::500-on-unknown-user-id", async () => {
     .post("/uninstall")
     .send({ userId: "wrongId", addonId: addon.id });
 
-  expect(response.status).toBe(500);
+  expect(response.status).toBe(400);
 });
 
-test("uninstall::500-on-unknown-addon-id", async () => {
+test("uninstall::400-on-unknown-addon-id", async () => {
   const user: User & { installedAddons: Addon[] } = {
     ...dummyUser("user-id"),
     installedAddons: []
@@ -192,10 +192,10 @@ test("uninstall::500-on-unknown-addon-id", async () => {
     .post("/uninstall")
     .send({ userId: user.id, addonId: "wrongId" });
 
-  expect(response.status).toBe(500);
+  expect(response.status).toBe(400);
 });
 
-test("uninstall::500-on-not-installed-addon", async () => {
+test("uninstall::400-on-not-installed-addon", async () => {
   const addon: Addon = dummyAddon("addon-id");
 
   const user: User & { installedAddons: Addon[] } = {
@@ -213,7 +213,7 @@ test("uninstall::500-on-not-installed-addon", async () => {
     .post("/uninstall")
     .send({ userId: user.id, addonId: addon.id });
 
-  expect(response.status).toBe(500);
+  expect(response.status).toBe(400);
 });
 
 test("uninstall::400-on-missing-user-id", async () => {

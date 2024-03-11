@@ -19,6 +19,9 @@ export function buildApp(ctx: Context) {
 
   app.use(express.json());
 
+  // /api/addons
+  // /api/addons
+
   app.post(
     "/install",
     body("userId").exists().isString(),
@@ -38,7 +41,7 @@ export function buildApp(ctx: Context) {
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
       console.error(err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: "Internal server error" });
       next();
     }
   );
