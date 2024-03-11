@@ -21,16 +21,32 @@ export function buildApp(ctx: Context) {
 
   app.post(
     "/install",
-    body("userId").exists().isString(),
-    body("addonId").exists().isString(),
+    body("userId")
+      .exists()
+      .withMessage("No userId specified")
+      .isString()
+      .withMessage("userId needs to be a string"),
+    body("addonId")
+      .exists()
+      .withMessage("No addonId specified")
+      .isString()
+      .withMessage("addonId needs to be a string"),
     handleValidationResult,
     asyncCatch(installRoute(ctx))
   );
 
   app.post(
     "/uninstall",
-    body("userId").exists().isString(),
-    body("addonId").exists().isString(),
+    body("userId")
+      .exists()
+      .withMessage("No userId specified")
+      .isString()
+      .withMessage("userId needs to be a string"),
+    body("addonId")
+      .exists()
+      .withMessage("No addonId specified")
+      .isString()
+      .withMessage("addonId needs to be a string"),
     handleValidationResult,
     asyncCatch(uninstallRoute(ctx))
   );
