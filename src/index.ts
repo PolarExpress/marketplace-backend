@@ -6,40 +6,11 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express from "express";
-import { PrismaClient } from "@prisma/client";
-import { ZenStackMiddleware } from "@zenstackhq/server/express";
-import RestApiHandler from "@zenstackhq/server/api/rest";
-// import { enhance } from "@zenstackhq/runtime";
+import { createContext } from "./context";
+import { buildApp } from "./app";
 
-const prisma = new PrismaClient();
-const app = express();
-
-app.use(express.json());
-
-// --- dummy authentication
-
-// function getSessionUser(request: express.Request) {
-//   // This is a placeholder for your auth solution
-//   return {
-//     id: "",
-//   };
-// }
-
-// ---
-
-const handler = RestApiHandler({ endpoint: "http://localhost:3000/api" });
-
-app.use(
-  "/api",
-  ZenStackMiddleware({
-    // switch for authentication
-    /// getPrisma: (request: express.Request) => enhance(prisma, { user: getSessionUser(request) }),
-    getPrisma: () => prisma,
-
-    handler: handler
-  })
-);
+// Create the app and start the server
+const app = buildApp(createContext());
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");

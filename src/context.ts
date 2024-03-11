@@ -7,25 +7,18 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-import { enhance } from "@zenstackhq/runtime";
 
-import { mockDeep, DeepMockProxy } from "jest-mock-extended";
-
+/**
+ * Context contains all the dependencies that are required by the resolvers
+ * (e.g. PrismaClient). This allows us to easily mock these dependencies in
+ * tests, and to easily switch out implementations.
+ */
 export type Context = {
   prisma: PrismaClient;
-  prismaEnhanced: PrismaClient;
 };
 
-export type MockContext = {
-  prisma: DeepMockProxy<PrismaClient>;
-  prismaEnhanced: DeepMockProxy<PrismaClient>;
+export const createContext = (): Context => {
+  return {
+    prisma: new PrismaClient()
+  };
 };
-
-export function createMockContext(userId?: string): [Context, MockContext] {
-  const prisma = mockDeep<PrismaClient>();
-  const prismaEnhanced =
-    userId === undefined ? prisma : enhance(prisma, { user: { id: userId } });
-
-  const context = { prisma, prismaEnhanced };
-  return [context, context];
-}
