@@ -19,9 +19,6 @@ export function buildApp(ctx: Context) {
 
   app.use(express.json());
 
-  // /api/addons
-  // /api/addons
-
   app.post(
     "/install",
     body("userId").exists().isString(),
