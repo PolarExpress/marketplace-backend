@@ -6,8 +6,8 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory, PrismaClient, User } from "@prisma/client";
-import { randCompanyName, randEmail, randText, seed } from "@ngneat/falso";
+import { Addon, AddonCategory, PrismaClient, User, Author } from "@prisma/client";
+import { randCompanyName, randEmail, randUserName, randText, seed } from "@ngneat/falso";
 
 const prisma = new PrismaClient();
 
@@ -17,16 +17,25 @@ type Seeded<T> = Omit<T, "id">;
 
 function seed_user(): Seeded<User> {
   return {
+    name: randUserName(),
     email: randEmail()
   };
 }
+
+function seed_author(user:User): Seeded<Author> {
+  return {
+    name: user.name,
+    userId: user.id
+  }
+} 
 
 function seed_addon(): Seeded<Addon> {
   return {
     name: randCompanyName(),
     summary: randText({ charCount: 50 }),
+    icon: "",
     category: chooseFrom(Object.values(AddonCategory)),
-    icon: ""
+    authorId: ""
   };
 }
 
@@ -39,6 +48,7 @@ async function main() {
   // Delete all the data that is already there, ...
   await prisma.user.deleteMany();
   await prisma.addon.deleteMany();
+  await prisma.author.deleteMany();
 
   // ... and fill it up with the seeded data
   const addons = await Promise.all(
@@ -51,6 +61,23 @@ async function main() {
       data: {
         ...seed_user(),
         installedAddons: { connect: chooseFromN(addons, installs) }
+      }
+    });
+  }
+
+  for (let i = 0; i < 6; i++) {
+    const installs = chooseFrom([0, 0, 0, 0, 1, 2]);
+    const createdAddons = chooseFrom([1, 1, 1, 1, 2]);
+    const users = await prisma.user.create({
+      data: {
+        ...seed_user(),
+        installedAddons: { connect: chooseFromN(addons, installs) }
+      }
+    });
+      await prisma.author.create({
+      data: {
+      ...seed_author(users),
+      createdAddons: { connect: chooseFromN(addons, createdAddons) }
       }
     });
   }

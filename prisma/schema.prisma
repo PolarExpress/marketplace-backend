@@ -5,7 +5,7 @@ datasource db {
 
 generator client {
     provider = "prisma-client-js"
-    binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+    binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
 }
 
 enum AddonCategory {
@@ -16,6 +16,7 @@ enum AddonCategory {
 
 model User {
     id String @id() @default(cuid())
+    name String
     /// @email
     email String @unique()
 
@@ -25,12 +26,12 @@ model User {
 
 model Author{
     id String @id() @default(cuid())
-    
+    name String
+
     user User @relation(fields:[userId], references: [id])
     userId String @unique
 
-    createdAddons Addon[] 
-
+    createdAddons Addon[]
 }
 
 model Addon {
@@ -43,5 +44,5 @@ model Addon {
     installedBy User[]
 
     author      Author @relation(fields: [authorId], references: [id])
-    authorId    String
+    authorId    String 
 }
