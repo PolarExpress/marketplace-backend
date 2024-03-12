@@ -6,11 +6,10 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory, User } from "@prisma/client";
+import { Addon, AddonCategory } from "@prisma/client";
 import { buildApp } from "../../src/app";
 import { createMockContext } from "../mock-context";
 import request from "supertest";
-
 
 const dummyAddon = (id: string, category: AddonCategory): Addon => ({
   id,
@@ -20,14 +19,18 @@ const dummyAddon = (id: string, category: AddonCategory): Addon => ({
   category
 });
 
-
 test("/addons::200-with-valid-queries", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const addons = [dummyAddon("1", AddonCategory.DATA_SOURCE), dummyAddon("2", AddonCategory.VISUALISATION)];
+  const addons = [
+    dummyAddon("1", AddonCategory.DATA_SOURCE),
+    dummyAddon("2", AddonCategory.VISUALISATION)
+  ];
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
   const app = buildApp(ctx);
-  const response = await request(app).get("/addons?page=1&category=DATA_SOURCE");
+  const response = await request(app).get(
+    "/addons?page=1&category=DATA_SOURCE"
+  );
 
   expect(response.status).toBe(200);
   expect(response.body).toEqual(addons);
@@ -35,7 +38,10 @@ test("/addons::200-with-valid-queries", async () => {
 
 test("/addons::200-with-optional-queries-missing", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const addons = [dummyAddon("1", AddonCategory.DATA_SOURCE), dummyAddon("2", AddonCategory.VISUALISATION)];
+  const addons = [
+    dummyAddon("1", AddonCategory.DATA_SOURCE),
+    dummyAddon("2", AddonCategory.VISUALISATION)
+  ];
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
   const app = buildApp(ctx);
@@ -62,4 +68,3 @@ test("/addons::400-with-invalid-category-query", async () => {
 
   expect(response.status).toBe(400);
 });
-

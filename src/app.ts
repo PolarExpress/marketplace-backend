@@ -21,11 +21,12 @@ export function buildApp(ctx: Context) {
   const app = express();
   app.use(express.json());
 
-  app.use(cors({
-    origin: 'http://localhost:5173' 
-  }));
+  app.use(
+    cors({
+      origin: "http://localhost:5173"
+    })
+  );
 
-  
   //////////////////////////////////////////////////////////////////////////////
   // Routes
   //////////////////////////////////////////////////////////////////////////////
@@ -69,7 +70,9 @@ export function buildApp(ctx: Context) {
     query("page")
       .optional()
       .isInt({ min: 1 })
-      .withMessage("Invalid page number, page number is optional, defaults to page 1"),
+      .withMessage(
+        "Invalid page number, page number is optional, defaults to page 1"
+      ),
     query("category")
       .optional()
       .isIn(Object.values(AddonCategory))
@@ -87,8 +90,6 @@ export function buildApp(ctx: Context) {
       next();
     }
   );
-
-
 
   return app;
 }
