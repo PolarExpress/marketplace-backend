@@ -10,15 +10,22 @@ import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
 import { installRoute, uninstallRoute } from "./routes/install";
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 import { asyncCatch } from "./utils";
 import { handleValidationResult } from "./middlewares/validation";
 import { getAddonsRoute } from "./routes/addons";
+import cors from "cors";
+import { AddonCategory } from "./types/AddOnTypes";
 
 export function buildApp(ctx: Context) {
   const app = express();
   app.use(express.json());
 
+  app.use(cors({
+    origin: 'http://localhost:5173' 
+  }));
+
+  
   //////////////////////////////////////////////////////////////////////////////
   // Routes
   //////////////////////////////////////////////////////////////////////////////
@@ -59,6 +66,14 @@ export function buildApp(ctx: Context) {
     "/addons",
     // insert validation middleware here
     // see https://express-validator.github.io/docs for documentation
+    query("page")
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage("Invalid page number, page number is optional, defaults to page 1"),
+    query("category")
+      .optional()
+      .isIn(Object.values(AddonCategory))
+      .withMessage("Invalid category, category is optional"),
     handleValidationResult, // handle validation
     asyncCatch(getAddonsRoute(ctx)) // handle request
   );
@@ -72,6 +87,8 @@ export function buildApp(ctx: Context) {
       next();
     }
   );
+
+
 
   return app;
 }
