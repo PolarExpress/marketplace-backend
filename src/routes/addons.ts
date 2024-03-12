@@ -8,7 +8,7 @@
 
 import { Request, Response } from "express";
 import { Context } from "../context";
-import { AddonCategory } from "../types/AddOnTypes";
+import { AddonCategory } from "prisma/prisma-client";
 
 
 interface GetAddonsRequest extends Request {

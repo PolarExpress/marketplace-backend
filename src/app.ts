@@ -15,7 +15,7 @@ import { asyncCatch } from "./utils";
 import { handleValidationResult } from "./middlewares/validation";
 import { getAddonsRoute } from "./routes/addons";
 import cors from "cors";
-import { AddonCategory } from "./types/AddOnTypes";
+import { AddonCategory } from "prisma/prisma-client";
 
 export function buildApp(ctx: Context) {
   const app = express();
