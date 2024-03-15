@@ -9,7 +9,7 @@
 import { PrismaClient } from "@prisma/client";
 import { DeepMockProxy, mockDeep } from "jest-mock-extended";
 import { Context } from "../src/context";
-import fs from 'fs/promises';
+import fs from "fs/promises";
 
 export type MockContext = {
   prisma: DeepMockProxy<PrismaClient>;
@@ -19,7 +19,7 @@ export type MockContext = {
 export const createMockContext = (): [MockContext, Context] => {
   const context = {
     prisma: mockDeep<PrismaClient>(),
-    fs: mockDeep<typeof fs>(),
+    fs: mockDeep<typeof fs>()
   };
   return [context, context];
 };
