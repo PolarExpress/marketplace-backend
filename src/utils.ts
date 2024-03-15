@@ -8,6 +8,14 @@
 
 import { NextFunction, Request, Response } from "express";
 
+// type hack to allow express-validator to sanitize query parameters
+declare module "express" {
+  interface Request {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    query: any;
+  }
+}
+
 type EndpointFn = (req: Request, res: Response) => Promise<void>;
 
 /**
