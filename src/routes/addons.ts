@@ -37,3 +37,21 @@ export const getAddonsRoute =
     });
     res.status(200).json(addons);
   };
+
+interface GetAddonByIdRequest extends Request {}
+
+export const getAddonByIdRoute =
+  (ctx: Context) => async (req: GetAddonByIdRequest, res: Response) => {
+    const { id } = req.params;
+    const addon = await ctx.prisma.addon.findUnique({
+      where: {
+        id
+      }
+    });
+
+    if (addon === null) {
+      res.status(404).json({ error: "Addon not found" });
+    } else {
+      res.status(200).json(addon);
+    }
+  };

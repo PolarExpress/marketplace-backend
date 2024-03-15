@@ -10,10 +10,10 @@ import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
 import { installRoute, uninstallRoute } from "./routes/install";
-import { body, query } from "express-validator";
+import { body, param, query } from "express-validator";
 import { asyncCatch } from "./utils";
 import { handleValidationResult } from "./middlewares/validation";
-import { getAddonsRoute } from "./routes/addons";
+import { getAddonByIdRoute, getAddonsRoute } from "./routes/addons";
 import cors from "cors";
 import { AddonCategory } from "prisma/prisma-client";
 
@@ -74,6 +74,12 @@ export function buildApp(ctx: Context) {
       ),
     handleValidationResult, // handle validation
     asyncCatch(getAddonsRoute(ctx)) // handle request
+  );
+
+  app.get(
+    "/addons/:id",
+    param("id").isString().withMessage("Invalid id, must be a string"),
+    asyncCatch(getAddonByIdRoute(ctx))
   );
 
   //////////////////////////////////////////////////////////////////////////////
