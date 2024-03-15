@@ -8,10 +8,11 @@
 
 import { NextFunction, Request, Response } from "express";
 
-
+// type hack to allow express-validator to sanitize query parameters
 declare module "express" {
   interface Request {
-    query: any; // type hack to allow express-validator to sanitize query parameters
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    query: any;
   }
 }
 
