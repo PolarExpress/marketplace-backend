@@ -85,7 +85,7 @@ async function main() {
   let addons: Addon[] = await prisma.addon.findMany();
   
   for (let i = 0; i < users.length; i++){
-    const installs = chooseFrom([0, 0, 0, 0, 1, 2]);
+    const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
     await prisma.user.update({
       where: {id: users[i].id},
       data: {installedAddons: {connect: chooseFromN(addons,installs)}}
