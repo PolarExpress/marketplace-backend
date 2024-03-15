@@ -68,3 +68,25 @@ test("/addons::400-on-invalid-category-query", async () => {
 
   expect(response.status).toBe(400);
 });
+
+test("/addons/:id::200-on-valid-id", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const addon = dummyAddon("1", AddonCategory.DATA_SOURCE);
+  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
+
+  const app = buildApp(ctx);
+  const response = await request(app).get("/addons/1");
+
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual(addon);
+});
+
+test("/addons/:id::404-on-invalid-id", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
+
+  const app = buildApp(ctx);
+  const response = await request(app).get("/addons/1");
+
+  expect(response.status).toBe(404);
+});
