@@ -19,7 +19,7 @@ const dummyAddon = (id: string, category: AddonCategory): Addon => ({
   category
 });
 
-test("/addons::200-with-valid-queries", async () => {
+test("/addons::200-on-valid-query-all-fields", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addons = [
     dummyAddon("1", AddonCategory.DATA_SOURCE),
@@ -29,14 +29,14 @@ test("/addons::200-with-valid-queries", async () => {
 
   const app = buildApp(ctx);
   const response = await request(app).get(
-    "/addons?page=1&category=DATA_SOURCE"
+    "/addons?page=0&category=DATA_SOURCE"
   );
 
   expect(response.status).toBe(200);
   expect(response.body).toEqual(addons);
 });
 
-test("/addons::200-with-optional-queries-missing", async () => {
+test("/addons::200-on-valid-query-only-required-fields", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addons = [
     dummyAddon("1", AddonCategory.DATA_SOURCE),
@@ -51,7 +51,7 @@ test("/addons::200-with-optional-queries-missing", async () => {
   expect(response.body).toEqual(addons);
 });
 
-test("/addons::400-with-invalid-page-query", async () => {
+test("/addons::400-on-invalid-page-query", async () => {
   const [, ctx] = createMockContext();
 
   const app = buildApp(ctx);
@@ -60,7 +60,7 @@ test("/addons::400-with-invalid-page-query", async () => {
   expect(response.status).toBe(400);
 });
 
-test("/addons::400-with-invalid-category-query", async () => {
+test("/addons::400-on-invalid-category-query", async () => {
   const [, ctx] = createMockContext();
 
   const app = buildApp(ctx);
