@@ -11,5 +11,7 @@ export declare const throwFn: (e: Error) => never;
  * @param fn - The asynchronous endpoint function to wrap.
  * @returns A middleware function that handles errors thrown by the endpoint function.
  */
-export declare const asyncCatch: (fn: EndpointFn) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const asyncCatch: (
+  fn: EndpointFn
+) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export {};

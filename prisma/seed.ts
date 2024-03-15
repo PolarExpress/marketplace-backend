@@ -6,8 +6,20 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory, PrismaClient, User, Author } from "@prisma/client";
-import { randCompanyName, randEmail, randUserName, randText, seed } from "@ngneat/falso";
+import {
+  Addon,
+  AddonCategory,
+  PrismaClient,
+  User,
+  Author
+} from "@prisma/client";
+import {
+  randCompanyName,
+  randEmail,
+  randUserName,
+  randText,
+  seed
+} from "@ngneat/falso";
 
 const prisma = new PrismaClient();
 
@@ -22,11 +34,11 @@ function seed_user(): Seeded<User> {
   };
 }
 
-function seed_author(user:User): Seeded<Author> {
+function seed_author(user: User): Seeded<Author> {
   return {
     userId: user.id
-  }
-} 
+  };
+}
 
 function seed_addon(author: Author): Seeded<Addon> {
   return {
@@ -52,12 +64,12 @@ async function main() {
   // ... and fill it up with the seeded data
   for (let i = 0; i < 12; i++) {
     const created = chooseFrom([1, 1, 1, 1, 2]);
-    const installs = chooseFrom([0,0,1,1,1,2]);
+    const installs = chooseFrom([0, 0, 1, 1, 1, 2]);
     await prisma.user.create({
       data: {
-        ...seed_user(),
+        ...seed_user()
       }
-    }); 
+    });
   }
   let users: User[] = await prisma.user.findMany();
   let candidAuthors: User[] = [...users];
@@ -67,28 +79,28 @@ async function main() {
     const random = Math.floor(Math.random() * candidAuthors.length);
     await prisma.author.create({
       data: {
-      ...seed_author(candidAuthors[random])
-    }
+        ...seed_author(candidAuthors[random])
+      }
     });
-    candidAuthors.splice(random,1);
+    candidAuthors.splice(random, 1);
   }
-  
+
   let authors: Author[] = await prisma.author.findMany();
 
   for (let i = 0; i < 12; i++) {
     const random = Math.floor(Math.random() * authors.length);
     await prisma.addon.create({
-      data: {...seed_addon(authors[random])}
+      data: { ...seed_addon(authors[random]) }
     });
   }
 
   let addons: Addon[] = await prisma.addon.findMany();
-  
-  for (let i = 0; i < users.length; i++){
+
+  for (let i = 0; i < users.length; i++) {
     const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
     await prisma.user.update({
-      where: {id: users[i].id},
-      data: {installedAddons: {connect: chooseFromN(addons,installs)}}
+      where: { id: users[i].id },
+      data: { installedAddons: { connect: chooseFromN(addons, installs) } }
     });
   }
 }

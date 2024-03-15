@@ -10,7 +10,7 @@
     "db-seed": "prisma db seed",
     "test": "jest --passWithNoTests",
     "lint": "eslint .",
-    "prettify": "prettier --write ."
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@prisma/client": "5.10.2",

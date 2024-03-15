@@ -5,6 +5,6 @@ import { PrismaClient } from "@prisma/client";
  * tests, and to easily switch out implementations.
  */
 export type Context = {
-    prisma: PrismaClient;
+  prisma: PrismaClient;
 };
 export declare const createContext: () => Context;

@@ -11,8 +11,8 @@ exports.asyncCatch = exports.throwFn = void 0;
 /**
  * `throw` wrapped in a function, so we can use it in null coalescing statements.
  */
-const throwFn = (e) => {
-    throw e;
+const throwFn = e => {
+  throw e;
 };
 exports.throwFn = throwFn;
 /**
@@ -22,5 +22,5 @@ exports.throwFn = throwFn;
  * @param fn - The asynchronous endpoint function to wrap.
  * @returns A middleware function that handles errors thrown by the endpoint function.
  */
-const asyncCatch = (fn) => (req, res, next) => fn(req, res).catch(next);
+const asyncCatch = fn => (req, res, next) => fn(req, res).catch(next);
 exports.asyncCatch = asyncCatch;

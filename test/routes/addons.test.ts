@@ -11,7 +11,11 @@ import { buildApp } from "../../src/app";
 import { createMockContext } from "../mock-context";
 import request from "supertest";
 
-const dummyAddon = (id: string, category: AddonCategory, authorId: string): Addon => ({
+const dummyAddon = (
+  id: string,
+  category: AddonCategory,
+  authorId: string
+): Addon => ({
   id,
   name: "Addon Name",
   summary: "Addon Description",

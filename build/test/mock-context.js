@@ -10,9 +10,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createMockContext = void 0;
 const jest_mock_extended_1 = require("jest-mock-extended");
 const createMockContext = () => {
-    const context = {
-        prisma: (0, jest_mock_extended_1.mockDeep)()
-    };
-    return [context, context];
+  const context = {
+    prisma: (0, jest_mock_extended_1.mockDeep)()
+  };
+  return [context, context];
 };
 exports.createMockContext = createMockContext;

@@ -11,10 +11,10 @@ exports.handleValidationResult = void 0;
 const express_validator_1 = require("express-validator");
 // middleware to handle validation results from express-validator
 function handleValidationResult(req, res, next) {
-    const result = (0, express_validator_1.validationResult)(req);
-    if (!result.isEmpty()) {
-        return res.status(400).json({ errors: result.array() });
-    }
-    next();
+  const result = (0, express_validator_1.validationResult)(req);
+  if (!result.isEmpty()) {
+    return res.status(400).json({ errors: result.array() });
+  }
+  next();
 }
 exports.handleValidationResult = handleValidationResult;

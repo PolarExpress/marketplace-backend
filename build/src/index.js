@@ -12,5 +12,5 @@ const app_1 = require("./app");
 // Create the app and start the server
 const app = (0, app_1.buildApp)((0, context_1.createContext)());
 app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
+  console.log("Server running on http://localhost:3000");
 });

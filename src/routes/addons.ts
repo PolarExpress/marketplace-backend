@@ -36,8 +36,8 @@ export const getAddonsRoute =
       },
       include: {
         author: {
-          include: { 
-            user: true 
+          include: {
+            user: true
           }
         }
       }
