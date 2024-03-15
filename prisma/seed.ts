@@ -24,18 +24,17 @@ function seed_user(): Seeded<User> {
 
 function seed_author(user:User): Seeded<Author> {
   return {
-    name: user.name,
     userId: user.id
   }
 } 
 
-function seed_addon(): Seeded<Addon> {
+function seed_addon(author: Author): Seeded<Addon> {
   return {
     name: randCompanyName(),
     summary: randText({ charCount: 50 }),
     icon: "",
     category: chooseFrom(Object.values(AddonCategory)),
-    authorId: ""
+    authorId: author.id
   };
 }
 
@@ -46,41 +45,63 @@ async function main() {
   seed(process.argv[2]);
 
   // Delete all the data that is already there, ...
-  await prisma.user.deleteMany();
   await prisma.addon.deleteMany();
   await prisma.author.deleteMany();
+  await prisma.user.deleteMany();
 
   // ... and fill it up with the seeded data
-  const addons = await Promise.all(
-    range(10).map(() => prisma.addon.create({ data: seed_addon() }))
-  );
-
-  for (let i = 0; i < 10; i++) {
-    const installs = chooseFrom([0, 0, 0, 0, 1, 2]);
+  for (let i = 0; i < 12; i++) {
+    const created = chooseFrom([1, 1, 1, 1, 2]);
+    const installs = chooseFrom([0,0,1,1,1,2]);
     await prisma.user.create({
       data: {
         ...seed_user(),
-        installedAddons: { connect: chooseFromN(addons, installs) }
       }
+    }); 
+  }
+  let users: User[] = await prisma.user.findMany();
+  let candidAuthors: User[] = [...users];
+
+  for (let i = 0; i < 5; i++) {
+    const created = chooseFrom([1, 1, 1, 1, 2]);
+    const random = Math.floor(Math.random() * candidAuthors.length);
+    await prisma.author.create({
+      data: {
+      ...seed_author(candidAuthors[random]),
+      //createdAddons: { connect: chooseFromN(addons,created)}
+      }
+    });
+    candidAuthors.splice(random,1);
+  }
+  
+  let authors: Author[] = await prisma.author.findMany();
+
+  for (let i = 0; i < 12; i++) {
+    const random = Math.floor(Math.random() * authors.length);
+    await prisma.addon.create({
+      data: {...seed_addon(authors[random])}
     });
   }
 
-  for (let i = 0; i < 6; i++) {
+  let addons: Addon[] = await prisma.addon.findMany();
+  let candidAddons: Addon[] = [...addons];
+
+  for (let i = 0; i < users.length; i++){
     const installs = chooseFrom([0, 0, 0, 0, 1, 2]);
-    const createdAddons = chooseFrom([1, 1, 1, 1, 2]);
-    const users = await prisma.user.create({
-      data: {
-        ...seed_user(),
-        installedAddons: { connect: chooseFromN(addons, installs) }
-      }
-    });
-      await prisma.author.create({
-      data: {
-      ...seed_author(users),
-      createdAddons: { connect: chooseFromN(addons, createdAddons) }
-      }
+    await prisma.user.update({
+      where: {id: users[i].id},
+      data: {installedAddons: {connect: chooseFromN(addons,installs)}}
     });
   }
+
+  // TODO: how to add createdAddons to author?
+  // for (let i = 0; i < addons.length; i++){
+  //   const createdAddons = chooseFrom([1,1,2]);
+  //   await prisma.author.update({
+  //     where: {id: authors[i].id},
+  //     data: {createdAddons: {connect: chooseFromN(addons,createdAddons)}}
+  //   });
+  // }
 }
 
 main();
