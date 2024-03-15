@@ -63,19 +63,16 @@ async function main() {
 
   // ... and fill it up with the seeded data
   for (let i = 0; i < 12; i++) {
-    const created = chooseFrom([1, 1, 1, 1, 2]);
-    const installs = chooseFrom([0, 0, 1, 1, 1, 2]);
     await prisma.user.create({
       data: {
         ...seed_user()
       }
     });
   }
-  let users: User[] = await prisma.user.findMany();
-  let candidAuthors: User[] = [...users];
+  const users: User[] = await prisma.user.findMany();
+  const candidAuthors: User[] = [...users];
 
   for (let i = 0; i < 5; i++) {
-    const created = chooseFrom([1, 1, 1, 1, 2]);
     const random = Math.floor(Math.random() * candidAuthors.length);
     await prisma.author.create({
       data: {
@@ -85,7 +82,7 @@ async function main() {
     candidAuthors.splice(random, 1);
   }
 
-  let authors: Author[] = await prisma.author.findMany();
+  const authors: Author[] = await prisma.author.findMany();
 
   for (let i = 0; i < 12; i++) {
     const random = Math.floor(Math.random() * authors.length);
@@ -94,7 +91,7 @@ async function main() {
     });
   }
 
-  let addons: Addon[] = await prisma.addon.findMany();
+  const addons: Addon[] = await prisma.addon.findMany();
 
   for (let i = 0; i < users.length; i++) {
     const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
@@ -140,6 +137,7 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
  * @param end the end of the range, inclusive
  * @returns a list of numbers [start, ..., end]
  */
+// eslint-disable-next-line
 function range(start: number, end?: number | undefined): number[] {
   return Array(end ? end - start : start)
     .fill(0)
