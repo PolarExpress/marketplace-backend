@@ -22,7 +22,7 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       run: npm ci
       shell: bash
-    
+
     - name: Install Node.js dependencies
       run: npx prisma generate
       shell: bash
