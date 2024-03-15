@@ -13,7 +13,11 @@ import { installRoute, uninstallRoute } from "./routes/install";
 import { body, param, query } from "express-validator";
 import { asyncCatch } from "./utils";
 import { handleValidationResult } from "./middlewares/validation";
-import { getAddonByIdRoute, getAddonsRoute } from "./routes/addons";
+import {
+  getAddonByIdRoute,
+  getAddonReadMeByIdRoute,
+  getAddonsRoute
+} from "./routes/addons";
 import cors from "cors";
 import { AddonCategory } from "prisma/prisma-client";
 
@@ -80,6 +84,12 @@ export function buildApp(ctx: Context) {
     "/addons/:id",
     param("id").isString().withMessage("Invalid id, must be a string"),
     asyncCatch(getAddonByIdRoute(ctx))
+  );
+
+  app.get(
+    "/addons/:id/readme",
+    param("id").isString().withMessage("Invalid id, must be a string"),
+    asyncCatch(getAddonReadMeByIdRoute(ctx))
   );
 
   //////////////////////////////////////////////////////////////////////////////

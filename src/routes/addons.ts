@@ -9,6 +9,7 @@
 import { Request, Response } from "express";
 import { Context } from "../context";
 import { AddonCategory } from "prisma/prisma-client";
+import { join } from "node:path";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -53,5 +54,20 @@ export const getAddonByIdRoute =
       res.status(404).json({ error: "Addon not found" });
     } else {
       res.status(200).json(addon);
+    }
+  };
+
+export const getAddonReadMeByIdRoute =
+  (ctx: Context) => async (req: GetAddonByIdRequest, res: Response) => {
+    const { id } = req.params;
+    try {
+      const data = await ctx.fs.readFile(
+        join(__dirname, "../../", "data", id, "README.md")
+      );
+      res.status(200).send(data);
+    } catch {
+      res
+        .status(400)
+        .json({ error: "Could not load addon data from file store" });
     }
   };

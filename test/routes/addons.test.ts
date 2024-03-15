@@ -90,3 +90,24 @@ test("/addons/:id::404-on-invalid-id", async () => {
 
   expect(response.status).toBe(404);
 });
+
+test("/addons/:id/readme::200-on-valid-id", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  mockCtx.fs.readFile.mockResolvedValue(Buffer.from("Hello"));
+
+  const app = buildApp(ctx);
+  const response = await request(app).get("/addons/1/readme");
+
+  expect(response.status).toBe(200);
+  expect(response.body.toString()).toEqual("Hello");
+});
+
+test("/addons/:id/readme::404-on-invalid-id", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  mockCtx.fs.readFile.mockRejectedValue(null);
+
+  const app = buildApp(ctx);
+  const response = await request(app).get("/addons/1/readme");
+
+  expect(response.status).toBe(400);
+});
