@@ -8,6 +8,13 @@
 
 import { NextFunction, Request, Response } from "express";
 
+
+declare module "express" {
+  interface Request {
+    query: any; // type hack to allow express-validator to sanitize query parameters
+  }
+}
+
 type EndpointFn = (req: Request, res: Response) => Promise<void>;
 
 /**
