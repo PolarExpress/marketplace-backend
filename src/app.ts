@@ -65,18 +65,13 @@ export function buildApp(ctx: Context) {
 
   app.get(
     "/addons",
-    // insert validation middleware here
-    // see https://express-validator.github.io/docs for documentation
-    query("page")
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage(
-        "Invalid page number, page number is optional, defaults to page 1"
-      ),
+    query("page").default(0).isNumeric().toInt(),
     query("category")
       .optional()
       .isIn(Object.values(AddonCategory))
-      .withMessage("Invalid category, category is optional"),
+      .withMessage(
+        `Invalid category, must be one of: ${Object.values(AddonCategory).join(", ")}`
+      ),
     handleValidationResult, // handle validation
     asyncCatch(getAddonsRoute(ctx)) // handle request
   );
