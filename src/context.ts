@@ -7,7 +7,7 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-
+import fs from 'fs/promises';
 /**
  * Context contains all the dependencies that are required by the resolvers
  * (e.g. PrismaClient). This allows us to easily mock these dependencies in
@@ -15,10 +15,12 @@ import { PrismaClient } from "@prisma/client";
  */
 export type Context = {
   prisma: PrismaClient;
+  fs: typeof fs;
 };
 
 export const createContext = (): Context => {
   return {
-    prisma: new PrismaClient()
+    prisma: new PrismaClient(),
+    fs: fs,
   };
 };
