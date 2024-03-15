@@ -9,15 +9,27 @@
 import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import { Context } from "./context";
-import { installRoute, uninstallRoute } from "./install";
-import { body } from "express-validator";
+import { installRoute, uninstallRoute } from "./routes/install";
+import { body, param, query } from "express-validator";
 import { asyncCatch } from "./utils";
-import { handleValidationResult } from "./validate";
+import { handleValidationResult } from "./middlewares/validation";
+import { getAddonByIdRoute, getAddonsRoute } from "./routes/addons";
+import cors from "cors";
+import { AddonCategory } from "prisma/prisma-client";
 
 export function buildApp(ctx: Context) {
   const app = express();
-
   app.use(express.json());
+
+  app.use(
+    cors({
+      origin: "http://localhost:5173"
+    })
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Routes
+  //////////////////////////////////////////////////////////////////////////////
 
   app.post(
     "/install",
@@ -50,6 +62,27 @@ export function buildApp(ctx: Context) {
     handleValidationResult,
     asyncCatch(uninstallRoute(ctx))
   );
+
+  app.get(
+    "/addons",
+    query("page").default(0).isNumeric().toInt(),
+    query("category")
+      .optional()
+      .isIn(Object.values(AddonCategory))
+      .withMessage(
+        `Invalid category, must be one of: ${Object.values(AddonCategory).join(", ")}`
+      ),
+    handleValidationResult, // handle validation
+    asyncCatch(getAddonsRoute(ctx)) // handle request
+  );
+
+  app.get(
+    "/addons/:id",
+    param("id").isString().withMessage("Invalid id, must be a string"),
+    asyncCatch(getAddonByIdRoute(ctx))
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {

@@ -6,9 +6,9 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory, User, Author } from "@prisma/client";
-import { buildApp } from "../src/app";
-import { createMockContext } from "./mock-context";
+import { Addon, AddonCategory, User } from "@prisma/client";
+import { buildApp } from "../../src/app";
+import { createMockContext } from "../mock-context";
 import request from "supertest";
 
 const dummyUser = (id: string): User => ({
