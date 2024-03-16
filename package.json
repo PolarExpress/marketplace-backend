@@ -1,10 +1,19 @@
 {
   "name": "polarexpress-backend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PolarExpress/marketplace-backend.git"
+  },
+  "homepage": "https://github.com/PolarExpress/marketplace-backend#readme",
+  "bugs": {
+    "url": "https://github.com/PolarExpress/marketplace-backend/issues"
+  },
   "version": "1.0.0",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start:dev": "ts-node src/index.ts",
-    "start": "node build/index.js",
+    "start:dev": "NODE_ENV=dev ts-node src/index.ts",
+    "start": "node .",
     "gen-schema": "npx prisma generate && npx prisma db push",
     "migrate": "prisma migrate dev",
     "db-seed": "prisma db seed",
@@ -14,7 +23,6 @@
   },
   "dependencies": {
     "@prisma/client": "5.10.2",
-    "cors": "^2.8.5",
     "express": "4.18.2",
     "express-validator": "^7.0.1"
   },
@@ -25,6 +33,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "20.11.19",
     "@types/supertest": "^6.0.2",
+    "cors": "^2.8.5",
     "eslint": "^8.57.0",
     "jest-mock-extended": "^3.0.5",
     "prettier": "^3.2.5",
