@@ -19,8 +19,8 @@ FROM base AS gen-schema
 WORKDIR /app
 COPY --from=dependencies /deps/dev/node_modules ./node_modules
 COPY package.json ./
-COPY ./schema ./schema
-RUN npx zenstack generate
+COPY ./prisma ./prisma
+RUN npx prisma generate
 
 # ------------------------------------------------------------------------------
 
@@ -40,7 +40,6 @@ WORKDIR /app
 
 COPY --from=build /app/build ./build
 COPY --from=dependencies /deps/prod/node_modules ./node_modules
-COPY --from=gen-schema /app/node_modules/.zenstack ./node_modules/.zenstack
 COPY --from=gen-schema /app/node_modules/.prisma ./node_modules/.prisma
 
 ENV NODE_ENV=production
@@ -54,4 +53,5 @@ WORKDIR /app
 COPY . .
 COPY --from=gen-schema /app/node_modules ./node_modules
 
+ENV NODE_ENV=dev
 ENTRYPOINT [ "npm", "run", "start:dev" ]
