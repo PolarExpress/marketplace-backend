@@ -17,7 +17,7 @@
     "gen-schema": "npx prisma generate && npx prisma db push",
     "migrate": "prisma migrate dev",
     "db-seed": "prisma db seed",
-    "test": "jest --passWithNoTests",
+    "test": "jest --passWithNoTests test",
     "lint": "eslint .",
     "prettify": "prettier --write ."
   },
