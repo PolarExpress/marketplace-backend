@@ -38,7 +38,6 @@ jobs:
           coverage-files: coverage/lcov.info
           minimum-coverage: 85
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: ./src
           update-comment: true
 
   eslint:
