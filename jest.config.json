@@ -1,10 +1,6 @@
 {
   "collectCoverage": true,
-  "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/index.ts",
-      "!src/context.ts"
-  ],
+  "collectCoverageFrom": ["src/**/*.ts", "!src/index.ts", "!src/context.ts"],
   "coverageDirectory": "coverage",
   "coverageReporters": ["lcov"],
   "clearMocks": true,
