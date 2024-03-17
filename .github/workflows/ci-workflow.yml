@@ -29,6 +29,18 @@ jobs:
           retention-days: 30
           if-no-files-found: error # this should never fail!
 
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
+
+      - name: Report code coverage
+        uses: zgosalvez/github-actions-report-lcov@v3
+        with:
+          coverage-files: coverage/lcov.info
+          minimum-coverage: 85
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: ./src
+          update-comment: true
+
   eslint:
     name: ESLint (linting)
     runs-on: ubuntu-latest

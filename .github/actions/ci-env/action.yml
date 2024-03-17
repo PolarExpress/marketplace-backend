@@ -22,3 +22,7 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       run: npm ci
       shell: bash
+
+    - name: Generate prisma client
+      run: npx prisma generate
+      shell: bash

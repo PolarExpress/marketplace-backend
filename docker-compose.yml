@@ -1,50 +1,41 @@
 version: "3.9"
 
 services:
-  db: # database service
-    container_name: gp-marketplace-db
-    extends:
-      file: docker-compose.base.yml
-      service: db
+  db:
+    image: postgres:16.2
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
     profiles: [prod, dev]
 
   backend-prod:
     container_name: gp-marketplace-backend
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
     build:
+      context: .
+      dockerfile: Dockerfile
       target: prod
     depends_on:
       - db
+    ports:
+      - 3000:3000
     profiles: [prod]
 
   backend-dev:
     container_name: gp-marketplace-backend
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
     build:
+      context: .
+      dockerfile: Dockerfile
       target: dev
     depends_on:
       - db
+    ports:
+      - 3000:3000
     profiles: [dev]
-
-  backend-testing:
-    container_name: gp-marketplace-backend-testing
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
-    entrypoint: ["npm", "run", "test"]
-    profiles: [test]
-
-  backend-linting:
-    container_name: gp-marketplace-backend-testing
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
-    entrypoint: ["npm", "run", "lint"]
-    profiles: [test]
 
 volumes:
   db-data:
