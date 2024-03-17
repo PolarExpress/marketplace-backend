@@ -53,6 +53,13 @@ export const getAddonByIdRoute =
     const addon = await ctx.prisma.addon.findUnique({
       where: {
         id
+      },
+      include: {
+        author: {
+          include: {
+            user: true
+          }
+        }
       }
     });
 
