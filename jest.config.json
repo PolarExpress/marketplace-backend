@@ -1,8 +1,12 @@
 {
   "collectCoverage": true,
+  "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/index.ts",
+      "!src/context.ts"
+  ],
   "coverageDirectory": "coverage",
   "coverageReporters": ["lcov"],
-  "coveragePathIgnorePatterns": ["test"],
   "clearMocks": true,
   "preset": "ts-jest",
   "testEnvironment": "node"
