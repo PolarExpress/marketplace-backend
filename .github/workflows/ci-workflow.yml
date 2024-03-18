@@ -4,12 +4,14 @@ on:
   push:
     branches: ["main"]
   pull_request:
+    types: ["opened", "synchronize", "reopened", "ready_for_review"]
     branches: ["main"]
 
 jobs:
   jest:
     name: Jest (unit tests)
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Check out Git repository
@@ -32,6 +34,7 @@ jobs:
   eslint:
     name: ESLint (linting)
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Check out Git repository
@@ -46,6 +49,7 @@ jobs:
   prettier:
     name: Prettier (formatting)
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
 
     steps:
       - name: Check out Git repository
