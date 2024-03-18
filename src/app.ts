@@ -83,12 +83,14 @@ export function buildApp(ctx: Context) {
   app.get(
     "/addons/:id",
     param("id").isString().withMessage("Invalid id, must be a string"),
+    handleValidationResult,
     asyncCatch(getAddonByIdRoute(ctx))
   );
 
   app.get(
     "/addons/:id/readme",
     param("id").isString().withMessage("Invalid id, must be a string"),
+    handleValidationResult,
     asyncCatch(getAddonReadMeByIdRoute(ctx))
   );
 
