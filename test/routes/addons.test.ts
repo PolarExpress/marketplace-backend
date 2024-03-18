@@ -11,19 +11,24 @@ import { buildApp } from "../../src/app";
 import { createMockContext } from "../mock-context";
 import request from "supertest";
 
-const dummyAddon = (id: string, category: AddonCategory): Addon => ({
+const dummyAddon = (
+  id: string,
+  category: AddonCategory,
+  authorId: string
+): Addon => ({
   id,
   name: "Addon Name",
   summary: "Addon Description",
   icon: "icon.png",
-  category
+  category,
+  authorId
 });
 
 test("/addons::200-on-valid-query-all-fields", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addons = [
-    dummyAddon("1", AddonCategory.DATA_SOURCE),
-    dummyAddon("2", AddonCategory.VISUALISATION)
+    dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
+    dummyAddon("2", AddonCategory.VISUALISATION, "987")
   ];
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
@@ -39,8 +44,8 @@ test("/addons::200-on-valid-query-all-fields", async () => {
 test("/addons::200-on-valid-query-only-required-fields", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addons = [
-    dummyAddon("1", AddonCategory.DATA_SOURCE),
-    dummyAddon("2", AddonCategory.VISUALISATION)
+    dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
+    dummyAddon("2", AddonCategory.VISUALISATION, "987")
   ];
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
@@ -71,7 +76,7 @@ test("/addons::400-on-invalid-category-query", async () => {
 
 test("/addons/:id::200-on-valid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const addon = dummyAddon("1", AddonCategory.DATA_SOURCE);
+  const addon = dummyAddon("1", AddonCategory.DATA_SOURCE, "123");
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
   const app = buildApp(ctx);

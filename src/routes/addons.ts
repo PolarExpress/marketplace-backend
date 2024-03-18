@@ -34,6 +34,13 @@ export const getAddonsRoute =
       take: pageSize,
       where: {
         category: category ?? undefined
+      },
+      include: {
+        author: {
+          include: {
+            user: true
+          }
+        }
       }
     });
     res.status(200).json(addons);
@@ -47,6 +54,13 @@ export const getAddonByIdRoute =
     const addon = await ctx.prisma.addon.findUnique({
       where: {
         id
+      },
+      include: {
+        author: {
+          include: {
+            user: true
+          }
+        }
       }
     });
 

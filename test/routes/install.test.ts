@@ -13,6 +13,7 @@ import request from "supertest";
 
 const dummyUser = (id: string): User => ({
   id,
+  name: "",
   email: ""
 });
 
@@ -21,7 +22,8 @@ const dummyAddon = (id: string): Addon => ({
   name: "Addon Name",
   summary: "Addon Description",
   icon: "icon.png",
-  category: AddonCategory.DATA_SOURCE
+  category: AddonCategory.DATA_SOURCE,
+  authorId: ""
 });
 
 test("install::correct-response-code-and-body", async () => {
@@ -29,7 +31,6 @@ test("install::correct-response-code-and-body", async () => {
     ...dummyUser("user-id"),
     installedAddons: []
   };
-
   const addon: Addon = dummyAddon("addon-id");
 
   const newUser: User & { installedAddons: Addon[] } = {
@@ -42,7 +43,6 @@ test("install::correct-response-code-and-body", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
   mockCtx.prisma.user.update.mockResolvedValue(newUser);
-
   const app = buildApp(ctx);
   const response = await request(app)
     .post("/install")
