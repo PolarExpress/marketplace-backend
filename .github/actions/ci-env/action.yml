@@ -23,6 +23,6 @@ runs:
       run: npm ci
       shell: bash
 
-    - name: Install Node.js dependencies
+    - name: Generate prisma client
       run: npx prisma generate
       shell: bash

@@ -44,6 +44,8 @@ docker compose up db
 If you prefer to run the backend locally instead, follow these instructions:
 
 ```sh
+cp sample.env .env
+
 # Install dependencies
 npm i
 
@@ -58,6 +60,10 @@ npm run prisma-seed
 # Start the dev server
 npm run start:dev
 ```
+
+### Testing
+
+To run the tests, simply run `npm test`. Jest will run all of the tests and generate a coverage report in the `coverage` folder.
 
 ### Prisma Studio
 
