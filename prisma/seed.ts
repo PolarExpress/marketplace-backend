@@ -131,6 +131,8 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
   return result.map(i => choices[i]);
 }
 
+
+// TODO: Use or remove this function
 /**
  * Create a list of number based on a range
  * @param start the start of the range, defaults to 0
