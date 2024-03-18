@@ -16,9 +16,20 @@ enum AddonCategory {
 
 model User {
     id String @id() @default(cuid())
-    /// @email
+    name String
     email String @unique()
+
+    author Author?
     installedAddons Addon[]
+}
+
+model Author{
+    id String @id() @default(cuid())
+
+    user User @relation(fields:[userId], references: [id])
+    userId String @unique
+
+    createdAddons Addon[]
 }
 
 model Addon {
@@ -26,6 +37,10 @@ model Addon {
     name String
     summary String
     icon String
+
     category AddonCategory
     installedBy User[]
+
+    author      Author @relation(fields: [authorId], references: [id])
+    authorId    String 
 }

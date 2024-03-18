@@ -6,8 +6,20 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory, PrismaClient, User } from "@prisma/client";
-import { randCompanyName, randEmail, randText, seed } from "@ngneat/falso";
+import {
+  Addon,
+  AddonCategory,
+  PrismaClient,
+  User,
+  Author
+} from "@prisma/client";
+import {
+  randCompanyName,
+  randEmail,
+  randUserName,
+  randText,
+  seed
+} from "@ngneat/falso";
 
 const prisma = new PrismaClient();
 
@@ -17,16 +29,24 @@ type Seeded<T> = Omit<T, "id">;
 
 function seed_user(): Seeded<User> {
   return {
+    name: randUserName(),
     email: randEmail()
   };
 }
 
-function seed_addon(): Seeded<Addon> {
+function seed_author(user: User): Seeded<Author> {
+  return {
+    userId: user.id
+  };
+}
+
+function seed_addon(author: Author): Seeded<Addon> {
   return {
     name: randCompanyName(),
     summary: randText({ charCount: 50 }),
+    icon: "",
     category: chooseFrom(Object.values(AddonCategory)),
-    icon: ""
+    authorId: author.id
   };
 }
 
@@ -37,21 +57,47 @@ async function main() {
   seed(process.argv[2]);
 
   // Delete all the data that is already there, ...
-  await prisma.user.deleteMany();
   await prisma.addon.deleteMany();
+  await prisma.author.deleteMany();
+  await prisma.user.deleteMany();
 
   // ... and fill it up with the seeded data
-  const addons = await Promise.all(
-    range(10).map(() => prisma.addon.create({ data: seed_addon() }))
-  );
-
-  for (let i = 0; i < 10; i++) {
-    const installs = chooseFrom([0, 0, 0, 0, 1, 2]);
+  for (let i = 0; i < 12; i++) {
     await prisma.user.create({
       data: {
-        ...seed_user(),
-        installedAddons: { connect: chooseFromN(addons, installs) }
+        ...seed_user()
       }
+    });
+  }
+  const users: User[] = await prisma.user.findMany();
+  const candidAuthors: User[] = [...users];
+
+  for (let i = 0; i < 5; i++) {
+    const random = Math.floor(Math.random() * candidAuthors.length);
+    await prisma.author.create({
+      data: {
+        ...seed_author(candidAuthors[random])
+      }
+    });
+    candidAuthors.splice(random, 1);
+  }
+
+  const authors: Author[] = await prisma.author.findMany();
+
+  for (let i = 0; i < 12; i++) {
+    const random = Math.floor(Math.random() * authors.length);
+    await prisma.addon.create({
+      data: { ...seed_addon(authors[random]) }
+    });
+  }
+
+  const addons: Addon[] = await prisma.addon.findMany();
+
+  for (let i = 0; i < users.length; i++) {
+    const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
+    await prisma.user.update({
+      where: { id: users[i].id },
+      data: { installedAddons: { connect: chooseFromN(addons, installs) } }
     });
   }
 }
@@ -91,6 +137,7 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
  * @param end the end of the range, inclusive
  * @returns a list of numbers [start, ..., end]
  */
+// eslint-disable-next-line
 function range(start: number, end?: number | undefined): number[] {
   return Array(end ? end - start : start)
     .fill(0)
