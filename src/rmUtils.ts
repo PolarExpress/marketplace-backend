@@ -6,14 +6,10 @@
  * (Department of Information and Computing Sciences)
  */
 
-import amqp from 'amqplib'
+import amqp from "amqplib";
 
 export const rmConnect = async () => {
   const host = process.env.RABBIT_HOST;
   const port = process.env.RABBIT_PORT;
   return await amqp.connect(`amqp://${host}:${port}`);
-}
-
-
-
-
+};
