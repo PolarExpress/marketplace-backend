@@ -5,7 +5,7 @@ services:
     container_name: gp-marketplace-db
     extends:
       file: docker-compose.base.yml
-      service: db    
+      service: db
 
   backend:
     container_name: gp-marketplace-backend
@@ -13,7 +13,7 @@ services:
       file: docker-compose.base.yml
       service: backend-base
     depends_on:
-      - db    
+      - db
 
 volumes:
   db-data:
