@@ -17,6 +17,7 @@ RUN npm install --prod
 FROM base AS gen-schema
 
 WORKDIR /app
+COPY ./.env ./.env
 COPY --from=dependencies /deps/dev/node_modules ./node_modules
 COPY package.json ./
 COPY ./prisma ./prisma
@@ -28,7 +29,7 @@ FROM base AS build
 
 WORKDIR /app
 COPY . .
-COPY --from=dependencies /deps/dev/node_modules ./node_modules
+COPY --from=gen-schema /app/node_modules ./node_modules
 
 RUN npm run build
 
@@ -43,15 +44,4 @@ COPY --from=dependencies /deps/prod/node_modules ./node_modules
 COPY --from=gen-schema /app/node_modules/.prisma ./node_modules/.prisma
 
 ENV NODE_ENV=production
-ENTRYPOINT ["node", "build/index.js"]
-
-# ------------------------------------------------------------------------------
-
-FROM base AS dev
-
-WORKDIR /app
-COPY . .
-COPY --from=gen-schema /app/node_modules ./node_modules
-
-ENV NODE_ENV=dev
-ENTRYPOINT [ "npm", "run", "start:dev" ]
+ENTRYPOINT ["node", "./build/src/index.js"]
