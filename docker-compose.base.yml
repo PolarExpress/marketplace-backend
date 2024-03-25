@@ -14,6 +14,6 @@ services:
   backend-base: # base service for backend, do not run!
     build:
       context: .
-      dockerfile: Dockerfile      
+      dockerfile: Dockerfile
     ports:
       - 3002:3002
