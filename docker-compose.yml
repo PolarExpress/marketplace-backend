@@ -6,45 +6,14 @@ services:
     extends:
       file: docker-compose.base.yml
       service: db
-    profiles: [prod, dev]
 
-  backend-prod:
+  backend:
     container_name: gp-marketplace-backend
     extends:
       file: docker-compose.base.yml
       service: backend-base
-    build:
-      target: prod
     depends_on:
       - db
-    profiles: [prod]
-
-  backend-dev:
-    container_name: gp-marketplace-backend
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
-    build:
-      target: dev
-    depends_on:
-      - db
-    profiles: [dev]
-
-  backend-testing:
-    container_name: gp-marketplace-backend-testing
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
-    entrypoint: ["npm", "run", "test"]
-    profiles: [test]
-
-  backend-linting:
-    container_name: gp-marketplace-backend-testing
-    extends:
-      file: docker-compose.base.yml
-      service: backend-base
-    entrypoint: ["npm", "run", "lint"]
-    profiles: [test]
 
 volumes:
   db-data:
