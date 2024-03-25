@@ -15,6 +15,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: prod
     ports:
-      - 3000:3000
+      - 3002:3002

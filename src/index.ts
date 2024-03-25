@@ -13,5 +13,5 @@ import { buildApp } from "./app";
 const app = buildApp(createContext());
 
 app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+  console.log("Server running on http://localhost:3002");
 });

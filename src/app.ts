@@ -27,7 +27,7 @@ export function buildApp(ctx: Context) {
 
   app.use(
     cors({
-      origin: "http://localhost:5173"
+      origin: "http://localhost:4201"
     })
   );
 
