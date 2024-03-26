@@ -30,13 +30,14 @@ type Seeded<T> = Omit<T, "id">;
 function seed_user(): Seeded<User> {
   return {
     name: randUserName(),
-    email: randEmail()
+    email: randEmail(),
+    installedAddonID: []
   };
 }
 
 function seed_author(user: User): Seeded<Author> {
   return {
-    userId: user.id
+    userID: user.id
   };
 }
 
@@ -46,6 +47,7 @@ function seed_addon(author: Author): Seeded<Addon> {
     summary: randText({ charCount: 50 }),
     icon: "",
     category: chooseFrom(Object.values(AddonCategory)),
+    installedByID: [],
     authorId: author.id
   };
 }
@@ -69,6 +71,7 @@ async function main() {
       }
     });
   }
+  
   const users: User[] = await prisma.user.findMany();
   const candidAuthors: User[] = [...users];
 
@@ -95,9 +98,10 @@ async function main() {
 
   for (let i = 0; i < users.length; i++) {
     const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
+    const selectedAddons = chooseFromN(addons,installs);
     await prisma.user.update({
       where: { id: users[i].id },
-      data: { installedAddons: { connect: chooseFromN(addons, installs) } }
+      data: { installedAddons: { connect: selectedAddons.map((addon) => ({id: addon.id}))}}
     });
   }
 }
@@ -137,6 +141,7 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
  * @param end the end of the range, inclusive
  * @returns a list of numbers [start, ..., end]
  */
+// TODO: This function is currently not used.
 // eslint-disable-next-line
 function range(start: number, end?: number | undefined): number[] {
   return Array(end ? end - start : start)

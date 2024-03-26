@@ -6,7 +6,6 @@
     "start:dev": "ts-node src/index.ts",
     "start": "node build/index.js",
     "gen-schema": "npx prisma generate && npx prisma db push",
-    "migrate": "prisma migrate dev",
     "db-seed": "prisma db seed",
     "test": "jest --passWithNoTests",
     "lint": "eslint .",
