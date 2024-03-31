@@ -7,18 +7,15 @@
  */
 
 import express, { Request, Response, NextFunction } from "express";
-import { param, query } from "express-validator";
 import cors from "cors";
 
 import { Context } from "./context";
 import { expressHandler } from "./utils";
-import { handleValidationResult } from "./middlewares/validation";
-import { AddonCategory } from "prisma/prisma-client";
 
 import { installHandler, uninstallHandler } from "./routes/install";
-import { getAddonByIdHandler, getAddonsHandler } from "./routes/addons";
 import { AmqpSocket, createAmqpSocket } from "./amqp";
 import { createRoutingKeyStore } from "./routingKeyStore";
+import { getAddonByIdHandler, getAddonReadMeByIdHandler, getAddonsHandler } from "./routes/addons";
 
 export interface App {
   express: express.Express;
@@ -39,63 +36,19 @@ export function buildExpress(ctx: Context) {
   // Routes
   //////////////////////////////////////////////////////////////////////////////
 
-  // app.post(
-  //   "/install",
-  //   body("userId")
-  //     .exists()
-  //     .withMessage("No userId specified")
-  //     .isString()
-  //     .withMessage("userId needs to be a string"),
-  //   body("addonId")
-  //     .exists()
-  //     .withMessage("No addonId specified")
-  //     .isString()
-  //     .withMessage("addonId needs to be a string"),
-  //   handleValidationResult,
-    
-  // );
-
-  // app.post(
-  //   "/uninstall",
-  //   body("userId")
-  //     .exists()
-  //     .withMessage("No userId specified")
-  //     .isString()
-  //     .withMessage("userId needs to be a string"),
-  //   body("addonId")
-  //     .exists()
-  //     .withMessage("No addonId specified")
-  //     .isString()
-  //     .withMessage("addonId needs to be a string"),
-  //   handleValidationResult,
-  //   wrapHandler(uninstallHandler(ctx))
-  // );
-
   app.get(
-    "/addons",
-    query("page").default(0).isNumeric().toInt(),
-    query("category")
-      .optional()
-      .isIn(Object.values(AddonCategory))
-      .withMessage(
-        `Invalid category, must be one of: ${Object.values(AddonCategory).join(", ")}`
-      ),
-    handleValidationResult, // handle validation
+    "/addons",    
     expressHandler(getAddonsHandler(ctx)) // handle request
   );
 
   app.get(
-    "/addons/:id",
-    param("id").isString().withMessage("Invalid id, must be a string"),
-    handleValidationResult,
+    "/addons/:id",    
     expressHandler(getAddonByIdHandler(ctx))
   );
 
   app.get(
     "/addons/:id/readme",
-    param("id").isString().withMessage("Invalid id, must be a string"),
-    handleValidationResult,
-    expressHandler(getAddonByIdHandler(ctx))
+    expressHandler(getAddonReadMeByIdHandler(ctx))
   );
 
   //////////////////////////////////////////////////////////////////////////////
@@ -119,6 +72,8 @@ export async function buildAmqp(ctx: Context) {
   amqp.handle("uninstall", uninstallHandler(ctx));
 
   amqp.handle("get-addons", getAddonsHandler(ctx));
+  amqp.handle("get-addon-by-id", getAddonByIdHandler(ctx));
+  amqp.handle("get-addon-readme-by-id", getAddonReadMeByIdHandler(ctx));
 
   return amqp;
 }

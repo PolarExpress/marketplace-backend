@@ -9,6 +9,7 @@
 import { Context } from "../context";
 import { Addon, AddonCategory } from "prisma/prisma-client";
 import { join } from "node:path";
+import { z } from "zod";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -16,10 +17,14 @@ const pageSize = 20;
 ////////////////////////////////////////////////////////////////////////////////
 
 interface GetAddonsRequest {
-  action: "get-addons";
   page: number;
   category?: AddonCategory;
 }
+
+const getAddonsSchema = z.object({
+  page: z.number().int().gte(0).default(0),
+  category: z.nativeEnum(AddonCategory).optional()
+});
 
 interface GetAddonsResponse {
   addons: Addon[];
@@ -28,6 +33,8 @@ interface GetAddonsResponse {
 export const getAddonsHandler =
   (ctx: Context) =>
   async (req: GetAddonsRequest): Promise<GetAddonsResponse> => {
+    getAddonsSchema.parse(req);
+    
     const { page, category } = req;
 
     const addons = await ctx.prisma.addon.findMany({
@@ -51,9 +58,12 @@ export const getAddonsHandler =
 ////////////////////////////////////////////////////////////////////////////////
 
 interface GetAddonByIdRequest {
-  action: "get-addon-by-id";
   id: string;
 }
+
+const getAddonByIdSchema = z.object({
+  id: z.string()
+});
 
 interface GetAddonByIdResponse {
   addon: Addon;
@@ -61,13 +71,12 @@ interface GetAddonByIdResponse {
 
 export const getAddonByIdHandler =
   (ctx: Context) =>
-  async (
-    req: GetAddonByIdRequest
-  ): Promise<GetAddonByIdResponse> => {
-    const { id } = req;
+  async (req: GetAddonByIdRequest): Promise<GetAddonByIdResponse> => {
+    getAddonByIdSchema.parse(req);    
+
     const addon = await ctx.prisma.addon.findUnique({
       where: {
-        id
+        id: req.id
       },
       include: {
         author: {
@@ -88,9 +97,12 @@ export const getAddonByIdHandler =
 ////////////////////////////////////////////////////////////////////////////////
 
 interface GetAddonReadMeByIdRequest {
-  action: "get-addon-readme-by-id";
   id: string;
 }
+
+const getAddonReadMeByIdSchema = z.object({
+  id: z.string()
+});
 
 interface GetAddonReadMeByIdResponse {
   readme: string;
@@ -98,13 +110,12 @@ interface GetAddonReadMeByIdResponse {
 
 export const getAddonReadMeByIdHandler =
   (ctx: Context) =>
-  async (
-    req: GetAddonReadMeByIdRequest
-  ): Promise<GetAddonReadMeByIdResponse> => {
-    const { id } = req;
+  async (req: GetAddonReadMeByIdRequest): Promise<GetAddonReadMeByIdResponse> => {
+    getAddonReadMeByIdSchema.parse(req);
+
     try {
       const data = await ctx.fs.readFile(
-        join(__dirname, "../../", "data", id, "README.md")
+        join(__dirname, "../../", "data", req.id, "README.md")
       );
       return { readme: data.toString() };
     } catch {
