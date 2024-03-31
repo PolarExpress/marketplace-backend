@@ -25,6 +25,17 @@ export const throwFn = (e: Error): never => {
   throw e;
 };
 
+export class PanicError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PanicError";
+  }
+}
+
+export const panic = (message: string): never => {
+  throw new PanicError(message);
+};
+
 /**
  * Wraps an asynchronous endpoint function with error handling.
  * Any errors thrown by the endpoint function will be passed to the `next` function.
