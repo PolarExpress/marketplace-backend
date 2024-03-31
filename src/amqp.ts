@@ -6,7 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { RoutingKeyStore, createRoutingKeyStore } from "./routingKeyStore";
+import { RoutingKeyStore } from "./routingKeyStore";
 import amqp from "amqplib";
 import { panic } from "./utils";
 import "dotenv/config";
@@ -14,9 +14,7 @@ import "dotenv/config";
 import {
   AmqpRequest,
   AmqpResponse,
-  Handler,
-  RequestData,
-  ResponseData
+  AuthHandler
 } from "./types";
 
 /**
@@ -57,7 +55,7 @@ export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
   return new AmqpSocket(channel, routingKeyStore);
 }
 
-type AHandler = Handler<RequestData, ResponseData>;
+
 
 /**
  * Context for publishing a message
@@ -71,11 +69,15 @@ interface PublishContext {
   headers: amqp.MessagePropertyHeaders | undefined;
 }
 
+interface AmqpRequestData {
+  action: string;
+}
+
 export class AmqpSocket {
   private channel: amqp.Channel;
   private routingKeyStore: RoutingKeyStore;
 
-  private handlers: Record<string, AHandler> = {};
+  private handlers: Record<string, AuthHandler> = {};
 
   public constructor(channel: amqp.Channel, routingKeyStore: RoutingKeyStore) {
     this.routingKeyStore = routingKeyStore;
@@ -97,7 +99,7 @@ export class AmqpSocket {
    * @param key The action to register the handler for
    * @param handler The handler to register
    */
-  public handle(key: string, handler: AHandler) {
+  public handle(key: string, handler: AuthHandler) {
     this.handlers[key] = handler;
   }
 
@@ -110,7 +112,7 @@ export class AmqpSocket {
    */
   private publish(
     context: PublishContext,
-    response: ResponseData,
+    response: object,
     type: string,
     status: string
   ) {
@@ -134,7 +136,7 @@ export class AmqpSocket {
    * @param context Publish context needed to send the message
    * @param response The response to send to the frontend
    */
-  private publishSuccess(context: PublishContext, response: ResponseData) {
+  private publishSuccess(context: PublishContext, response: object) {
     this.publish(context, response, "mp_backend_result", "success");
   }
 
@@ -144,7 +146,7 @@ export class AmqpSocket {
    * @param error The error message to send to the frontend
    */
   private publishError(context: PublishContext, error: string) {
-    this.publish(context, error, "mp_backend_error", "error");
+    this.publish(context, { error: error }, "mp_backend_error", "error");
   }
 
   /**
@@ -159,7 +161,7 @@ export class AmqpSocket {
       this.channel.ack(message);
 
       const content = JSON.parse(message.content.toString()) as AmqpRequest;
-      const body: RequestData = JSON.parse(content.fromFrontend.body);
+      const body: AmqpRequestData = JSON.parse(content.fromFrontend.body);
       const sessionId = content.sessionData.sessionID;
 
       console.log("Received message:", content);
@@ -190,21 +192,10 @@ export class AmqpSocket {
       }
 
       const handler = this.handlers[body.action];
-      const response = await handler(content.sessionData, body);
+      const response = await handler(body, content.sessionData);
 
       this.publishSuccess(ctx, response);
     });
   }
 }
 
-async function main() {
-  const routingKeyStore = await createRoutingKeyStore();
-  const socket = await createAmqpSocket(routingKeyStore);
-
-  socket.handle("test", async () => {
-    return { value: "It works!" };
-  });
-  socket.listen();
-}
-
-main();

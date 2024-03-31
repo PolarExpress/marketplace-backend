@@ -7,10 +7,10 @@
  */
 
 import { createContext } from "./context";
-import { buildApp } from "./app";
+import { buildExpress } from "./app";
 
 // Create the app and start the server
-const app = buildApp(createContext());
+const app = buildExpress(createContext());
 
 const port = parseInt(process.env.MP_BACKEND_PORT ?? "3002", 10);
 

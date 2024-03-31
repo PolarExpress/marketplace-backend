@@ -7,6 +7,7 @@
  */
 
 import { NextFunction, Request, Response } from "express";
+import { AuthHandler, Handler } from "./types";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
@@ -15,8 +16,6 @@ declare module "express" {
     query: any;
   }
 }
-
-type EndpointFn = (req: Request, res: Response) => Promise<void>;
 
 /**
  * `throw` wrapped in a function, so we can use it in null coalescing statements.
@@ -32,6 +31,11 @@ export class PanicError extends Error {
   }
 }
 
+/**
+ * Throws a `PanicError` with the given message.
+ *
+ * @param message - The message to include in the error.
+ */
 export const panic = (message: string): never => {
   throw new PanicError(message);
 };
@@ -44,5 +48,16 @@ export const panic = (message: string): never => {
  * @returns A middleware function that handles errors thrown by the endpoint function.
  */
 export const asyncCatch =
-  (fn: EndpointFn) => (req: Request, res: Response, next: NextFunction) =>
+  (fn: (req: Request, res: Response) => Promise<void>) =>
+  (req: Request, res: Response, next: NextFunction) =>
     fn(req, res).catch(next);
+
+export const expressHandler = (handler: Handler) => 
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(200).json(handler(req.body));
+    } catch (e) {
+      next(e);
+    }
+  }
+

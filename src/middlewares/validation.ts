@@ -8,6 +8,7 @@
 
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
+import { ZodError, ZodSchema } from "zod";
 
 // middleware to handle validation results from express-validator
 export function handleValidationResult(
@@ -21,3 +22,19 @@ export function handleValidationResult(
   }
   next();
 }
+
+export function zod2express(schema: ZodSchema) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      schema.parse(req.body);
+      next();
+    } catch (e) {
+      if (e instanceof ZodError) {
+        return res.status(400).json({ errors: e.errors });
+      } else {
+        next(e);
+      }
+    }
+  };
+}
+

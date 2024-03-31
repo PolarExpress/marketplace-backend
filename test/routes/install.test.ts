@@ -7,7 +7,7 @@
  */
 
 import { Addon, AddonCategory, User } from "@prisma/client";
-import { buildApp } from "../../src/app";
+import { buildExpress } from "../../src/app";
 import { createMockContext } from "../mock-context";
 import request from "supertest";
 
@@ -43,7 +43,7 @@ test("install::correct-response-code-and-body", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
   mockCtx.prisma.user.update.mockResolvedValue(newUser);
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/install")
     .send({ userId: user.id, addonId: addon.id });
@@ -60,7 +60,7 @@ test("install::400-on-unknown-user-id", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(null);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/install")
     .send({ userId: "wrongId", addonId: addon.id });
@@ -79,7 +79,7 @@ test("install::400-on-unknown-addon-id", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/install")
     .send({ userId: user.id, addonId: "wrongId" });
@@ -100,7 +100,7 @@ test("install::400-on-already-installed-addon", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/install")
     .send({ userId: user.id, addonId: "addon-id" });
@@ -111,7 +111,7 @@ test("install::400-on-already-installed-addon", async () => {
 test("install::400-on-missing-user-id", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/install")
     .send({ addonId: "addon-id" });
@@ -122,7 +122,7 @@ test("install::400-on-missing-user-id", async () => {
 test("install::400-on-missing-addon-id", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/install")
     .send({ userId: "user-id" });
@@ -151,7 +151,7 @@ test("uninstall::correct-response-code-and-body", async () => {
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
   mockCtx.prisma.user.update.mockResolvedValue(newUser);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/uninstall")
     .send({ userId: user.id, addonId: addon.id });
@@ -168,7 +168,7 @@ test("uninstall::400-on-unknown-user-id", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(null);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/uninstall")
     .send({ userId: "wrongId", addonId: addon.id });
@@ -187,7 +187,7 @@ test("uninstall::400-on-unknown-addon-id", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/uninstall")
     .send({ userId: user.id, addonId: "wrongId" });
@@ -208,7 +208,7 @@ test("uninstall::400-on-not-installed-addon", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/uninstall")
     .send({ userId: user.id, addonId: addon.id });
@@ -219,7 +219,7 @@ test("uninstall::400-on-not-installed-addon", async () => {
 test("uninstall::400-on-missing-user-id", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/uninstall")
     .send({ addonId: "addon-id" });
@@ -230,7 +230,7 @@ test("uninstall::400-on-missing-user-id", async () => {
 test("uninstall::400-on-missing-addon-id", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app)
     .post("/uninstall")
     .send({ userId: "user-id" });

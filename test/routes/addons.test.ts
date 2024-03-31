@@ -7,7 +7,7 @@
  */
 
 import { Addon, AddonCategory } from "@prisma/client";
-import { buildApp } from "../../src/app";
+import { buildExpress } from "../../src/app";
 import { createMockContext } from "../mock-context";
 import request from "supertest";
 
@@ -32,7 +32,7 @@ test("/addons::200-on-valid-query-all-fields", async () => {
   ];
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get(
     "/addons?page=0&category=DATA_SOURCE"
   );
@@ -49,7 +49,7 @@ test("/addons::200-on-valid-query-only-required-fields", async () => {
   ];
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons");
 
   expect(response.status).toBe(200);
@@ -59,7 +59,7 @@ test("/addons::200-on-valid-query-only-required-fields", async () => {
 test("/addons::400-on-invalid-page-query", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons?page=invalidPage");
 
   expect(response.status).toBe(400);
@@ -68,7 +68,7 @@ test("/addons::400-on-invalid-page-query", async () => {
 test("/addons::400-on-invalid-category-query", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons?category=invalidCategory");
 
   expect(response.status).toBe(400);
@@ -79,7 +79,7 @@ test("/addons/:id::200-on-valid-id", async () => {
   const addon = dummyAddon("1", AddonCategory.DATA_SOURCE, "123");
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons/1");
 
   expect(response.status).toBe(200);
@@ -90,7 +90,7 @@ test("/addons/:id::404-on-invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons/1");
 
   expect(response.status).toBe(404);
@@ -100,7 +100,7 @@ test("/addons/:id/readme::200-on-valid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
   mockCtx.fs.readFile.mockResolvedValue(Buffer.from("Hello"));
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons/1/readme");
 
   expect(response.status).toBe(200);
@@ -111,7 +111,7 @@ test("/addons/:id/readme::404-on-invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
   mockCtx.fs.readFile.mockRejectedValue(null);
 
-  const app = buildApp(ctx);
+  const app = buildExpress(ctx);
   const response = await request(app).get("/addons/1/readme");
 
   expect(response.status).toBe(400);
