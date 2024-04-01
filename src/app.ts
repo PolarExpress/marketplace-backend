@@ -21,9 +21,20 @@ import {
   getAddonsHandler
 } from "./routes/addons";
 
-export interface App {
-  express: express.Express;
-  amqp: AmqpSocket;
+export class App {
+  public constructor(
+    public express: express.Express,
+    public amqp: AmqpSocket
+  ) {}
+
+  public listen(port: number): void {
+    this.express.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+
+    this.amqp.listen();
+    console.log("Listening for amqp messages");
+  }
 }
 
 export function buildExpress(ctx: Context): Express {
@@ -76,5 +87,5 @@ export async function buildApp(ctx: Context): Promise<App> {
   const express = buildExpress(ctx);
   const amqp = await buildAmqp(ctx);
 
-  return { express, amqp };
+  return new App(express, amqp);
 }

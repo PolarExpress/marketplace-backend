@@ -9,7 +9,6 @@
 import { RoutingKeyStore } from "./routingKeyStore";
 import amqp from "amqplib";
 import { panic } from "./utils";
-import "dotenv/config";
 
 import { AmqpRequest, AmqpResponse, AuthHandler } from "./types";
 
@@ -68,15 +67,12 @@ interface AmqpRequestData {
 }
 
 export class AmqpSocket {
-  private channel: amqp.Channel;
-  private routingKeyStore: RoutingKeyStore;
-
   private handlers: Record<string, AuthHandler> = {};
 
-  public constructor(channel: amqp.Channel, routingKeyStore: RoutingKeyStore) {
-    this.routingKeyStore = routingKeyStore;
-    this.channel = channel;
-
+  public constructor(
+    private channel: amqp.Channel,
+    private routingKeyStore: RoutingKeyStore
+  ) {
     this.channel.assertQueue(amqpConfig.queue.request);
     this.channel.assertExchange(amqpConfig.exchange.request, "direct");
     this.channel.bindQueue(

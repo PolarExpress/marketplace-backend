@@ -54,6 +54,6 @@ export const asyncCatch =
 
 export const expressHandler =
   (handler: Handler) => (req: Request, res: Response, next: NextFunction) =>
-    handler(Object.assign({}, req.body, req.params))
+    handler(Object.assign({}, req.query, req.params))
       .then(result => res.status(200).json(result))
       .catch(error => next(error));
