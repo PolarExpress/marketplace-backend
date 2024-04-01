@@ -7,7 +7,7 @@
  */
 
 import { Context } from "../context";
-import { Addon, AddonCategory } from "prisma/prisma-client";
+import { Addon, AddonCategory } from "@prisma/client";
 import { join } from "node:path";
 import { z } from "zod";
 
@@ -22,7 +22,7 @@ interface GetAddonsRequest {
 }
 
 const getAddonsSchema = z.object({
-  page: z.number().int().gte(0).default(0),
+  page: z.coerce.number().int().gte(0).default(0),
   category: z.nativeEnum(AddonCategory).optional()
 });
 
@@ -33,9 +33,7 @@ interface GetAddonsResponse {
 export const getAddonsHandler =
   (ctx: Context) =>
   async (req: GetAddonsRequest): Promise<GetAddonsResponse> => {
-    getAddonsSchema.parse(req);
-    
-    const { page, category } = req;
+    const { page, category } = getAddonsSchema.parse(req);
 
     const addons = await ctx.prisma.addon.findMany({
       skip: page * pageSize,
@@ -72,7 +70,7 @@ interface GetAddonByIdResponse {
 export const getAddonByIdHandler =
   (ctx: Context) =>
   async (req: GetAddonByIdRequest): Promise<GetAddonByIdResponse> => {
-    getAddonByIdSchema.parse(req);    
+    getAddonByIdSchema.parse(req);
 
     const addon = await ctx.prisma.addon.findUnique({
       where: {
@@ -110,7 +108,9 @@ interface GetAddonReadMeByIdResponse {
 
 export const getAddonReadMeByIdHandler =
   (ctx: Context) =>
-  async (req: GetAddonReadMeByIdRequest): Promise<GetAddonReadMeByIdResponse> => {
+  async (
+    req: GetAddonReadMeByIdRequest
+  ): Promise<GetAddonReadMeByIdResponse> => {
     getAddonReadMeByIdSchema.parse(req);
 
     try {

@@ -6,7 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express, { Request, Response, NextFunction } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 
 import { Context } from "./context";
@@ -15,41 +15,35 @@ import { expressHandler } from "./utils";
 import { installHandler, uninstallHandler } from "./routes/install";
 import { AmqpSocket, createAmqpSocket } from "./amqp";
 import { createRoutingKeyStore } from "./routingKeyStore";
-import { getAddonByIdHandler, getAddonReadMeByIdHandler, getAddonsHandler } from "./routes/addons";
+import {
+  getAddonByIdHandler,
+  getAddonReadMeByIdHandler,
+  getAddonsHandler
+} from "./routes/addons";
 
 export interface App {
   express: express.Express;
   amqp: AmqpSocket;
 }
 
-export function buildExpress(ctx: Context) {
+export function buildExpress(ctx: Context): Express {
   const app = express();
   app.use(express.json());
 
-  app.use(
-    cors({
-      origin: "http://localhost:4201"
-    })
-  );
+  app.use(cors());
 
   //////////////////////////////////////////////////////////////////////////////
   // Routes
   //////////////////////////////////////////////////////////////////////////////
 
   app.get(
-    "/addons",    
+    "/addons",
     expressHandler(getAddonsHandler(ctx)) // handle request
   );
 
-  app.get(
-    "/addons/:id",    
-    expressHandler(getAddonByIdHandler(ctx))
-  );
+  app.get("/addons/:id", expressHandler(getAddonByIdHandler(ctx)));
 
-  app.get(
-    "/addons/:id/readme",
-    expressHandler(getAddonReadMeByIdHandler(ctx))
-  );
+  app.get("/addons/:id/readme", expressHandler(getAddonReadMeByIdHandler(ctx)));
 
   //////////////////////////////////////////////////////////////////////////////
 

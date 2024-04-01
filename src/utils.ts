@@ -7,7 +7,7 @@
  */
 
 import { NextFunction, Request, Response } from "express";
-import { AuthHandler, Handler } from "./types";
+import { Handler } from "./types";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
@@ -52,12 +52,8 @@ export const asyncCatch =
   (req: Request, res: Response, next: NextFunction) =>
     fn(req, res).catch(next);
 
-export const expressHandler = (handler: Handler) => 
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      res.status(200).json(handler(req.body));
-    } catch (e) {
-      next(e);
-    }
-  }
-
+export const expressHandler =
+  (handler: Handler) => (req: Request, res: Response, next: NextFunction) =>
+    handler(Object.assign({}, req.body, req.params))
+      .then(result => res.status(200).json(result))
+      .catch(error => next(error));

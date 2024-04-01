@@ -11,11 +11,7 @@ import amqp from "amqplib";
 import { panic } from "./utils";
 import "dotenv/config";
 
-import {
-  AmqpRequest,
-  AmqpResponse,
-  AuthHandler
-} from "./types";
+import { AmqpRequest, AmqpResponse, AuthHandler } from "./types";
 
 /**
  * Configuration for the AMQP socket
@@ -54,8 +50,6 @@ export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
 
   return new AmqpSocket(channel, routingKeyStore);
 }
-
-
 
 /**
  * Context for publishing a message
@@ -198,4 +192,3 @@ export class AmqpSocket {
     });
   }
 }
-
