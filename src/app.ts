@@ -36,18 +36,18 @@ export function buildExpress(ctx: Context) {
   // Routes
   //////////////////////////////////////////////////////////////////////////////
 
-  app.get(
+  app.post(
     "/addons",    
     expressHandler(getAddonsHandler(ctx)) // handle request
   );
 
-  app.get(
-    "/addons/:id",    
+  app.post(
+    "/addons",    
     expressHandler(getAddonByIdHandler(ctx))
   );
 
-  app.get(
-    "/addons/:id/readme",
+  app.post(
+    "/addons/readme",
     expressHandler(getAddonReadMeByIdHandler(ctx))
   );
 
