@@ -7,10 +7,12 @@
  */
 
 import { Addon, AddonCategory } from "@prisma/client";
-import { buildExpress } from "../../src/app";
 import { createMockContext } from "../mock-context";
-import request from "supertest";
-import { getAddonByIdHandler, getAddonReadMeByIdHandler, getAddonsHandler } from "../../src/routes/addons";
+import {
+  getAddonByIdHandler,
+  getAddonReadMeByIdHandler,
+  getAddonsHandler
+} from "../../src/routes/addons";
 
 const dummyAddon = (
   id: string,
@@ -59,17 +61,21 @@ test("get-addons::valid-query-all-params", async () => {
 test("get-addons::invalid-query-invalid-page", async () => {
   const [, ctx] = createMockContext();
 
-  await expect(getAddonsHandler(ctx)({
-    page: "invalidPage" 
-  })).rejects.toThrow();  
+  await expect(
+    getAddonsHandler(ctx)({
+      page: "invalidPage"
+    })
+  ).rejects.toThrow();
 });
 
 test("get-addons::invalid-query-invalid-category", async () => {
   const [, ctx] = createMockContext();
 
-  await expect(getAddonsHandler(ctx)({
-    category: "invalidCategory"
-  })).rejects.toThrow();
+  await expect(
+    getAddonsHandler(ctx)({
+      category: "invalidCategory"
+    })
+  ).rejects.toThrow();
 });
 
 test("get-addon-by-id::valid-id", async () => {
@@ -87,12 +93,14 @@ test("get-addon-by-id::valid-id", async () => {
 
 test("get-addon-by-id::invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
-  
+
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  await expect(getAddonByIdHandler(ctx)({
-    id: "invalidId"
-  })).rejects.toThrow();
+  await expect(
+    getAddonByIdHandler(ctx)({
+      id: "invalidId"
+    })
+  ).rejects.toThrow();
 });
 
 test("get-addon-readme::valid-id", async () => {
@@ -112,9 +120,9 @@ test("get-addon-readme::invalid-id", async () => {
 
   mockCtx.fs.readFile.mockRejectedValue(null);
 
-  await expect(getAddonReadMeByIdHandler(ctx)({
-    id: "invalidId"
-  })).rejects.toThrow();
+  await expect(
+    getAddonReadMeByIdHandler(ctx)({
+      id: "invalidId"
+    })
+  ).rejects.toThrow();
 });
-
-

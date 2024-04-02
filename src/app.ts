@@ -46,16 +46,10 @@ export function buildExpress(ctx: Context): Express {
 
   app.use(cors());
 
+  app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
+  app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
   app.post(
-    "/addons/get", 
-    expressHandler(getAddonsHandler(ctx))
-  );
-  app.post(
-    "/addons/get-by-id", 
-    expressHandler(getAddonByIdHandler(ctx))
-  );
-  app.post(
-    "/addons/get-readme", 
+    "/addons/get-readme",
     expressHandler(getAddonReadMeByIdHandler(ctx))
   );
 

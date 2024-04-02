@@ -25,7 +25,7 @@ const dummyAddon = (id: string): Addon => ({
   authorId: ""
 });
 
-const mockSession = () => { 
+const mockSession = () => {
   return {
     username: "username",
     userID: "userID",
@@ -33,13 +33,13 @@ const mockSession = () => {
     sessionID: "sessionID",
     saveStateID: "saveStateID",
     roomID: "roomID",
-    jwt: "jwt",
-  }
+    jwt: "jwt"
+  };
 };
 
 test("install::valid-query_correct-return", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const session = mockSession();  
+  const session = mockSession();
   const addon = dummyAddon("addon-id");
   const user = {
     ...dummyUser(session.userID),
@@ -50,27 +50,21 @@ test("install::valid-query_correct-return", async () => {
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
   mockCtx.prisma.user.update.mockResolvedValue(user);
 
-  const response = await installHandler(ctx)(
-    { addonID: addon.id },
-    session
-  );
+  const response = await installHandler(ctx)({ addonID: addon.id }, session);
 
   expect(response).toEqual(user);
 });
 
 test("install::missing-args_should-throw", async () => {
   const [, ctx] = createMockContext();
-  const session = mockSession();  
+  const session = mockSession();
 
-  await expect(installHandler(ctx)(
-    {}, 
-    session
-  )).rejects.toThrow();
+  await expect(installHandler(ctx)({}, session)).rejects.toThrow();
 });
 
 test("install::invalid-addon-id_should-throw", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const session = mockSession();  
+  const session = mockSession();
   const user = {
     ...dummyUser(session.userID),
     installedAddons: []
@@ -79,43 +73,39 @@ test("install::invalid-addon-id_should-throw", async () => {
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  await expect(installHandler(ctx)(
-    { addonID: "invalid-addon-id" }, 
-    session
-  )).rejects.toThrow();
+  await expect(
+    installHandler(ctx)({ addonID: "invalid-addon-id" }, session)
+  ).rejects.toThrow();
 });
 
 // TODO: this test will be redundant after migration to mongodb
 test("install::invalid-user-id_should-throw", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const session = mockSession();  
+  const session = mockSession();
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(null);
 
-  await expect(installHandler(ctx)(
-    { addonID: "addon-id" }, 
-    session
-  )).rejects.toThrow();
+  await expect(
+    installHandler(ctx)({ addonID: "addon-id" }, session)
+  ).rejects.toThrow();
 });
 
 test("install::already-installed-addon_should-throw", async () => {
   const [mockCtx, ctx] = createMockContext();
-  const session = mockSession();  
+  const session = mockSession();
   const addon = dummyAddon("addon-id");
-  
+
   const user = {
     ...dummyUser("user-id"),
     installedAddons: [addon]
-  };  
+  };
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  await expect(installHandler(ctx)(
-    { addonID: addon.id }, 
-    session
-  )).rejects.toThrow();
-
+  await expect(
+    installHandler(ctx)({ addonID: addon.id }, session)
+  ).rejects.toThrow();
 });
 
 test("uninstall::valid-query_correct-return", async () => {
@@ -126,14 +116,11 @@ test("uninstall::valid-query_correct-return", async () => {
     ...dummyUser(session.userID),
     installedAddons: [addon]
   };
-  
+
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
   mockCtx.prisma.user.update.mockResolvedValue(user);
-  const response = await uninstallHandler(ctx)(
-    { addonID: addon.id },
-    session
-  );
+  const response = await uninstallHandler(ctx)({ addonID: addon.id }, session);
   expect(response).toEqual(user);
 });
 
@@ -141,10 +128,7 @@ test("uninstall::missing-args_should-throw", async () => {
   const [, ctx] = createMockContext();
   const session = mockSession();
 
-  await expect(uninstallHandler(ctx)(
-    {},
-    session
-  )).rejects.toThrow();
+  await expect(uninstallHandler(ctx)({}, session)).rejects.toThrow();
 });
 
 test("uninstall::invalid-addon-id_should-throw", async () => {
@@ -157,11 +141,10 @@ test("uninstall::invalid-addon-id_should-throw", async () => {
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
-  
-  await expect(uninstallHandler(ctx)(
-    { addonID: "invalid-addon-id" },
-    session
-  )).rejects.toThrow();
+
+  await expect(
+    uninstallHandler(ctx)({ addonID: "invalid-addon-id" }, session)
+  ).rejects.toThrow();
 });
 
 test("uninstall::invalid-user-id_should-throw", async () => {
@@ -169,10 +152,9 @@ test("uninstall::invalid-user-id_should-throw", async () => {
   const session = mockSession();
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(null);
-  await expect(uninstallHandler(ctx)(
-    { addonID: "addon-id" },
-    session
-  )).rejects.toThrow();
+  await expect(
+    uninstallHandler(ctx)({ addonID: "addon-id" }, session)
+  ).rejects.toThrow();
 });
 
 test("uninstall::addon-not-installed_should-throw", async () => {
@@ -187,8 +169,7 @@ test("uninstall::addon-not-installed_should-throw", async () => {
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
-  await expect(uninstallHandler(ctx)(
-    { addonID: addon.id },
-    session
-  )).rejects.toThrow();
+  await expect(
+    uninstallHandler(ctx)({ addonID: addon.id }, session)
+  ).rejects.toThrow();
 });
