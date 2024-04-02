@@ -7,7 +7,7 @@
  */
 
 import { Context } from "../context";
-import { Addon, AddonCategory } from "@prisma/client";
+import { AddonCategory } from "@prisma/client";
 import { join } from "node:path";
 import { z } from "zod";
 
@@ -22,8 +22,7 @@ const getAddonsSchema = z.object({
 });
 
 export const getAddonsHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
+  (ctx: Context) => async (req: object): Promise<object> => {
     const args = getAddonsSchema.parse(req);
 
     const addons = await ctx.prisma.addon.findMany({
@@ -46,13 +45,14 @@ export const getAddonsHandler =
 
 ////////////////////////////////////////////////////////////////////////////////
 
+
 const getAddonByIdSchema = z.object({
   id: z.string()
 });
 
+
 export const getAddonByIdHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
+  (ctx: Context) => async (req: object): Promise<object> => {
     const args = getAddonByIdSchema.parse(req);
 
     const addon = await ctx.prisma.addon.findUnique({
@@ -77,13 +77,13 @@ export const getAddonByIdHandler =
 
 ////////////////////////////////////////////////////////////////////////////////
 
+
 const getAddonReadMeByIdSchema = z.object({
   id: z.string()
 });
 
 export const getAddonReadMeByIdHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
+  (ctx: Context) => async (req: object): Promise<object> => {
     const args = getAddonReadMeByIdSchema.parse(req);
 
     try {
