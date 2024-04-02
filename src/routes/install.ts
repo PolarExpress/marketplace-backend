@@ -42,7 +42,7 @@ export const installHandler =
     // Check if user actually has the addon installed
     if (user.installedAddons.some(a => a.id === addon.id)) {
       throw new Error(
-        `User "${user.id}" does not have addon "${addon.id}" installed`
+        `User "${user.id}" already has addon "${addon.id}" installed`
       );
     }
 
