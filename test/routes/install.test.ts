@@ -7,9 +7,8 @@
  */
 
 import { Addon, AddonCategory, User } from "@prisma/client";
-import { buildApp } from "../../src/app";
 import { createMockContext } from "../mock-context";
-import request from "supertest";
+import { installHandler, uninstallHandler } from "../../src/routes/install";
 
 const dummyUser = (id: string): User => ({
   id,
@@ -26,214 +25,151 @@ const dummyAddon = (id: string): Addon => ({
   authorId: ""
 });
 
-test("install::correct-response-code-and-body", async () => {
-  const user: User & { installedAddons: Addon[] } = {
-    ...dummyUser("user-id"),
+const mockSession = () => {
+  return {
+    username: "username",
+    userID: "userID",
+    impersonateID: "impersonateID",
+    sessionID: "sessionID",
+    saveStateID: "saveStateID",
+    roomID: "roomID",
+    jwt: "jwt"
+  };
+};
+
+test("install::valid-query_correct-return", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+  const addon = dummyAddon("addon-id");
+  const user = {
+    ...dummyUser(session.userID),
     installedAddons: []
   };
-  const addon: Addon = dummyAddon("addon-id");
-
-  const newUser: User & { installedAddons: Addon[] } = {
-    ...user,
-    installedAddons: [addon]
-  };
-
-  const [mockCtx, ctx] = createMockContext();
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
-  mockCtx.prisma.user.update.mockResolvedValue(newUser);
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/install")
-    .send({ userId: user.id, addonId: addon.id });
+  mockCtx.prisma.user.update.mockResolvedValue(user);
 
-  expect(response.status).toBe(200);
-  expect(response.body).toEqual(newUser);
+  const response = await installHandler(ctx)({ addonID: addon.id }, session);
+
+  expect(response).toEqual(user);
 });
 
-test("install::400-on-unknown-user-id", async () => {
-  const addon: Addon = dummyAddon("addon-id");
+test("install::missing-args_should-throw", async () => {
+  const [, ctx] = createMockContext();
+  const session = mockSession();
 
+  await expect(installHandler(ctx)({}, session)).rejects.toThrow();
+});
+
+test("install::invalid-addon-id_should-throw", async () => {
   const [mockCtx, ctx] = createMockContext();
-
-  mockCtx.prisma.user.findUnique.mockResolvedValue(null);
-  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/install")
-    .send({ userId: "wrongId", addonId: addon.id });
-
-  expect(response.status).toBe(400);
-});
-
-test("install::400-on-unknown-addon-id", async () => {
-  const user: User & { installedAddons: Addon[] } = {
-    ...dummyUser("user-id"),
+  const session = mockSession();
+  const user = {
+    ...dummyUser(session.userID),
     installedAddons: []
   };
-
-  const [mockCtx, ctx] = createMockContext();
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/install")
-    .send({ userId: user.id, addonId: "wrongId" });
-
-  expect(response.status).toBe(400);
+  await expect(
+    installHandler(ctx)({ addonID: "invalid-addon-id" }, session)
+  ).rejects.toThrow();
 });
 
-test("install::400-on-already-installed-addon", async () => {
-  const addon: Addon = dummyAddon("addon-id");
-
-  const user: User & { installedAddons: Addon[] } = {
-    ...dummyUser("user-id"),
-    installedAddons: [addon]
-  };
-
+// TODO: this test will be redundant after migration to mongodb
+test("install::invalid-user-id_should-throw", async () => {
   const [mockCtx, ctx] = createMockContext();
-
-  mockCtx.prisma.user.findUnique.mockResolvedValue(user);
-  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/install")
-    .send({ userId: user.id, addonId: "addon-id" });
-
-  expect(response.status).toBe(400);
-});
-
-test("install::400-on-missing-user-id", async () => {
-  const [, ctx] = createMockContext();
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/install")
-    .send({ addonId: "addon-id" });
-
-  expect(response.status).toBe(400);
-});
-
-test("install::400-on-missing-addon-id", async () => {
-  const [, ctx] = createMockContext();
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/install")
-    .send({ userId: "user-id" });
-
-  expect(response.status).toBe(400);
-});
-
-// -----------------------------------------------------------------------------
-
-test("uninstall::correct-response-code-and-body", async () => {
-  const addon: Addon = dummyAddon("addon-id");
-
-  const user: User & { installedAddons: Addon[] } = {
-    ...dummyUser("user-id"),
-    installedAddons: [addon]
-  };
-
-  const newUser: User & { installedAddons: Addon[] } = {
-    ...user,
-    installedAddons: []
-  };
-
-  const [mockCtx, ctx] = createMockContext();
-
-  mockCtx.prisma.user.findUnique.mockResolvedValue(user);
-  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
-  mockCtx.prisma.user.update.mockResolvedValue(newUser);
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/uninstall")
-    .send({ userId: user.id, addonId: addon.id });
-
-  expect(response.status).toBe(200);
-  expect(response.body).toEqual(newUser);
-});
-
-test("uninstall::400-on-unknown-user-id", async () => {
-  const addon: Addon = dummyAddon("addon-id");
-
-  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(null);
-  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/uninstall")
-    .send({ userId: "wrongId", addonId: addon.id });
-
-  expect(response.status).toBe(400);
+  await expect(
+    installHandler(ctx)({ addonID: "addon-id" }, session)
+  ).rejects.toThrow();
 });
 
-test("uninstall::400-on-unknown-addon-id", async () => {
-  const user: User & { installedAddons: Addon[] } = {
+test("install::already-installed-addon_should-throw", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+  const addon = dummyAddon("addon-id");
+
+  const user = {
     ...dummyUser("user-id"),
-    installedAddons: []
+    installedAddons: [addon]
   };
 
+  mockCtx.prisma.user.findUnique.mockResolvedValue(user);
+  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
+
+  await expect(
+    installHandler(ctx)({ addonID: addon.id }, session)
+  ).rejects.toThrow();
+});
+
+test("uninstall::valid-query_correct-return", async () => {
   const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+  const addon = dummyAddon("addon-id");
+  const user = {
+    ...dummyUser(session.userID),
+    installedAddons: [addon]
+  };
+
+  mockCtx.prisma.user.findUnique.mockResolvedValue(user);
+  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
+  mockCtx.prisma.user.update.mockResolvedValue(user);
+  const response = await uninstallHandler(ctx)({ addonID: addon.id }, session);
+  expect(response).toEqual(user);
+});
+
+test("uninstall::missing-args_should-throw", async () => {
+  const [, ctx] = createMockContext();
+  const session = mockSession();
+
+  await expect(uninstallHandler(ctx)({}, session)).rejects.toThrow();
+});
+
+test("uninstall::invalid-addon-id_should-throw", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+  const user = {
+    ...dummyUser(session.userID),
+    installedAddons: []
+  };
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/uninstall")
-    .send({ userId: user.id, addonId: "wrongId" });
-
-  expect(response.status).toBe(400);
+  await expect(
+    uninstallHandler(ctx)({ addonID: "invalid-addon-id" }, session)
+  ).rejects.toThrow();
 });
 
-test("uninstall::400-on-not-installed-addon", async () => {
-  const addon: Addon = dummyAddon("addon-id");
-
-  const user: User & { installedAddons: Addon[] } = {
-    ...dummyUser("user-id"),
-    installedAddons: []
-  };
-
+test("uninstall::invalid-user-id_should-throw", async () => {
   const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+
+  mockCtx.prisma.user.findUnique.mockResolvedValue(null);
+  await expect(
+    uninstallHandler(ctx)({ addonID: "addon-id" }, session)
+  ).rejects.toThrow();
+});
+
+test("uninstall::addon-not-installed_should-throw", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+  const addon = dummyAddon("addon-id");
+
+  const user = {
+    ...dummyUser("user-id"),
+    installedAddons: [] // Empty array to indicate no installed addons
+  };
 
   mockCtx.prisma.user.findUnique.mockResolvedValue(user);
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/uninstall")
-    .send({ userId: user.id, addonId: addon.id });
-
-  expect(response.status).toBe(400);
-});
-
-test("uninstall::400-on-missing-user-id", async () => {
-  const [, ctx] = createMockContext();
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/uninstall")
-    .send({ addonId: "addon-id" });
-
-  expect(response.status).toBe(400);
-});
-
-test("uninstall::400-on-missing-addon-id", async () => {
-  const [, ctx] = createMockContext();
-
-  const app = buildApp(ctx);
-  const response = await request(app)
-    .post("/uninstall")
-    .send({ userId: "user-id" });
-
-  expect(response.status).toBe(400);
+  await expect(
+    uninstallHandler(ctx)({ addonID: addon.id }, session)
+  ).rejects.toThrow();
 });

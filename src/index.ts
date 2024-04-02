@@ -9,11 +9,12 @@
 import { createContext } from "./context";
 import { buildApp } from "./app";
 
-// Create the app and start the server
-const app = buildApp(createContext());
+import "dotenv/config";
 
-const port = parseInt(process.env.MP_BACKEND_PORT ?? "3002", 10);
+(async () => {
+  // Create the app and start the server
+  const app = await buildApp(createContext());
+  const port = Number(process.env.MP_BACKEND_PORT ?? "3002");
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+  app.listen(port);
+})();

@@ -6,122 +6,102 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Request, Response } from "express";
 import { Context } from "../context";
+import { SessionData } from "../types";
+import { z } from "zod";
 
-/**
- * The request type for the installation of an addon.
- */
-interface InstallRequest extends Request {
-  // The validation middleware will ensure that the body contains the required
-  // fields, so we can safely assume that they are present and don't need to
-  // mark them as optional.
-  body: {
-    userId: string;
-    addonId: string;
-  };
-}
+////////////////////////////////////////////////////////////////////////////////
 
-/**
- * Handles the installation of an addon for a user.
- *
- * @param ctx - The context instance.
- * @returns An async function that handles the installation request.
- */
-export const installRoute =
-  (ctx: Context) => async (req: InstallRequest, res: Response) => {
-    const { userId, addonId } = req.body;
+const installSchema = z.object({
+  addonID: z.string()
+});
+
+export const installHandler =
+  (ctx: Context) => async (req: object, session: SessionData) => {
+    const args = installSchema.parse(req);
 
     // Find the user by id. If the user is not found, throw an error.
     const user = await ctx.prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: session.userID },
       include: { installedAddons: true }
     });
 
     if (!user) {
-      res.status(400).json({ error: `User "${userId}" not found` });
-      return;
+      throw new Error(`User "${session.userID}" not found`);
     }
 
     // Find the addon by id. If the addon is not found, throw an error.
     const addon = await ctx.prisma.addon.findUnique({
-      where: { id: addonId }
+      where: { id: args.addonID }
     });
 
     if (!addon) {
-      res.status(400).json({ error: `Addon "${addonId}" not found` });
-      return;
+      throw new Error(`Addon "${args.addonID}" not found`);
     }
 
     // Check if user actually has the addon installed
     if (user.installedAddons.some(a => a.id === addon.id)) {
-      res.status(400).json({
-        error: `User "${user.id}" does not have addon "${addon.id}" installed`
-      });
-      return;
+      throw new Error(
+        `User "${user.id}" already has addon "${addon.id}" installed`
+      );
     }
 
     // Add relation between user and addon
-    res.json(
-      await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          installedAddons: {
-            connect: { id: addon.id }
-          }
+    return await ctx.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        installedAddons: {
+          connect: { id: addon.id }
         }
-      })
-    );
+      }
+    });
   };
 
-/**
- * Handles the uninstallation of an addon for a user.
- *
- * @param ctx - The context instance.
- * @returns An async function that handles the uninstallation route.
- */
-export const uninstallRoute =
-  (ctx: Context) => async (req: InstallRequest, res: Response) => {
-    const { userId, addonId } = req.body;
+////////////////////////////////////////////////////////////////////////////////
+
+const uninstallSchema = z.object({
+  addonID: z.string()
+});
+
+export const uninstallHandler =
+  (ctx: Context) => async (req: object, session: SessionData) => {
+    const args = uninstallSchema.parse(req);
 
     // Find the user by id. If the user is not found, throw an error.
     const user = await ctx.prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: session.userID },
       include: { installedAddons: true }
     });
 
     if (!user) {
-      res.status(400).json({ error: `User "${userId}" not found` });
-      return;
+      throw new Error(`User "${session.userID}" not found`);
     }
 
     // Find the addon by id. If the addon is not found, throw an error.
     const addon = await ctx.prisma.addon.findUnique({
-      where: { id: addonId }
+      where: { id: args.addonID }
     });
 
     if (!addon) {
-      res.status(400).json({ error: `Addon "${addonId}" not found` });
-      return;
+      throw new Error(`Addon "${args.addonID}" not found`);
     }
 
     // Check if user actually has the addon installed
     if (!user.installedAddons.some(a => a.id === addon.id)) {
-      res.status(400).json({
-        error: `User "${user.id}" does not have addon "${addon.id}" installed`
-      });
-      return;
+      throw new Error(
+        `User "${user.id}" does not have addon "${addon.id}" installed`
+      );
     }
 
     // Remove relation between user and addon
-    res.json(
-      await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          installedAddons: {
-            disconnect: { id: addon.id }
-          }
+    return await ctx.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        installedAddons: {
+          disconnect: { id: addon.id }
         }
-      })
-    );
+      }
+    });
   };
+
+////////////////////////////////////////////////////////////////////////////////

@@ -6,93 +6,52 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express, { NextFunction } from "express";
-import { Request, Response } from "express";
-import { Context } from "./context";
-import { installRoute, uninstallRoute } from "./routes/install";
-import { body, param, query } from "express-validator";
-import { asyncCatch } from "./utils";
-import { handleValidationResult } from "./middlewares/validation";
-import {
-  getAddonByIdRoute,
-  getAddonReadMeByIdRoute,
-  getAddonsRoute
-} from "./routes/addons";
+import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { AddonCategory } from "prisma/prisma-client";
 
-export function buildApp(ctx: Context) {
+import { Context } from "./context";
+import { expressHandler } from "./utils";
+
+import { installHandler, uninstallHandler } from "./routes/install";
+import { AmqpSocket, createAmqpSocket } from "./amqp";
+import { createRoutingKeyStore } from "./routingKeyStore";
+
+import {
+  getAddonByIdHandler,
+  getAddonReadMeByIdHandler,
+  getAddonsHandler
+} from "./routes/addons";
+
+////////////////////////////////////////////////////////////////////////////////
+
+export class App {
+  public constructor(
+    public express: express.Express,
+    public amqp: AmqpSocket
+  ) {}
+
+  public listen(port: number): void {
+    this.express.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+
+    this.amqp.listen();
+    console.log("Listening for amqp messages");
+  }
+}
+
+export function buildExpress(ctx: Context): Express {
   const app = express();
   app.use(express.json());
 
-  app.use(
-    cors({
-      origin: "http://localhost:4201"
-    })
-  );
+  app.use(cors());
 
-  //////////////////////////////////////////////////////////////////////////////
-  // Routes
-  //////////////////////////////////////////////////////////////////////////////
-
+  app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
+  app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
   app.post(
-    "/install",
-    body("userId")
-      .exists()
-      .withMessage("No userId specified")
-      .isString()
-      .withMessage("userId needs to be a string"),
-    body("addonId")
-      .exists()
-      .withMessage("No addonId specified")
-      .isString()
-      .withMessage("addonId needs to be a string"),
-    handleValidationResult,
-    asyncCatch(installRoute(ctx))
+    "/addons/get-readme",
+    expressHandler(getAddonReadMeByIdHandler(ctx))
   );
-
-  app.post(
-    "/uninstall",
-    body("userId")
-      .exists()
-      .withMessage("No userId specified")
-      .isString()
-      .withMessage("userId needs to be a string"),
-    body("addonId")
-      .exists()
-      .withMessage("No addonId specified")
-      .isString()
-      .withMessage("addonId needs to be a string"),
-    handleValidationResult,
-    asyncCatch(uninstallRoute(ctx))
-  );
-
-  app.get(
-    "/addons",
-    query("page").default(0).isNumeric().toInt(),
-    query("category")
-      .optional()
-      .isIn(Object.values(AddonCategory))
-      .withMessage(
-        `Invalid category, must be one of: ${Object.values(AddonCategory).join(", ")}`
-      ),
-    handleValidationResult, // handle validation
-    asyncCatch(getAddonsRoute(ctx)) // handle request
-  );
-
-  app.get(
-    "/addons/:id",
-    param("id").isString().withMessage("Invalid id, must be a string"),
-    asyncCatch(getAddonByIdRoute(ctx))
-  );
-
-  app.get(
-    "/addons/:id/readme",
-    param("id").isString().withMessage("Invalid id, must be a string"),
-    asyncCatch(getAddonReadMeByIdRoute(ctx))
-  );
-
-  //////////////////////////////////////////////////////////////////////////////
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
@@ -103,4 +62,25 @@ export function buildApp(ctx: Context) {
   );
 
   return app;
+}
+
+export async function buildAmqp(ctx: Context) {
+  const routingKeyStore = await createRoutingKeyStore();
+  const amqp = await createAmqpSocket(routingKeyStore);
+
+  amqp.handle("install", installHandler(ctx));
+  amqp.handle("uninstall", uninstallHandler(ctx));
+
+  amqp.handle("addons/get", getAddonsHandler(ctx));
+  amqp.handle("addons/get-by-id", getAddonByIdHandler(ctx));
+  amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(ctx));
+
+  return amqp;
+}
+
+export async function buildApp(ctx: Context): Promise<App> {
+  const express = buildExpress(ctx);
+  const amqp = await buildAmqp(ctx);
+
+  return new App(express, amqp);
 }

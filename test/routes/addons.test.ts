@@ -7,9 +7,12 @@
  */
 
 import { Addon, AddonCategory } from "@prisma/client";
-import { buildApp } from "../../src/app";
 import { createMockContext } from "../mock-context";
-import request from "supertest";
+import {
+  getAddonByIdHandler,
+  getAddonReadMeByIdHandler,
+  getAddonsHandler
+} from "../../src/routes/addons";
 
 const dummyAddon = (
   id: string,
@@ -24,95 +27,102 @@ const dummyAddon = (
   authorId
 });
 
-test("/addons::200-on-valid-query-all-fields", async () => {
+test("get-addons::valid-query-required-params", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addons = [
     dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
     dummyAddon("2", AddonCategory.VISUALISATION, "987")
   ];
+
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
-  const app = buildApp(ctx);
-  const response = await request(app).get(
-    "/addons?page=0&category=DATA_SOURCE"
-  );
+  const response = await getAddonsHandler(ctx)({});
 
-  expect(response.status).toBe(200);
-  expect(response.body).toEqual(addons);
+  expect(response).toEqual({ addons });
 });
 
-test("/addons::200-on-valid-query-only-required-fields", async () => {
+test("get-addons::valid-query-all-params", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addons = [
     dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
     dummyAddon("2", AddonCategory.VISUALISATION, "987")
   ];
+
   mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons");
+  const response = await getAddonsHandler(ctx)({
+    page: 0,
+    category: AddonCategory.DATA_SOURCE
+  });
 
-  expect(response.status).toBe(200);
-  expect(response.body).toEqual(addons);
+  expect(response).toEqual({ addons });
 });
 
-test("/addons::400-on-invalid-page-query", async () => {
+test("get-addons::invalid-query-invalid-page", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons?page=invalidPage");
-
-  expect(response.status).toBe(400);
+  await expect(
+    getAddonsHandler(ctx)({
+      page: "invalidPage"
+    })
+  ).rejects.toThrow();
 });
 
-test("/addons::400-on-invalid-category-query", async () => {
+test("get-addons::invalid-query-invalid-category", async () => {
   const [, ctx] = createMockContext();
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons?category=invalidCategory");
-
-  expect(response.status).toBe(400);
+  await expect(
+    getAddonsHandler(ctx)({
+      category: "invalidCategory"
+    })
+  ).rejects.toThrow();
 });
 
-test("/addons/:id::200-on-valid-id", async () => {
+test("get-addon-by-id::valid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
   const addon = dummyAddon("1", AddonCategory.DATA_SOURCE, "123");
+
   mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons/1");
+  const response = await getAddonByIdHandler(ctx)({
+    id: "1"
+  });
 
-  expect(response.status).toBe(200);
-  expect(response.body).toEqual(addon);
+  expect(response).toEqual({ addon });
 });
 
-test("/addons/:id::404-on-invalid-id", async () => {
+test("get-addon-by-id::invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
+
   mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons/1");
-
-  expect(response.status).toBe(404);
+  await expect(
+    getAddonByIdHandler(ctx)({
+      id: "invalidId"
+    })
+  ).rejects.toThrow();
 });
 
-test("/addons/:id/readme::200-on-valid-id", async () => {
+test("get-addon-readme::valid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
+
   mockCtx.fs.readFile.mockResolvedValue(Buffer.from("Hello"));
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons/1/readme");
+  const response = await getAddonReadMeByIdHandler(ctx)({
+    id: "1"
+  });
 
-  expect(response.status).toBe(200);
-  expect(response.body.toString()).toEqual("Hello");
+  expect(response).toEqual({ readme: "Hello" });
 });
 
-test("/addons/:id/readme::404-on-invalid-id", async () => {
+test("get-addon-readme::invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
+
   mockCtx.fs.readFile.mockRejectedValue(null);
 
-  const app = buildApp(ctx);
-  const response = await request(app).get("/addons/1/readme");
-
-  expect(response.status).toBe(400);
+  await expect(
+    getAddonReadMeByIdHandler(ctx)({
+      id: "invalidId"
+    })
+  ).rejects.toThrow();
 });

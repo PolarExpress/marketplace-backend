@@ -9,12 +9,14 @@ lerna-debug.log*
 
 node_modules
 dist
+build
 dist-ssr
 *.local
 
 coverage
 
 data/*
+!data/.gitkeep
 
 # Editor directories and files
 .vscode/*
