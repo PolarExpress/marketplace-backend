@@ -15,11 +15,14 @@ import { expressHandler } from "./utils";
 import { installHandler, uninstallHandler } from "./routes/install";
 import { AmqpSocket, createAmqpSocket } from "./amqp";
 import { createRoutingKeyStore } from "./routingKeyStore";
+
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
   getAddonsHandler
 } from "./routes/addons";
+
+////////////////////////////////////////////////////////////////////////////////
 
 export class App {
   public constructor(
@@ -43,26 +46,18 @@ export function buildExpress(ctx: Context): Express {
 
   app.use(cors());
 
-  //////////////////////////////////////////////////////////////////////////////
-  // Routes
-  //////////////////////////////////////////////////////////////////////////////
-
   app.post(
-    "/addons",    
-    expressHandler(getAddonsHandler(ctx)) // handle request
+    "/addons/get", 
+    expressHandler(getAddonsHandler(ctx))
   );
-
   app.post(
-    "/addons",    
+    "/addons/get-by-id", 
     expressHandler(getAddonByIdHandler(ctx))
   );
-
   app.post(
-    "/addons/readme",
+    "/addons/get-readme", 
     expressHandler(getAddonReadMeByIdHandler(ctx))
   );
-
-  //////////////////////////////////////////////////////////////////////////////
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
@@ -82,9 +77,9 @@ export async function buildAmqp(ctx: Context) {
   amqp.handle("install", installHandler(ctx));
   amqp.handle("uninstall", uninstallHandler(ctx));
 
-  amqp.handle("get-addons", getAddonsHandler(ctx));
-  amqp.handle("get-addon-by-id", getAddonByIdHandler(ctx));
-  amqp.handle("get-addon-readme-by-id", getAddonReadMeByIdHandler(ctx));
+  amqp.handle("addons/get", getAddonsHandler(ctx));
+  amqp.handle("addons/get-by-id", getAddonByIdHandler(ctx));
+  amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(ctx));
 
   return amqp;
 }
