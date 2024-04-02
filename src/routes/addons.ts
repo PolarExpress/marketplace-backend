@@ -10,6 +10,7 @@ import { Context } from "../context";
 import { AddonCategory } from "@prisma/client";
 import { join } from "node:path";
 import { z } from "zod";
+import { SessionData } from "../types";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -97,3 +98,33 @@ export const getAddonReadMeByIdHandler =
   };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+const getAddonsByUserIdSchema = z.object({
+  page: z.coerce.number().int().gte(0).default(0),
+  category: z.nativeEnum(AddonCategory).optional()
+});
+
+export const getAddonsByUserIdHandler =
+  (ctx: Context) =>
+  async (req: object, session: SessionData): Promise<object> => {
+    const args = getAddonsByUserIdSchema.parse(req);
+
+    const userWithAddons = await ctx.prisma.user.findUnique({
+      where: { id: session.userID },
+      include: {
+        installedAddons: {
+          skip: args.page * pageSize,
+          take: pageSize,
+          where: {
+            category: args.category ?? undefined
+          }
+        }
+      }
+    });
+
+    if (userWithAddons === null) {
+      throw new Error("User not found");
+    }
+
+    return { addons: userWithAddons.installedAddons };
+  };
