@@ -6,7 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express, { Request, Response, NextFunction } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 
 import { Context } from "./context";
@@ -15,22 +15,33 @@ import { expressHandler } from "./utils";
 import { installHandler, uninstallHandler } from "./routes/install";
 import { AmqpSocket, createAmqpSocket } from "./amqp";
 import { createRoutingKeyStore } from "./routingKeyStore";
-import { getAddonByIdHandler, getAddonReadMeByIdHandler, getAddonsHandler } from "./routes/addons";
+import {
+  getAddonByIdHandler,
+  getAddonReadMeByIdHandler,
+  getAddonsHandler
+} from "./routes/addons";
 
-export interface App {
-  express: express.Express;
-  amqp: AmqpSocket;
+export class App {
+  public constructor(
+    public express: express.Express,
+    public amqp: AmqpSocket
+  ) {}
+
+  public listen(port: number): void {
+    this.express.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+
+    this.amqp.listen();
+    console.log("Listening for amqp messages");
+  }
 }
 
-export function buildExpress(ctx: Context) {
+export function buildExpress(ctx: Context): Express {
   const app = express();
   app.use(express.json());
 
-  app.use(
-    cors({
-      origin: "http://localhost:4201"
-    })
-  );
+  app.use(cors());
 
   //////////////////////////////////////////////////////////////////////////////
   // Routes
@@ -82,5 +93,5 @@ export async function buildApp(ctx: Context): Promise<App> {
   const express = buildExpress(ctx);
   const amqp = await buildAmqp(ctx);
 
-  return { express, amqp };
+  return new App(express, amqp);
 }

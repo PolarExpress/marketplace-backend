@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsc",
-    "start:dev": "ts-node src/index.ts",
+    "dev": "ts-node src/index.ts",
     "start": "node build/index.js",
     "gen-schema": "npx prisma generate && npx prisma db push",
     "migrate": "prisma migrate dev",

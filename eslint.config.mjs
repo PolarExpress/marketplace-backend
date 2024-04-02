@@ -65,5 +65,8 @@ export default tseslint.config(
     ignores: ["**/*.config.*"]
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommended
+  ...tseslint.configs.recommended,
+  {
+    ignores: ["build"]
+  }
 );

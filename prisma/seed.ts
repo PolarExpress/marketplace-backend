@@ -21,6 +21,9 @@ import {
   seed
 } from "@ngneat/falso";
 
+import fs from "node:fs/promises";
+import path from "node:path";
+
 const prisma = new PrismaClient();
 
 // Seeding individual entities
@@ -61,6 +64,14 @@ async function main() {
   await prisma.author.deleteMany();
   await prisma.user.deleteMany();
 
+  const data_path = path.join(__dirname, "..", "data");
+  for (const file of await fs.readdir(data_path)) {
+    if (file !== ".gitkeep") {
+      const addon_data_path = path.join(data_path, file);
+      await fs.rm(addon_data_path, { recursive: true });
+    }
+  }
+
   // ... and fill it up with the seeded data
   for (let i = 0; i < 12; i++) {
     await prisma.user.create({
@@ -86,9 +97,16 @@ async function main() {
 
   for (let i = 0; i < 12; i++) {
     const random = Math.floor(Math.random() * authors.length);
-    await prisma.addon.create({
+    const addon = await prisma.addon.create({
       data: { ...seed_addon(authors[random]) }
     });
+
+    const addon_data_path = path.join(data_path, addon.id);
+    await fs.mkdir(addon_data_path);
+    await fs.writeFile(
+      path.join(addon_data_path, "README.md"),
+      `# README for ${addon.name}`
+    );
   }
 
   const addons: Addon[] = await prisma.addon.findMany();

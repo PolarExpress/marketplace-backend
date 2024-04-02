@@ -12,7 +12,7 @@ import { z } from "zod";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-interface InstallRequest {    
+interface InstallRequest {
   addonID: string;
 }
 
@@ -24,9 +24,12 @@ interface InstallResponseData {}
 
 export const installHandler =
   (ctx: Context) =>
-  async (req: InstallRequest, session: SessionData): Promise<InstallResponseData> => {    
-    installSchema.parse(req);
-    
+  async (
+    req: InstallRequest,
+    session: SessionData
+  ): Promise<InstallResponseData> => {
+    const { addonID } = installSchema.parse(req);
+
     // Find the user by id. If the user is not found, throw an error.
     const user = await ctx.prisma.user.findUnique({
       where: { id: session.userID },
@@ -39,11 +42,11 @@ export const installHandler =
 
     // Find the addon by id. If the addon is not found, throw an error.
     const addon = await ctx.prisma.addon.findUnique({
-      where: { id: req.addonID }
+      where: { id: addonID }
     });
 
     if (!addon) {
-      throw new Error(`Addon "${req.addonID}" not found`);
+      throw new Error(`Addon "${addonID}" not found`);
     }
 
     // Check if user actually has the addon installed
@@ -66,7 +69,7 @@ export const installHandler =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-interface UninstallRequest {    
+interface UninstallRequest {
   addonID: string;
 }
 
@@ -78,8 +81,11 @@ interface UninstallResponse {}
 
 export const uninstallHandler =
   (ctx: Context) =>
-  async (req: UninstallRequest, session: SessionData): Promise<UninstallResponse> => {    
-    uninstallSchema.parse(req);
+  async (
+    req: UninstallRequest,
+    session: SessionData
+  ): Promise<UninstallResponse> => {
+    const { addonID } = uninstallSchema.parse(req);
 
     // Find the user by id. If the user is not found, throw an error.
     const user = await ctx.prisma.user.findUnique({
@@ -93,11 +99,11 @@ export const uninstallHandler =
 
     // Find the addon by id. If the addon is not found, throw an error.
     const addon = await ctx.prisma.addon.findUnique({
-      where: { id: req.addonID }
+      where: { id: addonID }
     });
 
     if (!addon) {
-      throw new Error(`Addon "${req.addonID}" not found`);
+      throw new Error(`Addon "${addonID}" not found`);
     }
 
     // Check if user actually has the addon installed

@@ -6,8 +6,6 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Context } from "./context";
-
 export interface SessionData {
   username: string;
   userID: string;
@@ -34,7 +32,7 @@ export interface AmqpResponse {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Handler = (req: any) => Promise<any>; 
+export type Handler = (req: any) => Promise<any>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AuthHandler = (req: any, session: SessionData) => Promise<any>; 
+export type AuthHandler = (req: any, session: SessionData) => Promise<any>;
