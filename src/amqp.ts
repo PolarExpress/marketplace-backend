@@ -6,11 +6,11 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { RoutingKeyStore } from "./routingKeyStore";
 import amqp from "amqplib";
-import { panic } from "./utils";
 
 import { AmqpRequest, AmqpResponse, AuthHandler } from "./types";
+import { RoutingKeyStore } from "./routingKeyStore";
+import { panic } from "./utils";
 
 /**
  * Configuration for the AMQP socket
@@ -102,7 +102,7 @@ export class AmqpSocket {
    */
   private publish(
     context: PublishContext,
-    response: object,
+    response: unknown,
     type: string,
     status: string
   ) {
@@ -126,7 +126,7 @@ export class AmqpSocket {
    * @param context Publish context needed to send the message
    * @param response The response to send to the frontend
    */
-  private publishSuccess(context: PublishContext, response: object) {
+  private publishSuccess(context: PublishContext, response: unknown) {
     this.publish(context, response, "mp_backend_result", "success");
   }
 

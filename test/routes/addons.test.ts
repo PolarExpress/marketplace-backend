@@ -6,56 +6,39 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory } from "@prisma/client";
-import { createMockContext } from "../mock-context";
+import { WithId } from "mongodb";
+
+import { dummyAddons, dummyAuthors, createMockContext } from "../mock-context";
+
+import { Addon, AddonCategory, Author } from "../../src/types";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
   getAddonsHandler
 } from "../../src/routes/addons";
 
-const dummyAddon = (
-  id: string,
-  category: AddonCategory,
-  authorId: string
-): Addon => ({
-  id,
-  name: "Addon Name",
-  summary: "Addon Description",
-  icon: "icon.png",
-  category,
-  authorId
-});
+type GetAddonsResult = { addons: WithId<Addon & { author: WithId<Author> }>[] };
 
 test("get-addons::valid-query-required-params", async () => {
-  const [mockCtx, ctx] = createMockContext();
-  const addons = [
-    dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
-    dummyAddon("2", AddonCategory.VISUALISATION, "987")
-  ];
+  const [, ctx] = createMockContext();
 
-  mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
+  const response = await getAddonsHandler(ctx)({}) as GetAddonsResult;
 
-  const response = await getAddonsHandler(ctx)({});
-
-  expect(response).toEqual({ addons });
+  expect(response.addons).toMatchObject(dummyAddons);
+  for (const addon of response.addons) {
+    expect(dummyAuthors).toContainEqual(addon.author);
+  }
 });
 
 test("get-addons::valid-query-all-params", async () => {
-  const [mockCtx, ctx] = createMockContext();
-  const addons = [
-    dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
-    dummyAddon("2", AddonCategory.VISUALISATION, "987")
-  ];
-
-  mockCtx.prisma.addon.findMany.mockResolvedValue(addons);
+  const [, ctx] = createMockContext();
 
   const response = await getAddonsHandler(ctx)({
     page: 0,
     category: AddonCategory.DATA_SOURCE
-  });
+  }) as GetAddonsResult;
 
-  expect(response).toEqual({ addons });
+  expect(response.addons).toMatchObject(dummyAddons.filter(addon => addon.category === AddonCategory.DATA_SOURCE));
 });
 
 test("get-addons::invalid-query-invalid-page", async () => {
@@ -78,23 +61,21 @@ test("get-addons::invalid-query-invalid-category", async () => {
   ).rejects.toThrow();
 });
 
-test("get-addon-by-id::valid-id", async () => {
-  const [mockCtx, ctx] = createMockContext();
-  const addon = dummyAddon("1", AddonCategory.DATA_SOURCE, "123");
+type GetAddonByIdResult = { addon: WithId<Addon & { author: WithId<Author> }> };
 
-  mockCtx.prisma.addon.findUnique.mockResolvedValue(addon);
+test("get-addon-by-id::valid-id", async () => {
+  const [, ctx] = createMockContext();
 
   const response = await getAddonByIdHandler(ctx)({
-    id: "1"
-  });
+    id: dummyAddons[0]._id.toString()
+  }) as GetAddonByIdResult;
 
-  expect(response).toEqual({ addon });
+  expect(response.addon).toMatchObject(dummyAddons[0]);
+  expect(response.addon.author).toStrictEqual(dummyAuthors[0]);
 });
 
 test("get-addon-by-id::invalid-id", async () => {
-  const [mockCtx, ctx] = createMockContext();
-
-  mockCtx.prisma.addon.findUnique.mockResolvedValue(null);
+  const [, ctx] = createMockContext();
 
   await expect(
     getAddonByIdHandler(ctx)({
@@ -109,7 +90,7 @@ test("get-addon-readme::valid-id", async () => {
   mockCtx.fs.readFile.mockResolvedValue(Buffer.from("Hello"));
 
   const response = await getAddonReadMeByIdHandler(ctx)({
-    id: "1"
+    id: dummyAddons[0]._id.toString()
   });
 
   expect(response).toEqual({ readme: "Hello" });

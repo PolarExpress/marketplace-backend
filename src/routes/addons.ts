@@ -6,11 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
+import { ObjectId } from "mongodb";
 import { join } from "node:path";
 import { z } from "zod";
 
 import { Context } from "../context";
-import { Addon, AddonCategory } from "../types";
+import { AddonCategory } from "../types";
 import { throwFn } from "../utils";
 
 // TODO: move this to a better place
@@ -29,16 +30,16 @@ export const getAddonsHandler =
     const args = getAddonsSchema.parse(req);
 
     const addons = await ctx.addons
-      .find({ category })
-      .skip(page * pageSize)
+      .find(args.category ? { category: args.category } : {})
+      .skip(args.page * pageSize)
       .limit(pageSize)
       .toArray();
 
-    const joined_addons = await Promise.allSettled(
+    const joined_addons = await Promise.all(
       addons.map(async addon => {
         const author =
-          (await ctx.authors.findOne({ _id: { equals: addon.authorId } })) ??
-          throwFn(Error("Could not find the addon's author"));
+          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+          throwFn(new Error("Could not find the addon's author"));
         return { ...addon, author };
       })
     );
@@ -57,24 +58,13 @@ export const getAddonByIdHandler =
   async (req: object): Promise<object> => {
     const args = getAddonByIdSchema.parse(req);
 
-    const addon = await ctx.prisma.addon.findUnique({
-      where: {
-        id: args.id
-      },
-      include: {
-        author: {
-          include: {
-            user: true
-          }
-        }
-      }
-    });
+    const addon = (await ctx.addons.findOne({ _id: new ObjectId(args.id) }))
+      ?? throwFn(new Error("Could not find the addon with given id"));
 
-    if (addon === null) {
-      throw new Error("Addon not found");
-    }
+    const author = (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) }))
+      ?? throwFn(new Error("Could nnot find  the addon's author"));
 
-    return { addon };
+    return { addon: { ...addon, author } };
   };
 
 ////////////////////////////////////////////////////////////////////////////////

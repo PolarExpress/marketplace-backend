@@ -9,7 +9,7 @@
 import { MongoClient, Collection } from "mongodb";
 import fs from "fs/promises";
 
-import { Author, Addon } from "./types";
+import { Addon, Author, User } from "./types";
 
 /**
  * Context contains all the dependencies that are required by the resolvers
@@ -19,16 +19,17 @@ import { Author, Addon } from "./types";
 export interface Context {
   addons: Collection<Addon>;
   authors: Collection<Author>;
+  users: Collection<User>
   fs: typeof fs;
 }
 
 export async function createContext(): Promise<Context> {
-  const mongo = new MongoClient(process.env.DATABASE_URL!);
-  await mongo.connect();
+  const mongo = await MongoClient.connect(process.env.DATABASE_URL!);
 
-  const db = mongo.db("marketplace");
+  const db = mongo.db(process.env.DATABASE_NAME!);
   const addons = db.collection<Addon>("addons");
   const authors = db.collection<Author>("authors");
+  const users = db.collection<User>("users");
 
-  return { addons, authors, fs };
+  return { addons, authors, users, fs };
 }

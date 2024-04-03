@@ -6,9 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Context } from "../context";
-import { SessionData } from "../types";
+import { WithId, ObjectId } from "mongodb";
 import { z } from "zod";
+
+import { Context } from "../context";
+import { SessionData, User } from "../types";
+import { throwFn } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -20,41 +23,26 @@ export const installHandler =
   (ctx: Context) => async (req: object, session: SessionData) => {
     const args = installSchema.parse(req);
 
-    // Find the user by id. If the user is not found, throw an error.
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: session.userID },
-      include: { installedAddons: true }
-    });
-
+    let user = await ctx.users.findOne({ userId: session.userID });
     if (!user) {
-      throw new Error(`User "${session.userID}" not found`);
+      const inserted_user = await ctx.users.insertOne({ userId: session.userID, installedAddons: [] });
+      user = await ctx.users.findOne({ _id: inserted_user.insertedId }) as WithId<User>;
     }
 
     // Find the addon by id. If the addon is not found, throw an error.
-    const addon = await ctx.prisma.addon.findUnique({
-      where: { id: args.addonID }
-    });
-
-    if (!addon) {
-      throw new Error(`Addon "${args.addonID}" not found`);
-    }
+    const addon = (await ctx.addons.findOne({ _id: new ObjectId(args.addonID) }))
+      ?? throwFn(new Error("Could not find an addon with given id"));
 
     // Check if user actually has the addon installed
-    if (user.installedAddons.some(a => a.id === addon.id)) {
+    if (user.installedAddons.some(installedAddon => addon._id.equals(installedAddon))) {
       throw new Error(
-        `User "${user.id}" already has addon "${addon.id}" installed`
+        `User "${session.userID}" already has addon "${addon._id}" installed`
       );
     }
 
     // Add relation between user and addon
-    return await ctx.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        installedAddons: {
-          connect: { id: addon.id }
-        }
-      }
-    });
+    const updatedInstalledAddons = [...user.installedAddons, args.addonID];
+    await ctx.users.updateOne({ userId: session.userID }, { $set: { installedAddons: updatedInstalledAddons } });
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,40 +56,23 @@ export const uninstallHandler =
     const args = uninstallSchema.parse(req);
 
     // Find the user by id. If the user is not found, throw an error.
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: session.userID },
-      include: { installedAddons: true }
-    });
-
-    if (!user) {
-      throw new Error(`User "${session.userID}" not found`);
-    }
+    const user = (await ctx.users.findOne({ userId: session.userID }))
+      ?? throwFn(new Error("Could not find the user in the session"));
 
     // Find the addon by id. If the addon is not found, throw an error.
-    const addon = await ctx.prisma.addon.findUnique({
-      where: { id: args.addonID }
-    });
-
-    if (!addon) {
-      throw new Error(`Addon "${args.addonID}" not found`);
-    }
+    const addon = (await ctx.addons.findOne({ _id: new ObjectId(args.addonID) }))
+      ?? throwFn(new Error("Could not find an addon with given id"));
 
     // Check if user actually has the addon installed
-    if (!user.installedAddons.some(a => a.id === addon.id)) {
+    if (!user.installedAddons.some(installedAddon => addon._id.equals(installedAddon))) {
       throw new Error(
-        `User "${user.id}" does not have addon "${addon.id}" installed`
+        `User "${session.userID}" does not have addon "${args.addonID}" installed`
       );
     }
 
     // Remove relation between user and addon
-    return await ctx.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        installedAddons: {
-          disconnect: { id: addon.id }
-        }
-      }
-    });
+    const updatedInstalledAddons = user.installedAddons.filter(addon => addon !== args.addonID);
+    await ctx.users.updateOne({ userId: session.userID }, { $set: { installedAddons: updatedInstalledAddons } });
   };
 
 ////////////////////////////////////////////////////////////////////////////////
