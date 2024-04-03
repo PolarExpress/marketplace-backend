@@ -28,16 +28,17 @@ export const getAddonsHandler =
   async (req: object): Promise<object> => {
     const args = getAddonsSchema.parse(req);
 
-    const addons = await ctx.addons.find({ category })
+    const addons = await ctx.addons
+      .find({ category })
       .skip(page * pageSize)
       .limit(pageSize)
       .toArray();
 
     const joined_addons = await Promise.allSettled(
       addons.map(async addon => {
-        const author = await ctx.authors
-          .findOne({ _id: { equals: addon.authorId } })
-          ?? throwFn(Error("Could not find the addon's author"));
+        const author =
+          (await ctx.authors.findOne({ _id: { equals: addon.authorId } })) ??
+          throwFn(Error("Could not find the addon's author"));
         return { ...addon, author };
       })
     );
