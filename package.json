@@ -19,6 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "4.19.2",
+    "mongodb": "^6.5.0",
     "redis": "^4.6.13",
     "zod": "^3.22.4"
   },
@@ -34,7 +35,6 @@
     "husky": "^9.0.11",
     "jest-mock-extended": "^3.0.5",
     "prettier": "^3.2.5",
-    "prisma": "^5.10.2",
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
     "ts-node": "10.9.2",

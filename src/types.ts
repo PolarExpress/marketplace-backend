@@ -31,6 +31,24 @@ export interface AmqpResponse {
   status: string;
 }
 
+export enum AddonCategory {
+  VISUALISATION = "VISUALISATION",
+  MACHINE_LEARNING = "MACHINE_LEARNING",
+  DATA_SOURCE = "DATA_SOURCE"
+}
+
+export interface Author {
+  userId: string;
+}
+
+export interface Addon {
+  name: string;
+  summary: string;
+  icon: string;
+  category: AddonCategory;
+  authorId: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Handler = (req: any) => Promise<any>;
 

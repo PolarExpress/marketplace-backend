@@ -6,21 +6,29 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { PrismaClient } from "@prisma/client";
+import { MongoClient, Collection } from "mongodb";
 import fs from "fs/promises";
+
+import { Author, Addon } from "./types";
+
 /**
  * Context contains all the dependencies that are required by the resolvers
  * (e.g. PrismaClient). This allows us to easily mock these dependencies in
  * tests, and to easily switch out implementations.
  */
-export type Context = {
-  prisma: PrismaClient;
+export interface Context {
+  addons: Collection<Addon>;
+  authors: Collection<Author>;
   fs: typeof fs;
-};
+}
 
-export const createContext = (): Context => {
-  return {
-    prisma: new PrismaClient(),
-    fs: fs
-  };
-};
+export async function createContext(): Promise<Context> {
+  const mongo = new MongoClient(process.env.DATABASE_URL!);
+  await mongo.connect();
+
+  const db = mongo.db("marketplace");
+  const addons = db.collection<Addon>("addons");
+  const authors = db.collection<Author>("authors");
+
+  return { addons, authors, fs };
+}

@@ -6,10 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Context } from "../context";
-import { AddonCategory } from "@prisma/client";
 import { join } from "node:path";
 import { z } from "zod";
+
+import { Context } from "../context";
+import { Addon, AddonCategory } from "../types";
+import { throwFn } from "../utils";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -26,22 +28,21 @@ export const getAddonsHandler =
   async (req: object): Promise<object> => {
     const args = getAddonsSchema.parse(req);
 
-    const addons = await ctx.prisma.addon.findMany({
-      skip: args.page * pageSize,
-      take: pageSize,
-      where: {
-        category: args.category ?? undefined
-      },
-      include: {
-        author: {
-          include: {
-            user: true
-          }
-        }
-      }
-    });
+    const addons = await ctx.addons.find({ category })
+      .skip(page * pageSize)
+      .limit(pageSize)
+      .toArray();
 
-    return { addons };
+    const joined_addons = await Promise.allSettled(
+      addons.map(async addon => {
+        const author = await ctx.authors
+          .findOne({ _id: { equals: addon.authorId } })
+          ?? throwFn(Error("Could not find the addon's author"));
+        return { ...addon, author };
+      })
+    );
+
+    return { addons: joined_addons };
   };
 
 ////////////////////////////////////////////////////////////////////////////////

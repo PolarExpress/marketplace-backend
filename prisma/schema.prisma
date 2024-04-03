@@ -14,22 +14,8 @@ enum AddonCategory {
     DATA_SOURCE
 }
 
-model User {
-    id String @id() @default(cuid())
-    name String
-    email String @unique()
-
-    author Author?
-    installedAddons Addon[]
-}
-
 model Author{
-    id String @id() @default(cuid())
-
-    user User @relation(fields:[userId], references: [id])
     userId String @unique
-
-    createdAddons Addon[]
 }
 
 model Addon {
