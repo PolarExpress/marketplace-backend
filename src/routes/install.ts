@@ -25,16 +25,26 @@ export const installHandler =
 
     let user = await ctx.users.findOne({ userId: session.userID });
     if (!user) {
-      const inserted_user = await ctx.users.insertOne({ userId: session.userID, installedAddons: [] });
-      user = await ctx.users.findOne({ _id: inserted_user.insertedId }) as WithId<User>;
+      const inserted_user = await ctx.users.insertOne({
+        userId: session.userID,
+        installedAddons: []
+      });
+      user = (await ctx.users.findOne({
+        _id: inserted_user.insertedId
+      })) as WithId<User>;
     }
 
     // Find the addon by id. If the addon is not found, throw an error.
-    const addon = (await ctx.addons.findOne({ _id: new ObjectId(args.addonID) }))
-      ?? throwFn(new Error("Could not find an addon with given id"));
+    const addon =
+      (await ctx.addons.findOne({ _id: new ObjectId(args.addonID) })) ??
+      throwFn(new Error("Could not find an addon with given id"));
 
     // Check if user actually has the addon installed
-    if (user.installedAddons.some(installedAddon => addon._id.equals(installedAddon))) {
+    if (
+      user.installedAddons.some(installedAddon =>
+        addon._id.equals(installedAddon)
+      )
+    ) {
       throw new Error(
         `User "${session.userID}" already has addon "${addon._id}" installed`
       );
@@ -42,7 +52,10 @@ export const installHandler =
 
     // Add relation between user and addon
     const updatedInstalledAddons = [...user.installedAddons, args.addonID];
-    await ctx.users.updateOne({ userId: session.userID }, { $set: { installedAddons: updatedInstalledAddons } });
+    await ctx.users.updateOne(
+      { userId: session.userID },
+      { $set: { installedAddons: updatedInstalledAddons } }
+    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,23 +69,34 @@ export const uninstallHandler =
     const args = uninstallSchema.parse(req);
 
     // Find the user by id. If the user is not found, throw an error.
-    const user = (await ctx.users.findOne({ userId: session.userID }))
-      ?? throwFn(new Error("Could not find the user in the session"));
+    const user =
+      (await ctx.users.findOne({ userId: session.userID })) ??
+      throwFn(new Error("Could not find the user in the session"));
 
     // Find the addon by id. If the addon is not found, throw an error.
-    const addon = (await ctx.addons.findOne({ _id: new ObjectId(args.addonID) }))
-      ?? throwFn(new Error("Could not find an addon with given id"));
+    const addon =
+      (await ctx.addons.findOne({ _id: new ObjectId(args.addonID) })) ??
+      throwFn(new Error("Could not find an addon with given id"));
 
     // Check if user actually has the addon installed
-    if (!user.installedAddons.some(installedAddon => addon._id.equals(installedAddon))) {
+    if (
+      !user.installedAddons.some(installedAddon =>
+        addon._id.equals(installedAddon)
+      )
+    ) {
       throw new Error(
         `User "${session.userID}" does not have addon "${args.addonID}" installed`
       );
     }
 
     // Remove relation between user and addon
-    const updatedInstalledAddons = user.installedAddons.filter(addon => addon !== args.addonID);
-    await ctx.users.updateOne({ userId: session.userID }, { $set: { installedAddons: updatedInstalledAddons } });
+    const updatedInstalledAddons = user.installedAddons.filter(
+      addon => addon !== args.addonID
+    );
+    await ctx.users.updateOne(
+      { userId: session.userID },
+      { $set: { installedAddons: updatedInstalledAddons } }
+    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////

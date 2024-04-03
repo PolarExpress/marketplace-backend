@@ -6,12 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import {
-  randCompanyName,
-  randText,
-  seed,
-  randUuid
-} from "@ngneat/falso";
+import { randCompanyName, randText, seed, randUuid } from "@ngneat/falso";
 import { MongoClient, ObjectId, WithId } from "mongodb";
 import "dotenv/config";
 
@@ -86,7 +81,7 @@ async function main() {
   await col_authors.insertMany(authors);
 
   console.log("Creating addons...");
-  const addons: Seeded<Addon>[] = []
+  const addons: Seeded<Addon>[] = [];
   for (let i = 0; i < 12; i++) {
     const random = Math.floor(Math.random() * authors.length);
     const addon = seed_addon(authors[random]);
@@ -104,11 +99,14 @@ async function main() {
   console.log("Creating installs...");
   for (const user of users) {
     const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
-    await col_users.updateOne({ _id: user._id }, {
-      $set: {
-        installedAddons: chooseFromN(addons, installs).map(addon => addon._id)
+    await col_users.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          installedAddons: chooseFromN(addons, installs).map(addon => addon._id)
+        }
       }
-    });
+    );
   }
 
   await mongo.close();

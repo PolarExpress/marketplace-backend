@@ -19,7 +19,7 @@ import { Addon, Author, User } from "./types";
 export interface Context {
   addons: Collection<Addon>;
   authors: Collection<Author>;
-  users: Collection<User>
+  users: Collection<User>;
   fs: typeof fs;
 }
 

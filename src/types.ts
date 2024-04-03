@@ -55,4 +55,7 @@ export interface Addon {
 }
 
 export type Handler = (req: object) => Promise<unknown>;
-export type AuthHandler = (req: object, session: SessionData) => Promise<unknown>;
+export type AuthHandler = (
+  req: object,
+  session: SessionData
+) => Promise<unknown>;

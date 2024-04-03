@@ -58,11 +58,13 @@ export const getAddonByIdHandler =
   async (req: object): Promise<object> => {
     const args = getAddonByIdSchema.parse(req);
 
-    const addon = (await ctx.addons.findOne({ _id: new ObjectId(args.id) }))
-      ?? throwFn(new Error("Could not find the addon with given id"));
+    const addon =
+      (await ctx.addons.findOne({ _id: new ObjectId(args.id) })) ??
+      throwFn(new Error("Could not find the addon with given id"));
 
-    const author = (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) }))
-      ?? throwFn(new Error("Could nnot find  the addon's author"));
+    const author =
+      (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+      throwFn(new Error("Could nnot find  the addon's author"));
 
     return { addon: { ...addon, author } };
   };

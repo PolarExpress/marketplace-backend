@@ -21,15 +21,39 @@ export const dummyAuthors: WithId<Author>[] = [
 ].map(author => ({ _id: new ObjectId(), ...author }));
 
 export const dummyAddons: WithId<Addon>[] = [
-  { name: "A", summary: "This is A", icon: "icon.png", category: AddonCategory.VISUALISATION, authorId: dummyAuthors[0]._id.toString() },
-  { name: "B", summary: "This is B", icon: "icon.png", category: AddonCategory.MACHINE_LEARNING, authorId: dummyAuthors[0]._id.toString() },
-  { name: "C", summary: "This is C", icon: "icon.png", category: AddonCategory.DATA_SOURCE, authorId: dummyAuthors[1]._id.toString() },
+  {
+    name: "A",
+    summary: "This is A",
+    icon: "icon.png",
+    category: AddonCategory.VISUALISATION,
+    authorId: dummyAuthors[0]._id.toString()
+  },
+  {
+    name: "B",
+    summary: "This is B",
+    icon: "icon.png",
+    category: AddonCategory.MACHINE_LEARNING,
+    authorId: dummyAuthors[0]._id.toString()
+  },
+  {
+    name: "C",
+    summary: "This is C",
+    icon: "icon.png",
+    category: AddonCategory.DATA_SOURCE,
+    authorId: dummyAuthors[1]._id.toString()
+  }
 ].map(addon => ({ _id: new ObjectId(), ...addon }));
 
 export const dummyUsers: WithId<User>[] = [
   { userId: "1", installedAddons: [] },
   { userId: "2", installedAddons: [] },
-  { userId: "3", installedAddons: [dummyAddons[0]._id.toString(), dummyAddons[2]._id.toString()] },
+  {
+    userId: "3",
+    installedAddons: [
+      dummyAddons[0]._id.toString(),
+      dummyAddons[2]._id.toString()
+    ]
+  }
 ].map(user => ({ _id: new ObjectId(), ...user }));
 
 let mongo: MongoMemoryServer, connection: MongoClient, db: Db;

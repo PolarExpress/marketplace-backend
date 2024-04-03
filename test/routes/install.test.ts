@@ -45,7 +45,10 @@ test("install::invalid-addon-id_should-throw", async () => {
   const [, ctx] = createMockContext();
   const session = mockSession("1");
 
-  const response = installHandler(ctx)({ addonID: "invalid-addon-id" }, session);
+  const response = installHandler(ctx)(
+    { addonID: "invalid-addon-id" },
+    session
+  );
   await expect(response).rejects.toBeDefined();
 });
 
@@ -53,7 +56,10 @@ test("install::invalid-user-id_should-create-new-user", async () => {
   const [, ctx] = createMockContext();
   const session = mockSession("4");
 
-  const response = installHandler(ctx)({ addonID: dummyAddons[0]._id.toString() }, session);
+  const response = installHandler(ctx)(
+    { addonID: dummyAddons[0]._id.toString() },
+    session
+  );
   await expect(response).resolves.not.toBeDefined();
 
   const new_user = await ctx.users.findOne({ userId: "4" });
@@ -77,7 +83,7 @@ test("uninstall::valid-query_correct-return", async () => {
   const response = uninstallHandler(ctx)({ addonID }, session);
 
   await expect(response).resolves.not.toBeDefined();
-  
+
   const user = await ctx.users.findOne({ userId: "3" });
   expect(user?.installedAddons).not.toContain(addonID);
 });

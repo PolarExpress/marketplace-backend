@@ -22,7 +22,7 @@ type GetAddonsResult = { addons: WithId<Addon & { author: WithId<Author> }>[] };
 test("get-addons::valid-query-required-params", async () => {
   const [, ctx] = createMockContext();
 
-  const response = await getAddonsHandler(ctx)({}) as GetAddonsResult;
+  const response = (await getAddonsHandler(ctx)({})) as GetAddonsResult;
 
   expect(response.addons).toMatchObject(dummyAddons);
   for (const addon of response.addons) {
@@ -33,12 +33,14 @@ test("get-addons::valid-query-required-params", async () => {
 test("get-addons::valid-query-all-params", async () => {
   const [, ctx] = createMockContext();
 
-  const response = await getAddonsHandler(ctx)({
+  const response = (await getAddonsHandler(ctx)({
     page: 0,
     category: AddonCategory.DATA_SOURCE
-  }) as GetAddonsResult;
+  })) as GetAddonsResult;
 
-  expect(response.addons).toMatchObject(dummyAddons.filter(addon => addon.category === AddonCategory.DATA_SOURCE));
+  expect(response.addons).toMatchObject(
+    dummyAddons.filter(addon => addon.category === AddonCategory.DATA_SOURCE)
+  );
 });
 
 test("get-addons::invalid-query-invalid-page", async () => {
@@ -66,9 +68,9 @@ type GetAddonByIdResult = { addon: WithId<Addon & { author: WithId<Author> }> };
 test("get-addon-by-id::valid-id", async () => {
   const [, ctx] = createMockContext();
 
-  const response = await getAddonByIdHandler(ctx)({
+  const response = (await getAddonByIdHandler(ctx)({
     id: dummyAddons[0]._id.toString()
-  }) as GetAddonByIdResult;
+  })) as GetAddonByIdResult;
 
   expect(response.addon).toMatchObject(dummyAddons[0]);
   expect(response.addon.author).toStrictEqual(dummyAuthors[0]);
