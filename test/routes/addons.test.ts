@@ -6,26 +6,15 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory } from "@prisma/client";
+import { AddonCategory } from "@prisma/client";
 import { createMockContext } from "../mock-context";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
+  getAddonsByUserIdHandler,
   getAddonsHandler
 } from "../../src/routes/addons";
-
-const dummyAddon = (
-  id: string,
-  category: AddonCategory,
-  authorId: string
-): Addon => ({
-  id,
-  name: "Addon Name",
-  summary: "Addon Description",
-  icon: "icon.png",
-  category,
-  authorId
-});
+import { dummyAddon, dummyUser, mockSession } from "../../src/utils";
 
 test("get-addons::valid-query-required-params", async () => {
   const [mockCtx, ctx] = createMockContext();
@@ -125,4 +114,59 @@ test("get-addon-readme::invalid-id", async () => {
       id: "invalidId"
     })
   ).rejects.toThrow();
+});
+
+test("get-addons-by-user-id::valid-query-required-params", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+  const user = {
+    ...dummyUser(session.userID),
+    installedAddons: [
+      dummyAddon("1", AddonCategory.DATA_SOURCE, "123"),
+      dummyAddon("2", AddonCategory.VISUALISATION, "987")
+    ]
+  };
+
+  mockCtx.prisma.user.findUnique.mockResolvedValue(user);
+
+  const response = await getAddonsByUserIdHandler(ctx)({}, session);
+
+  expect(response).toEqual({ addons: user.installedAddons });
+});
+
+test("get-addons-by-user-id::invalid-query-invalid-page", async () => {
+  const [, ctx] = createMockContext();
+  const session = mockSession();
+
+  await expect(
+    getAddonsByUserIdHandler(ctx)(
+      {
+        page: "invalidPage"
+      },
+      session
+    )
+  ).rejects.toThrow();
+});
+
+test("get-addons-by-user-id::invalid-query-invalid-category", async () => {
+  const [, ctx] = createMockContext();
+  const session = mockSession();
+
+  await expect(
+    getAddonsByUserIdHandler(ctx)(
+      {
+        category: "invalidCategory"
+      },
+      session
+    )
+  ).rejects.toThrow();
+});
+
+test("get-addons-by-user-id::invalid-user-id", async () => {
+  const [mockCtx, ctx] = createMockContext();
+  const session = mockSession();
+
+  mockCtx.prisma.user.findUnique.mockResolvedValue(null);
+
+  await expect(getAddonsByUserIdHandler(ctx)({}, session)).rejects.toThrow();
 });

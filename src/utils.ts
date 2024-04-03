@@ -7,7 +7,8 @@
  */
 
 import { NextFunction, Request, Response } from "express";
-import { Handler } from "./types";
+import { Handler, SessionData } from "./types";
+import { Addon, AddonCategory, User } from "@prisma/client";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
@@ -57,3 +58,47 @@ export const expressHandler =
     handler(req.body)
       .then(result => res.status(200).json(result))
       .catch(error => next(error));
+
+////////////////////////////////////////////////////////////////////////////////
+// Test utils
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @returns A SessionData object to use while testing
+ */
+export const mockSession = (): SessionData => {
+  return {
+    username: "username",
+    userID: "userID",
+    impersonateID: "impersonateID",
+    sessionID: "sessionID",
+    saveStateID: "saveStateID",
+    roomID: "roomID",
+    jwt: "jwt"
+  };
+};
+
+/**
+ * @returns A User object with the given id and an empty name and email
+ */
+export const dummyUser = (id: string): User => ({
+  id,
+  name: "",
+  email: ""
+});
+
+/**
+ * @returns An Addon object with the given id, category (defaults to DATA_SOURCE) and authorId (defaults to empty string)
+ */
+export const dummyAddon = (
+  id: string,
+  category: AddonCategory = AddonCategory.DATA_SOURCE,
+  authorId: string = ""
+): Addon => ({
+  id,
+  name: "Addon Name",
+  summary: "Addon Description",
+  icon: "icon.png",
+  category,
+  authorId
+});

@@ -6,36 +6,9 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Addon, AddonCategory, User } from "@prisma/client";
 import { createMockContext } from "../mock-context";
 import { installHandler, uninstallHandler } from "../../src/routes/install";
-
-const dummyUser = (id: string): User => ({
-  id,
-  name: "",
-  email: ""
-});
-
-const dummyAddon = (id: string): Addon => ({
-  id,
-  name: "Addon Name",
-  summary: "Addon Description",
-  icon: "icon.png",
-  category: AddonCategory.DATA_SOURCE,
-  authorId: ""
-});
-
-const mockSession = () => {
-  return {
-    username: "username",
-    userID: "userID",
-    impersonateID: "impersonateID",
-    sessionID: "sessionID",
-    saveStateID: "saveStateID",
-    roomID: "roomID",
-    jwt: "jwt"
-  };
-};
+import { dummyAddon, dummyUser, mockSession } from "../../src/utils";
 
 test("install::valid-query_correct-return", async () => {
   const [mockCtx, ctx] = createMockContext();
