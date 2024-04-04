@@ -19,7 +19,8 @@ import { createRoutingKeyStore } from "./routingKeyStore";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
-  getAddonsHandler
+  getAddonsHandler,
+  getAddonsByUserIdHandler
 } from "./routes/addons";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,6 +75,7 @@ export async function buildAmqp(ctx: Context) {
   amqp.handle("addons/get", getAddonsHandler(ctx));
   amqp.handle("addons/get-by-id", getAddonByIdHandler(ctx));
   amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(ctx));
+  amqp.handle("addons/get-by-userid", getAddonsByUserIdHandler(ctx));
 
   return amqp;
 }

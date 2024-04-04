@@ -95,3 +95,15 @@ export function createMockContext(): [MockContext, Context] {
   };
   return [context, context];
 }
+
+export function mockSession(userID: string) {
+  return {
+    username: "username",
+    userID,
+    impersonateID: "impersonateID",
+    sessionID: "sessionID",
+    saveStateID: "saveStateID",
+    roomID: "roomID",
+    jwt: "jwt"
+  };
+}

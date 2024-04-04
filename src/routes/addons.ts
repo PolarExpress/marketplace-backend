@@ -6,12 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { ObjectId } from "mongodb";
+import { ObjectId, Filter } from "mongodb";
 import { join } from "node:path";
 import { z } from "zod";
 
 import { Context } from "../context";
-import { AddonCategory } from "../types";
+import { Addon, AddonCategory, SessionData } from "../types";
 import { throwFn } from "../utils";
 
 // TODO: move this to a better place
@@ -91,3 +91,48 @@ export const getAddonReadMeByIdHandler =
   };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+const getAddonsByUserIdSchema = z.object({
+  page: z.coerce.number().int().gte(0).default(0),
+  category: z.nativeEnum(AddonCategory).optional()
+});
+
+interface AddonQueryFilter extends Filter<Addon> {
+  _id: { $in: ObjectId[] };
+  category?: AddonCategory;
+}
+
+export const getAddonsByUserIdHandler =
+  (ctx: Context) =>
+  async (req: object, session: SessionData): Promise<object> => {
+    const args = getAddonsByUserIdSchema.parse(req);
+
+    const user =
+      (await ctx.users.findOne({ userId: session.userID })) ??
+      throwFn(new Error("Could not find the user in the session"));
+
+    const queryFilter: AddonQueryFilter = {
+      _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
+    };
+
+    if (args.category) {
+      queryFilter.category = args.category;
+    }
+
+    const addons = await ctx.addons
+      .find(queryFilter)
+      .skip(args.page * pageSize)
+      .limit(pageSize)
+      .toArray();
+
+    const joined_addons = await Promise.all(
+      addons.map(async addon => {
+        const author =
+          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+          throwFn(new Error("Could not find the addon's author"));
+        return { ...addon, author };
+      })
+    );
+
+    return { addons: joined_addons };
+  };

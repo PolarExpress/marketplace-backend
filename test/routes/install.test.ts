@@ -6,20 +6,8 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { dummyAddons, createMockContext } from "../mock-context";
+import { dummyAddons, createMockContext, mockSession } from "../mock-context";
 import { installHandler, uninstallHandler } from "../../src/routes/install";
-
-const mockSession = (userID: string) => {
-  return {
-    username: "username",
-    userID,
-    impersonateID: "impersonateID",
-    sessionID: "sessionID",
-    saveStateID: "saveStateID",
-    roomID: "roomID",
-    jwt: "jwt"
-  };
-};
 
 test("install::valid-query_correct-return", async () => {
   const [, ctx] = createMockContext();
