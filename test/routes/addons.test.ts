@@ -132,12 +132,8 @@ function findExpectedAddonsByUserId(userId: string) {
   // Construct expected addons for the user
   const expectedAddons = user.installedAddons
     .map(addonId => dummyAddons.find(addon => addon._id.toString() === addonId))
-    .filter(addon => addon !== undefined) // Ensure addon is found
+    .filter((addon): addon is WithId<Addon> => !!addon) // Ensure addon is found
     .map(addon => {
-      if (!addon) {
-        // This check is to satisfy TypeScript, but we've already filtered out undefined values
-        throw new Error("Addon unexpectedly undefined");
-      }
       // Addon existence is guaranteed by the previous filter step
       const author = dummyAuthors.find(
         author => author._id.toString() === addon.authorId
