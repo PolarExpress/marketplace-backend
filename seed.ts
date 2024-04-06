@@ -51,8 +51,8 @@ async function main() {
   // Set the seed if one is given.
   seed(process.argv[2]);
 
-  const mongo = await MongoClient.connect(process.env.DATABASE_URL!);
-  const db = mongo.db(process.env.DATABASE_NAME!);
+  const mongo = await MongoClient.connect(process.env.MONGO_URI!);
+  const db = mongo.db(process.env.MP_DATABASE_NAME!);
   const col_addons = db.collection("addons");
   const col_authors = db.collection("authors");
   const col_users = db.collection("users");
