@@ -41,10 +41,14 @@ If you prefer to run the backend locally instead, follow these instructions:
 # Install dependencies
 npm i
 
+# Copy the default environment variables
+cp sample.env .env
+
 # Prepopulate the database with some sample data
 # Add "-- <seed>" to set a fixed seed for the random generator
+# Make sure mongodb is running
 npm run seed
 
-# Start the dev server
+# Start the dev server, make sure redis, rabbitmq and mongodb are running
 npm run dev
 ```

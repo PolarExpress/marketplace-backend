@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
+    "dev": "node -r ts-node/register -r dotenv/config src/index.ts",
     "start": "node build/index.js",
-    "seed": "ts-node seed.ts",
+    "seed": "node -r ts-node/register -r dotenv/config seed.ts",
     "test": "jest --passWithNoTests",
     "lint": "eslint .",
     "format": "prettier --write .",

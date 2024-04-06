@@ -24,9 +24,9 @@ export interface Context {
 }
 
 export async function createContext(): Promise<Context> {
-  const mongo = await MongoClient.connect(process.env.DATABASE_URL!);
+  const mongo = await MongoClient.connect(process.env.MONGO_URI!);
 
-  const db = mongo.db(process.env.DATABASE_NAME!);
+  const db = mongo.db(process.env.MP_DATABASE_NAME!);
   const addons = db.collection<Addon>("addons");
   const authors = db.collection<Author>("authors");
   const users = db.collection<User>("users");
