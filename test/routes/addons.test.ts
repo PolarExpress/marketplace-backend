@@ -8,13 +8,20 @@
 
 import { WithId } from "mongodb";
 
-import { dummyAddons, dummyAuthors, createMockContext } from "../mock-context";
+import {
+  dummyAddons,
+  dummyAuthors,
+  dummyUsers,
+  createMockContext,
+  mockSession
+} from "../mock-context";
 
 import { Addon, AddonCategory, Author } from "../../src/types";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
-  getAddonsHandler
+  getAddonsHandler,
+  getAddonsByUserIdHandler
 } from "../../src/routes/addons";
 
 type GetAddonsResult = { addons: WithId<Addon & { author: WithId<Author> }>[] };
@@ -107,5 +114,97 @@ test("get-addon-readme::invalid-id", async () => {
     getAddonReadMeByIdHandler(ctx)({
       id: "invalidId"
     })
+  ).rejects.toThrow();
+});
+
+type GetAddonsByUserIdResult = {
+  addons: WithId<Addon & { author: WithId<Author> }>[];
+};
+
+// Find the expectedAddons via dummyUsers and their installedAddons when given a userId
+// Not sure if we can just hardcode the expectedAddons instead of functions like this
+function findExpectedAddonsByUserId(userId: string) {
+  const user = dummyUsers.find(user => user.userId === userId);
+  if (!user) {
+    throw new Error(`User with userId ${userId} not found`);
+  }
+
+  // Construct expected addons for the user
+  const expectedAddons = user.installedAddons
+    .map(addonId => dummyAddons.find(addon => addon._id.toString() === addonId))
+    .filter((addon): addon is WithId<Addon> => !!addon) // Ensure addon is found
+    .map(addon => {
+      // Addon existence is guaranteed by the previous filter step
+      const author = dummyAuthors.find(
+        author => author._id.toString() === addon.authorId
+      );
+      if (!author) {
+        throw new Error(`Author with id ${addon.authorId} not found`);
+      }
+      return {
+        ...addon,
+        author: { ...author } // Append the found author object to the addon
+      };
+    });
+
+  return expectedAddons;
+}
+
+test("get-addons-by-userid::valid-query-required-params", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await getAddonsByUserIdHandler(ctx)(
+    {},
+    mockSession("3")
+  )) as GetAddonsByUserIdResult;
+
+  const expectedAddons = findExpectedAddonsByUserId("3");
+
+  expect(response.addons).toMatchObject(expectedAddons); // hardcoded option: [dummyAddons[0], dummyAddons[2]]
+  for (const addon of response.addons) {
+    expect(dummyAuthors).toContainEqual(addon.author);
+  }
+});
+
+test("get-addons-by-userid::valid-query-all-params", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await getAddonsByUserIdHandler(ctx)(
+    {
+      page: 0,
+      category: AddonCategory.DATA_SOURCE
+    },
+    mockSession("3")
+  )) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([dummyAddons[2]]); //hardcoded for now
+  for (const addon of response.addons) {
+    expect(dummyAuthors).toContainEqual(addon.author);
+  }
+});
+
+test("get-addons-by-userid::invalid-query-invalid-page", async () => {
+  const [, ctx] = createMockContext();
+
+  await expect(
+    getAddonsByUserIdHandler(ctx)(
+      {
+        page: "invalidPage"
+      },
+      mockSession("3")
+    )
+  ).rejects.toThrow();
+});
+
+test("get-addons-by-userid::invalid-query-invalid-category", async () => {
+  const [, ctx] = createMockContext();
+
+  await expect(
+    getAddonsByUserIdHandler(ctx)(
+      {
+        category: "invalidCategory"
+      },
+      mockSession("3")
+    )
   ).rejects.toThrow();
 });
