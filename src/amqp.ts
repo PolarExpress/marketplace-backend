@@ -185,13 +185,12 @@ export class AmqpSocket {
       try {
         const response = await handler(body, content.sessionData);
         this.publishSuccess(ctx, response);
-      }
-      catch (error) {
+      } catch (error) {
         // TODO: proper errors
-        const message = error instanceof Error ? error.message : "An error occurred";
+        const message =
+          error instanceof Error ? error.message : "An error occurred";
         this.publishError(ctx, message);
       }
-
     });
   }
 }
