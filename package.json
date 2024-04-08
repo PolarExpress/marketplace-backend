@@ -9,7 +9,7 @@
     "test": "jest --passWithNoTests",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepare": "husky || echo \"Skipping husky in production\""
+    "prepare": "husky"
   },
   "dependencies": {
     "amqplib": "^0.10.3",
