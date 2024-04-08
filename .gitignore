@@ -12,8 +12,11 @@ dist
 build
 dist-ssr
 *.local
+.env
 
 coverage
+
+pnpm-lock.yaml
 
 data/*
 !data/.gitkeep

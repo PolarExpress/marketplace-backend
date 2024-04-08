@@ -13,7 +13,7 @@ import "dotenv/config";
 
 (async () => {
   // Create the app and start the server
-  const app = await buildApp(createContext());
+  const app = await buildApp(await createContext());
   const port = Number(process.env.MP_BACKEND_PORT ?? "3002");
 
   app.listen(port);

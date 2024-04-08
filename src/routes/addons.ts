@@ -6,10 +6,13 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Context } from "../context";
-import { AddonCategory } from "@prisma/client";
+import { ObjectId, Filter } from "mongodb";
 import { join } from "node:path";
 import { z } from "zod";
+
+import { Context } from "../context";
+import { Addon, AddonCategory, SessionData } from "../types";
+import { throwFn } from "../utils";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -26,22 +29,22 @@ export const getAddonsHandler =
   async (req: object): Promise<object> => {
     const args = getAddonsSchema.parse(req);
 
-    const addons = await ctx.prisma.addon.findMany({
-      skip: args.page * pageSize,
-      take: pageSize,
-      where: {
-        category: args.category ?? undefined
-      },
-      include: {
-        author: {
-          include: {
-            user: true
-          }
-        }
-      }
-    });
+    const addons = await ctx.addons
+      .find(args.category ? { category: args.category } : {})
+      .skip(args.page * pageSize)
+      .limit(pageSize)
+      .toArray();
 
-    return { addons };
+    const joined_addons = await Promise.all(
+      addons.map(async addon => {
+        const author =
+          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+          throwFn(new Error("Could not find the addon's author"));
+        return { ...addon, author };
+      })
+    );
+
+    return { addons: joined_addons };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,24 +58,15 @@ export const getAddonByIdHandler =
   async (req: object): Promise<object> => {
     const args = getAddonByIdSchema.parse(req);
 
-    const addon = await ctx.prisma.addon.findUnique({
-      where: {
-        id: args.id
-      },
-      include: {
-        author: {
-          include: {
-            user: true
-          }
-        }
-      }
-    });
+    const addon =
+      (await ctx.addons.findOne({ _id: new ObjectId(args.id) })) ??
+      throwFn(new Error("Could not find the addon with given id"));
 
-    if (addon === null) {
-      throw new Error("Addon not found");
-    }
+    const author =
+      (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+      throwFn(new Error("Could nnot find  the addon's author"));
 
-    return { addon };
+    return { addon: { ...addon, author } };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,3 +91,48 @@ export const getAddonReadMeByIdHandler =
   };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+const getAddonsByUserIdSchema = z.object({
+  page: z.coerce.number().int().gte(0).default(0),
+  category: z.nativeEnum(AddonCategory).optional()
+});
+
+interface AddonQueryFilter extends Filter<Addon> {
+  _id: { $in: ObjectId[] };
+  category?: AddonCategory;
+}
+
+export const getAddonsByUserIdHandler =
+  (ctx: Context) =>
+  async (req: object, session: SessionData): Promise<object> => {
+    const args = getAddonsByUserIdSchema.parse(req);
+
+    const user =
+      (await ctx.users.findOne({ userId: session.userID })) ??
+      throwFn(new Error("Could not find the user in the session"));
+
+    const queryFilter: AddonQueryFilter = {
+      _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
+    };
+
+    if (args.category) {
+      queryFilter.category = args.category;
+    }
+
+    const addons = await ctx.addons
+      .find(queryFilter)
+      .skip(args.page * pageSize)
+      .limit(pageSize)
+      .toArray();
+
+    const joined_addons = await Promise.all(
+      addons.map(async addon => {
+        const author =
+          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+          throwFn(new Error("Could not find the addon's author"));
+        return { ...addon, author };
+      })
+    );
+
+    return { addons: joined_addons };
+  };

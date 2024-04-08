@@ -25,14 +25,37 @@ export interface AmqpRequest {
 }
 
 export interface AmqpResponse {
-  value: object;
+  value: unknown;
   type: string;
   callID: string;
   status: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Handler = (req: any) => Promise<any>;
+export enum AddonCategory {
+  VISUALISATION = "VISUALISATION",
+  MACHINE_LEARNING = "MACHINE_LEARNING",
+  DATA_SOURCE = "DATA_SOURCE"
+}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AuthHandler = (req: any, session: SessionData) => Promise<any>;
+export interface Author {
+  userId: string;
+}
+
+export interface User {
+  userId: string;
+  installedAddons: string[];
+}
+
+export interface Addon {
+  name: string;
+  summary: string;
+  icon: string;
+  category: AddonCategory;
+  authorId: string;
+}
+
+export type Handler = (req: object) => Promise<unknown>;
+export type AuthHandler = (
+  req: object,
+  session: SessionData
+) => Promise<unknown>;

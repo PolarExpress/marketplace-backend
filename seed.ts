@@ -6,50 +6,42 @@
  * (Department of Information and Computing Sciences)
  */
 
-import {
-  Addon,
-  AddonCategory,
-  PrismaClient,
-  User,
-  Author
-} from "@prisma/client";
-import {
-  randCompanyName,
-  randEmail,
-  randUserName,
-  randText,
-  seed
-} from "@ngneat/falso";
+import { randCompanyName, randText, seed, randUuid } from "@ngneat/falso";
+import { MongoClient, ObjectId, WithId } from "mongodb";
+import "dotenv/config";
 
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const prisma = new PrismaClient();
+import { Addon, AddonCategory, Author, User } from "./src/types";
 
 // Seeding individual entities
 
-type Seeded<T> = Omit<T, "id">;
+type Seeded<T> = WithId<T>;
 
 function seed_user(): Seeded<User> {
   return {
-    name: randUserName(),
-    email: randEmail()
+    userId: randUuid(),
+    installedAddons: [],
+    _id: new ObjectId()
   };
 }
 
-function seed_author(user: User): Seeded<Author> {
+function seed_author(user: WithId<User>): Seeded<Author> {
   return {
-    userId: user.id
+    userId: user.userId,
+    _id: new ObjectId()
   };
 }
 
-function seed_addon(author: Author): Seeded<Addon> {
+function seed_addon(author: WithId<Author>): Seeded<Addon> {
   return {
     name: randCompanyName(),
     summary: randText({ charCount: 50 }),
-    icon: "",
+    icon: "icon.png",
     category: chooseFrom(Object.values(AddonCategory)),
-    authorId: author.id
+    authorId: author._id.toString(),
+    _id: new ObjectId()
   };
 }
 
@@ -59,12 +51,19 @@ async function main() {
   // Set the seed if one is given.
   seed(process.argv[2]);
 
-  // Delete all the data that is already there, ...
-  await prisma.addon.deleteMany();
-  await prisma.author.deleteMany();
-  await prisma.user.deleteMany();
+  const mongo = await MongoClient.connect(process.env.MONGO_URI!);
+  const db = mongo.db(process.env.MP_DATABASE_NAME!);
+  const col_addons = db.collection("addons");
+  const col_authors = db.collection("authors");
+  const col_users = db.collection("users");
 
-  const data_path = path.join(__dirname, "..", "data");
+  // Delete all the data that is already there, ...
+  console.log("Deleting previous data...");
+  await col_addons.deleteMany();
+  await col_authors.deleteMany();
+  await col_users.deleteMany();
+
+  const data_path = path.join(__dirname, "data");
   for (const file of await fs.readdir(data_path)) {
     if (file !== ".gitkeep") {
       const addon_data_path = path.join(data_path, file);
@@ -73,35 +72,23 @@ async function main() {
   }
 
   // ... and fill it up with the seeded data
-  for (let i = 0; i < 12; i++) {
-    await prisma.user.create({
-      data: {
-        ...seed_user()
-      }
-    });
-  }
-  const users: User[] = await prisma.user.findMany();
-  const candidAuthors: User[] = [...users];
+  console.log("Creating users...");
+  const users = range(12).map(() => seed_user());
+  await col_users.insertMany(users);
 
-  for (let i = 0; i < 5; i++) {
-    const random = Math.floor(Math.random() * candidAuthors.length);
-    await prisma.author.create({
-      data: {
-        ...seed_author(candidAuthors[random])
-      }
-    });
-    candidAuthors.splice(random, 1);
-  }
+  console.log("Creating authors...");
+  const authors = chooseFromN(users, 5).map(user => seed_author(user));
+  await col_authors.insertMany(authors);
 
-  const authors: Author[] = await prisma.author.findMany();
-
+  console.log("Creating addons...");
+  const addons: Seeded<Addon>[] = [];
   for (let i = 0; i < 12; i++) {
     const random = Math.floor(Math.random() * authors.length);
-    const addon = await prisma.addon.create({
-      data: { ...seed_addon(authors[random]) }
-    });
+    const addon = seed_addon(authors[random]);
+    addons.push(addon);
+    await col_addons.insertOne(addon);
 
-    const addon_data_path = path.join(data_path, addon.id);
+    const addon_data_path = path.join(data_path, addon._id.toString());
     await fs.mkdir(addon_data_path);
     await fs.writeFile(
       path.join(addon_data_path, "README.md"),
@@ -109,15 +96,21 @@ async function main() {
     );
   }
 
-  const addons: Addon[] = await prisma.addon.findMany();
-
-  for (let i = 0; i < users.length; i++) {
+  console.log("Creating installs...");
+  for (const user of users) {
     const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
-    await prisma.user.update({
-      where: { id: users[i].id },
-      data: { installedAddons: { connect: chooseFromN(addons, installs) } }
-    });
+    await col_users.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          installedAddons: chooseFromN(addons, installs).map(addon => addon._id)
+        }
+      }
+    );
   }
+
+  await mongo.close();
+  console.log("Done seeding!");
 }
 
 main();
@@ -155,7 +148,6 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
  * @param end the end of the range, inclusive
  * @returns a list of numbers [start, ..., end]
  */
-// eslint-disable-next-line
 function range(start: number, end?: number | undefined): number[] {
   return Array(end ? end - start : start)
     .fill(0)

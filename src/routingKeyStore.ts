@@ -34,10 +34,12 @@ export class RoutingKeyStore {
  * @returns The created `RoutingKeyStore`
  */
 export async function createRoutingKeyStore() {
+  const [redis_host, redis_port] =
+    process.env.REDIS_ADDRESS?.split(":") ?? panic("REDIS_ADDRESS not set");
   const redis = createClient({
     socket: {
-      host: process.env.REDIS_HOST ?? panic("REDIS_HOST not set"),
-      port: parseInt(process.env.REDIS_PORT ?? panic("REDIS_PORT not set"), 10)
+      host: redis_host,
+      port: Number(redis_port)
     },
     password: process.env.REDIS_PASSWORD ?? panic("REDIS_PASSWORD not set")
   });

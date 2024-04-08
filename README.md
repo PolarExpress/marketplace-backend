@@ -33,12 +33,6 @@ docker compose up backend-prod
 
 which will build the backend using `tsc` before running with node.
 
-In case you only need the database (and nothing else), run
-
-```sh
-docker compose up db
-```
-
 ### Run locally
 
 If you prefer to run the backend locally instead, follow these instructions:
@@ -47,23 +41,14 @@ If you prefer to run the backend locally instead, follow these instructions:
 # Install dependencies
 npm i
 
-# Compile the schema and run migrations
-npm run gen-schema
-npm run prisma-migrate
+# Copy the default environment variables
+cp sample.env .env
 
 # Prepopulate the database with some sample data
 # Add "-- <seed>" to set a fixed seed for the random generator
-npm run prisma-seed
+# Make sure mongodb is running
+npm run seed
 
-# Start the dev server
-npm run start:dev
-```
-
-### Prisma Studio
-
-To edit the contents for the database, we recommend you use Prisma Studio. To
-open prisma studio, run:
-
-```sh
-npx prisma studio
+# Start the dev server, make sure redis, rabbitmq and mongodb are running
+npm run dev
 ```
