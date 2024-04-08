@@ -7,7 +7,6 @@
  */
 
 import { ObjectId, Filter } from "mongodb";
-import { join } from "node:path";
 import { z } from "zod";
 
 import { Context } from "../context";
@@ -81,10 +80,8 @@ export const getAddonReadMeByIdHandler =
     const args = getAddonReadMeByIdSchema.parse(req);
 
     try {
-      const data = await ctx.fs.readFile(
-        join(__dirname, "../../", "data", args.id, "README.md")
-      );
-      return { readme: data.toString() };
+      const readme = await ctx.addonStorage.getReadme(args.id);
+      return { readme };
     } catch {
       throw new Error("Could not load addon data from file store");
     }

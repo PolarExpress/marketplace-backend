@@ -7,13 +7,13 @@
  */
 
 import { DeepMockProxy, mockDeep } from "jest-mock-extended";
-import fs from "fs/promises";
 
 import { Context } from "../src/context";
 import { Addon, AddonCategory, Author, User } from "../src/types";
 
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { Db, MongoClient, ObjectId, WithId } from "mongodb";
+import { AddonStorage } from "../src/addonStorage";
 
 export const dummyAuthors: WithId<Author>[] = [
   { userId: "1" },
@@ -83,7 +83,7 @@ afterAll(async () => {
 });
 
 export type MockContext = Context & {
-  fs: DeepMockProxy<typeof fs>;
+  addonStorage: DeepMockProxy<AddonStorage>;
 };
 
 export function createMockContext(): [MockContext, Context] {
@@ -91,7 +91,7 @@ export function createMockContext(): [MockContext, Context] {
     addons: db.collection<Addon>("addons"),
     authors: db.collection<Author>("authors"),
     users: db.collection<User>("users"),
-    fs: mockDeep<typeof fs>()
+    addonStorage: mockDeep<AddonStorage>()
   };
   return [context, context];
 }
