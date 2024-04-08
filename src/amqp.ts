@@ -182,9 +182,16 @@ export class AmqpSocket {
       }
 
       const handler = this.handlers[body.action];
-      const response = await handler(body, content.sessionData);
+      try {
+        const response = await handler(body, content.sessionData);
+        this.publishSuccess(ctx, response);
+      }
+      catch (error) {
+        // TODO: proper errors
+        const message = error instanceof Error ? error.message : "An error occurred";
+        this.publishError(ctx, message);
+      }
 
-      this.publishSuccess(ctx, response);
     });
   }
 }
