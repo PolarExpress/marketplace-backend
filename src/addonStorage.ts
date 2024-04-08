@@ -11,24 +11,24 @@ import path from "path";
 
 /**
  * AddonStorage is an interface for storing and retrieving addons.
- * 
- * This is used to store the readme and source of an addon. These are either 
+ *
+ * This is used to store the readme and source of an addon. These are either
  * stored locally or on a remote data store.
- * 
+ *
  * This interface is mocked during unit tests.
-*/
+ */
 export interface AddonStorage {
   /**
-    * Get the readme of an addon.
-    */
+   * Get the readme of an addon.
+   */
   getReadme(addonId: string): Promise<string>;
   /**
-    * Get the source (index.html) of an addon.
-    */
+   * Get the source (index.html) of an addon.
+   */
   getSource(addonId: string): Promise<string>;
   /**
-    * Store the readme and source of an addon.
-    */
+   * Store the readme and source of an addon.
+   */
   storeAddon(addonId: string, readme: string, source: string): Promise<void>;
 }
 
