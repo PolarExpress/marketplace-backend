@@ -107,10 +107,22 @@ export const getAddonsByUserIdHandler =
   async (req: object, session: SessionData): Promise<object> => {
     const args = getAddonsByUserIdSchema.parse(req);
 
-    const user =
-      (await ctx.users.findOne({ userId: session.userID })) ??
-      throwFn(new Error("Could not find the user in the session"));
+    let user = await ctx.users.findOne({ userId: session.userID });
 
+    // If the user does not exist, create a new user and insert it into the database
+    if (!user) {
+      const newUser = {
+        userId: session.userID,
+        installedAddons: []
+      };
+
+      await ctx.users.insertOne(newUser);
+      user = await ctx.users.findOne({ userId: session.userID });
+
+      if (!user) {
+        throw new Error("Failed to create and retrieve new user");
+      }
+    }
     const queryFilter: AddonQueryFilter = {
       _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
     };
