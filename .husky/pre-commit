@@ -1,1 +1,13 @@
-npm run --silent lint && npm run --silent format
+npm run --silent lint > /dev/null || EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then 
+    >&2 echo "Lint failed, please fix the errors before committing."
+    exit 1
+fi
+
+npm run --silent format > /dev/null || EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then 
+    >&2 echo "Formatting failed, please fix the errors before committing."
+    exit 1
+fi
