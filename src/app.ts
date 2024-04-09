@@ -63,10 +63,7 @@ export function buildExpress(ctx: Context): Express {
     }
   );
 
-  app.use('/store',
-    cors(),
-    express.static(path.join(__dirname,"../data"))
-  );
+  app.use("/store", cors(), express.static(path.join(__dirname, "../data")));
 
   return app;
 }
