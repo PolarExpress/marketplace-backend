@@ -22,6 +22,7 @@ import {
   getAddonsHandler,
   getAddonsByUserIdHandler
 } from "./routes/addons";
+import path from "path";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -45,7 +46,7 @@ export function buildExpress(ctx: Context): Express {
   const app = express();
   app.use(express.json());
 
-  app.use(cors());
+  app.use(cors({ origin: "http://localhost:5173" }));
 
   app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
   app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
@@ -60,6 +61,11 @@ export function buildExpress(ctx: Context): Express {
       res.status(500).json({ error: "Internal server error" });
       next();
     }
+  );
+
+  app.use('/store',
+    cors(),
+    express.static(path.join(__dirname,"../data"))
   );
 
   return app;
