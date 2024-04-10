@@ -44,7 +44,7 @@ export class App {
 
 export function buildExpress(ctx: Context): Express {
   const app = express();
-  app.use(express.json());  
+  app.use(express.json());
 
   app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
   app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
