@@ -8,32 +8,68 @@
 
 import amqp from "amqplib";
 
-import { AmqpRequest, AmqpResponse, AuthHandler } from "./types";
 import { RoutingKeyStore } from "./routingKeyStore";
 import { panic } from "./utils";
 
 /**
  * Configuration for the AMQP socket
  */
-const amqpConfig = {
+
+export interface SessionData {
+  username: string;
+  userID: string;
+  impersonateID: string;
+  sessionID: string;
+  saveStateID: string;
+  roomID: string;
+  jwt: string;
+}
+
+export type Handler = (req: object) => Promise<unknown>;
+
+export type AuthHandler = (
+  req: object,
+  session: SessionData
+) => Promise<unknown>;
+
+export interface AmqpConfig {
   queue: {
-    request: "mp-backend-request-queue"
-  },
+    request: string;
+  };
   exchange: {
-    request: "requests-exchange",
-    response: "ui-direct-exchange"
-  },
+    request: string;
+    response: string;
+  };
   routingKey: {
-    request: "mp-backend-request"
-  }
-};
+    request: string;
+  };
+  successType: string;
+  errorType: string;
+}
+
+interface AmqpResponse {
+  value: unknown;
+  type: string;
+  callID: string;
+  status: string;
+}
+interface AmqpRequest {
+  sessionData: SessionData;
+  fromFrontend: {
+    callID: string;
+    body: string;
+  };
+}
 
 /**
  * Creates an AMQP socket
  * @param routingKeyStore The routing-key store to use
  * @returns The created AMQP socket
  */
-export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
+export async function createAmqpSocket(
+  config: AmqpConfig,
+  routingKeyStore: RoutingKeyStore
+) {
   const opt = {
     credentials: amqp.credentials.plain(
       process.env.RABBIT_USER ?? panic("RABBIT_USER not set"),
@@ -47,7 +83,7 @@ export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
 
   const channel = await connection.createChannel();
 
-  return new AmqpSocket(channel, routingKeyStore);
+  return new AmqpSocket(config, channel, routingKeyStore);
 }
 
 /**
@@ -70,18 +106,19 @@ export class AmqpSocket {
   private handlers: Record<string, AuthHandler> = {};
 
   public constructor(
+    private config: AmqpConfig,
     private channel: amqp.Channel,
     private routingKeyStore: RoutingKeyStore
   ) {
-    this.channel.assertQueue(amqpConfig.queue.request);
-    this.channel.assertExchange(amqpConfig.exchange.request, "direct");
+    this.channel.assertQueue(config.queue.request);
+    this.channel.assertExchange(config.exchange.request, "direct");
     this.channel.bindQueue(
-      amqpConfig.queue.request,
-      amqpConfig.exchange.request,
-      amqpConfig.routingKey.request
+      config.queue.request,
+      config.exchange.request,
+      config.routingKey.request
     );
 
-    this.channel.assertExchange(amqpConfig.exchange.response, "direct");
+    this.channel.assertExchange(config.exchange.response, "direct");
   }
 
   /**
@@ -114,7 +151,7 @@ export class AmqpSocket {
     };
 
     this.channel.publish(
-      amqpConfig.exchange.response,
+      this.config.exchange.response,
       context.routingKey,
       Buffer.from(JSON.stringify(responseMessage)),
       { headers: context.headers }
@@ -127,7 +164,7 @@ export class AmqpSocket {
    * @param response The response to send to the frontend
    */
   private publishSuccess(context: PublishContext, response: unknown) {
-    this.publish(context, response, "mp_backend_result", "success");
+    this.publish(context, response, this.config.successType, "success");
   }
 
   /**
@@ -136,7 +173,7 @@ export class AmqpSocket {
    * @param error The error message to send to the frontend
    */
   private publishError(context: PublishContext, error: string) {
-    this.publish(context, { error: error }, "mp_backend_error", "error");
+    this.publish(context, { error: error }, this.config.errorType, "error");
   }
 
   /**
@@ -144,7 +181,7 @@ export class AmqpSocket {
    * This function will block the current thread.
    */
   public listen() {
-    this.channel.consume(amqpConfig.queue.request, async message => {
+    this.channel.consume(this.config.queue.request, async message => {
       if (!message) {
         return;
       }
@@ -171,7 +208,7 @@ export class AmqpSocket {
         headers: message.properties.headers
       };
 
-      if (body.action == null) {
+      if (body.action == null && !("" in this.handlers)) {
         this.publishError(ctx, "No action specified");
         return;
       }
@@ -181,7 +218,7 @@ export class AmqpSocket {
         return;
       }
 
-      const handler = this.handlers[body.action];
+      const handler = this.handlers[body.action ?? ""];
       try {
         const response = await handler(body, content.sessionData);
         this.publishSuccess(ctx, response);

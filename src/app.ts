@@ -13,7 +13,7 @@ import { Context } from "./context";
 import { expressHandler } from "./utils";
 
 import { installHandler, uninstallHandler } from "./routes/install";
-import { AmqpSocket, createAmqpSocket } from "./amqp";
+import { AmqpConfig, AmqpSocket, createAmqpSocket } from "./amqp";
 import { createRoutingKeyStore } from "./routingKeyStore";
 
 import {
@@ -66,8 +66,24 @@ export function buildExpress(ctx: Context): Express {
 }
 
 export async function buildAmqp(ctx: Context) {
+  const amqpConfig: AmqpConfig = {
+    queue: {
+      request: "mp-backend-request-queue"
+    },
+    exchange: {
+      request: "requests-exchange",
+      response: "ui-direct-exchange"
+    },
+    routingKey: {
+      request: "mp-backend-request"
+    },
+
+    successType: "mp_backend_result",
+    errorType: "mp_backend_error"
+  };
+
   const routingKeyStore = await createRoutingKeyStore();
-  const amqp = await createAmqpSocket(routingKeyStore);
+  const amqp = await createAmqpSocket(amqpConfig, routingKeyStore);
 
   amqp.handle("install", installHandler(ctx));
   amqp.handle("uninstall", uninstallHandler(ctx));

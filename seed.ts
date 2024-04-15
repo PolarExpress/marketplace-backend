@@ -9,7 +9,6 @@
 import { randCompanyName, randText, seed, randUuid } from "@ngneat/falso";
 import { MongoClient, ObjectId, WithId } from "mongodb";
 import "dotenv/config";
-
 import fs from "node:fs/promises";
 import path from "node:path";
 

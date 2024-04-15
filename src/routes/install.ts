@@ -10,7 +10,8 @@ import { WithId, ObjectId } from "mongodb";
 import { z } from "zod";
 
 import { Context } from "../context";
-import { SessionData, User } from "../types";
+import { User } from "../types";
+import { SessionData } from "../amqp";
 import { throwFn } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
