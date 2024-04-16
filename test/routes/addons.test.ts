@@ -96,7 +96,7 @@ test("get-addon-by-id::invalid-id", async () => {
 test("get-addon-readme::valid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
 
-  mockCtx.fs.readFile.mockResolvedValue(Buffer.from("Hello"));
+  mockCtx.minio.getReadme.mockResolvedValue("Hello");
 
   const response = await getAddonReadMeByIdHandler(ctx)({
     id: dummyAddons[0]._id.toString()
@@ -108,7 +108,7 @@ test("get-addon-readme::valid-id", async () => {
 test("get-addon-readme::invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
 
-  mockCtx.fs.readFile.mockRejectedValue(null);
+  mockCtx.minio.getReadme.mockRejectedValue(null);
 
   await expect(
     getAddonReadMeByIdHandler(ctx)({

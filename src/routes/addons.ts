@@ -12,7 +12,6 @@ import { z } from "zod";
 import { Context } from "../context";
 import { Addon, AddonCategory, SessionData } from "../types";
 import { throwFn } from "../utils";
-import { MinioService } from "../minio";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -71,22 +70,17 @@ export const getAddonByIdHandler =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: move this to a better place
-const minio = new MinioService();
-
 const getAddonReadMeByIdSchema = z.object({
   id: z.string()
 });
 
 export const getAddonReadMeByIdHandler =
-  (
-    ctx: Context // eslint-disable-line
-  ) =>
+  (ctx: Context) =>
   async (req: object): Promise<object> => {
     const args = getAddonReadMeByIdSchema.parse(req);
 
     try {
-      const readme = await minio.getReadme(args.id);
+      const readme = await ctx.minio.getReadme(args.id);
       return { readme };
     } catch {
       throw new Error("Could not load addon data from file store");

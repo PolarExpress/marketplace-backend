@@ -71,9 +71,9 @@ export class MinioService {
 
     return new Promise((resolve, reject) => {
       this.client.getObject(this.addonBucket, objectName, (err, dataStream) => {
-        const chunks: Buffer[] = [];
-
         if (err) reject(err);
+
+        const chunks: Buffer[] = [];
 
         dataStream.on("data", chunk => chunks.push(chunk));
 
