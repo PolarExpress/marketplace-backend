@@ -8,74 +8,82 @@
 
 import { BucketItem, Client } from "minio";
 
-export const minioClient = new Client({
-  endPoint: process.env.MINIO_ENDPOINT!,
-  port: Number(process.env.MINIO_PORT!),
-  useSSL: false,
-  accessKey: process.env.MINIO_ACCESSKEY!,
-  secretKey: process.env.MINIO_SECRETKEY!
-});
-
-/** Name of the bucket for storing addons */
-export const addonBucket = "addons";
-
-// UTILS
-
 /**
- * Empties the specified bucket by recursively removing all objects
- * @param bucketName Name of the bucket to empty
- * @returns A promise that resolves when the bucket is emptied
+ * Provides methods for interacting with MinIO
  */
-export const emptyBucket = async (bucketName: string): Promise<void> => {
-  const objects = await listObjects(bucketName);
+export class MinioService {
+  /** The MinIO client used to interact with the MinIO server */
+  public client: Client;
 
-  return new Promise((resolve, reject) => {
-    minioClient.removeObjects(
-      bucketName,
-      objects.map(obj => obj.name!),
-      err => (err ? reject(err) : resolve())
-    );
-  });
-};
+  /** Name of the bucket for storing addons */
+  public readonly addonBucket: string = "addons";
 
-/**
- * Recursively lists all objects in the specified bucket
- * @param bucketName Name of the bucket to list objects from
- * @returns A promise that resolves with an array of bucket items
- */
-const listObjects = async (bucketName: string): Promise<BucketItem[]> => {
-  const data: BucketItem[] = [];
-  const stream = minioClient.listObjectsV2(bucketName, undefined, true);
+  constructor() {
+    this.client = new Client({
+      endPoint: process.env.MINIO_ENDPOINT!,
+      port: Number(process.env.MINIO_PORT!),
+      useSSL: false,
+      accessKey: process.env.MINIO_ACCESSKEY!,
+      secretKey: process.env.MINIO_SECRETKEY!
+    });
+  }
 
-  return new Promise((resolve, reject) => {
-    stream.on("data", obj => data.push(obj));
-    stream.on("error", err => reject(err));
-    stream.on("end", () => resolve(data));
-  });
-};
+  /**
+   * Empties the specified bucket by recursively removing all objects
+   * @param bucketName Name of the bucket to empty
+   * @returns A promise that resolves when the bucket is emptied
+   */
+  public async emptyBucket(bucketName: string): Promise<void> {
+    const objects = await this.listObjects(bucketName);
 
-/**
- * Retrieves the content of the README.md file associated with the specified addon
- * @param addonId The unique identifier of the addon
- * @returns A promise that resolves with the content of the README.md file as a string
- */
-export const getReadme = async (addonId: string): Promise<string> => {
-  const objectName = `${addonId}/README.md`;
+    return new Promise((resolve, reject) => {
+      this.client.removeObjects(
+        bucketName,
+        objects.map(obj => obj.name!),
+        err => (err ? reject(err) : resolve())
+      );
+    });
+  }
 
-  return new Promise((resolve, reject) => {
-    minioClient.getObject(addonBucket, objectName, (err, dataStream) => {
-      const chunks: Buffer[] = [];
+  /**
+   * Recursively lists all objects in the specified bucket
+   * @param bucketName Name of the bucket to list objects from
+   * @returns A promise that resolves with an array of bucket items
+   */
+  private async listObjects(bucketName: string): Promise<BucketItem[]> {
+    const data: BucketItem[] = [];
+    const stream = this.client.listObjectsV2(bucketName, undefined, true);
 
-      if (err) reject(err);
+    return new Promise((resolve, reject) => {
+      stream.on("data", obj => data.push(obj));
+      stream.on("error", err => reject(err));
+      stream.on("end", () => resolve(data));
+    });
+  }
 
-      dataStream.on("data", chunk => chunks.push(chunk));
+  /**
+   * Retrieves the content of the README.md file associated with the specified addon
+   * @param addonId The unique identifier of the addon
+   * @returns A promise that resolves with the content of the README.md file as a string
+   */
+  public async getReadme(addonId: string): Promise<string> {
+    const objectName = `${addonId}/README.md`;
 
-      dataStream.on("error", err => reject(err));
+    return new Promise((resolve, reject) => {
+      this.client.getObject(this.addonBucket, objectName, (err, dataStream) => {
+        const chunks: Buffer[] = [];
 
-      dataStream.on("end", () => {
-        const data = Buffer.concat(chunks);
-        resolve(data.toString());
+        if (err) reject(err);
+
+        dataStream.on("data", chunk => chunks.push(chunk));
+
+        dataStream.on("error", err => reject(err));
+
+        dataStream.on("end", () => {
+          const data = Buffer.concat(chunks);
+          resolve(data.toString());
+        });
       });
     });
-  });
-};
+  }
+}

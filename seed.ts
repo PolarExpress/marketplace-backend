@@ -11,7 +11,7 @@ import { MongoClient, ObjectId, WithId } from "mongodb";
 import "dotenv/config";
 
 import { Addon, AddonCategory, Author, User } from "./src/types";
-import { addonBucket, emptyBucket, minioClient } from "./src/minio";
+import { MinioService } from "./src/minio";
 
 // Seeding individual entities
 
@@ -49,6 +49,7 @@ async function main() {
   // Set the seed if one is given.
   seed(process.argv[2]);
 
+  const minio = new MinioService();
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
   const db = mongo.db(process.env.MP_DATABASE_NAME!);
   const col_addons = db.collection("addons");
@@ -61,10 +62,10 @@ async function main() {
   await col_authors.deleteMany();
   await col_users.deleteMany();
 
-  const exists = await minioClient.bucketExists(addonBucket);
+  const exists = await minio.client.bucketExists(minio.addonBucket);
   exists
-    ? await emptyBucket(addonBucket)
-    : await minioClient.makeBucket(addonBucket);
+    ? await minio.emptyBucket(minio.addonBucket)
+    : await minio.client.makeBucket(minio.addonBucket);
 
   // ... and fill it up with the seeded data
   console.log("Creating users...");
@@ -85,8 +86,8 @@ async function main() {
 
     const readmeContent = `# README for ${addon.name}`;
     const addonDirectory = `${addon._id.toString()}/`;
-    await minioClient.putObject(
-      addonBucket,
+    await minio.client.putObject(
+      minio.addonBucket,
       `${addonDirectory}README.md`,
       readmeContent,
       {
