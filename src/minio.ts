@@ -16,10 +16,16 @@ export const minioClient = new Client({
   secretKey: process.env.MINIO_SECRETKEY!
 });
 
+/** Name of the bucket for storing addons */
 export const addonBucket = "addons";
 
 // UTILS
 
+/**
+ * Empties the specified bucket by recursively removing all objects
+ * @param bucketName Name of the bucket to empty
+ * @returns A promise that resolves when the bucket is emptied
+ */
 export const emptyBucket = async (bucketName: string): Promise<void> => {
   const objects = await listObjects(bucketName);
 
@@ -32,6 +38,11 @@ export const emptyBucket = async (bucketName: string): Promise<void> => {
   });
 };
 
+/**
+ * Recursively lists all objects in the specified bucket
+ * @param bucketName Name of the bucket to list objects from
+ * @returns A promise that resolves with an array of bucket items
+ */
 const listObjects = async (bucketName: string): Promise<BucketItem[]> => {
   const data: BucketItem[] = [];
   const stream = minioClient.listObjectsV2(bucketName, undefined, true);
