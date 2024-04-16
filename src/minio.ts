@@ -53,3 +53,29 @@ const listObjects = async (bucketName: string): Promise<BucketItem[]> => {
     stream.on("end", () => resolve(data));
   });
 };
+
+/**
+ * Retrieves the content of the README.md file associated with the specified addon
+ * @param addonId The unique identifier of the addon
+ * @returns A promise that resolves with the content of the README.md file as a string
+ */
+export const getReadme = async (addonId: string): Promise<string> => {
+  const objectName = `${addonId}/README.md`;
+
+  return new Promise((resolve, reject) => {
+    minioClient.getObject(addonBucket, objectName, (err, dataStream) => {
+      const chunks: Buffer[] = [];
+
+      if (err) reject(err);
+
+      dataStream.on("data", chunk => chunks.push(chunk));
+
+      dataStream.on("error", err => reject(err));
+
+      dataStream.on("end", () => {
+        const data = Buffer.concat(chunks);
+        resolve(data.toString());
+      });
+    });
+  });
+};

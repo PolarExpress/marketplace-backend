@@ -7,12 +7,12 @@
  */
 
 import { ObjectId, Filter } from "mongodb";
-import { join } from "node:path";
 import { z } from "zod";
 
 import { Context } from "../context";
 import { Addon, AddonCategory, SessionData } from "../types";
 import { throwFn } from "../utils";
+import { getReadme } from "../minio";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -76,15 +76,15 @@ const getAddonReadMeByIdSchema = z.object({
 });
 
 export const getAddonReadMeByIdHandler =
-  (ctx: Context) =>
+  (
+    ctx: Context // eslint-disable-line
+  ) =>
   async (req: object): Promise<object> => {
     const args = getAddonReadMeByIdSchema.parse(req);
 
     try {
-      const data = await ctx.fs.readFile(
-        join(__dirname, "../../", "data", args.id, "README.md")
-      );
-      return { readme: data.toString() };
+      const readme = await getReadme(args.id);
+      return { readme };
     } catch {
       throw new Error("Could not load addon data from file store");
     }
@@ -128,8 +128,9 @@ export const getAddonsByUserIdHandler =
     const joined_addons = await Promise.all(
       addons.map(async addon => {
         const author =
-          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-          throwFn(new Error("Could not find the addon's author"));
+          (await ctx.authors.findOne({
+            _id: new ObjectId(addon.authorId)
+          })) ?? throwFn(new Error("Could not find the addon's author"));
         return { ...addon, author };
       })
     );
