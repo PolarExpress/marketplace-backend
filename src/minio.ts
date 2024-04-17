@@ -6,6 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
+import { Request, Response } from "express";
 import { BucketItem, Client } from "minio";
 
 /**
@@ -84,6 +85,28 @@ export class MinioService {
           resolve(data.toString());
         });
       });
+    });
+  }
+
+  /**
+   * Serves a file from MinIO.
+   * Streams the file directly to the provided response object.
+   */
+  public serveFile(req: Request, res: Response) {
+    const filepath = req.params.filepath;
+    const [bucket, ...objectPath] = filepath.split("/");
+
+    if (!bucket || !objectPath.length) {
+      return res.status(400).json({ error: "Invalid file path" });
+    }
+
+    this.client.getObject(bucket, objectPath.join("/"), (err, stream) => {
+      if (err) {
+        return err.message.includes("does not exist")
+          ? res.status(404).json({ error: "File not found" })
+          : res.status(500).json({ error: "Internal server error" });
+      }
+      stream.pipe(res);
     });
   }
 }
