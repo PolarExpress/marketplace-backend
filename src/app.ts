@@ -56,7 +56,6 @@ export function buildExpress(ctx: Context): Express {
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
-      console.log("Error found");
       console.error(err);
       res.status(500).json({ error: "Internal server error" });
       next();

@@ -63,15 +63,17 @@ export class MinioService {
   }
 
   /**
-   * Retrieves the content of the README.md file associated with the specified addon
-   * @param addonId The unique identifier of the addon
-   * @returns A promise that resolves with the content of the README.md file as a string
+   * Retrieves the content of a file from MinIO.
+   * @param bucketName Name of the bucket the file is in.
+   * @param objectPath Path of the object within the bucket.
+   * @returns A promise that resolves with a Buffer containing the file content.
    */
-  public async getReadme(addonId: string): Promise<string> {
-    const objectName = `${addonId}/README.md`;
-
+  public async getFile(
+    bucketName: string,
+    objectPath: string
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      this.client.getObject(this.addonBucket, objectName, (err, dataStream) => {
+      this.client.getObject(bucketName, objectPath, (err, dataStream) => {
         if (err) reject(err);
 
         const chunks: Buffer[] = [];
@@ -82,7 +84,7 @@ export class MinioService {
 
         dataStream.on("end", () => {
           const data = Buffer.concat(chunks);
-          resolve(data.toString());
+          resolve(data);
         });
       });
     });
