@@ -80,12 +80,11 @@ export const getAddonReadMeByIdHandler =
     const args = getAddonReadMeByIdSchema.parse(req);
 
     try {
-      const buffer = await ctx.minio.getFile(
+      const buffer = await ctx.minio.readFile(
         ctx.minio.addonBucket,
         `${args.id}/README.md`
       );
-      const readme = buffer.toString();
-      return { readme };
+      return { readme: buffer.toString() };
     } catch {
       throw new Error("Could not load addon data from file store");
     }

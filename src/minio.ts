@@ -68,7 +68,7 @@ export class MinioService {
    * @param objectPath Path of the object within the bucket.
    * @returns A promise that resolves with a Buffer containing the file content.
    */
-  public async getFile(
+  public async readFile(
     bucketName: string,
     objectPath: string
   ): Promise<Buffer> {
