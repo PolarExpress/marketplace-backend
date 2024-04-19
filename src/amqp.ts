@@ -13,7 +13,7 @@ import { RoutingKeyStore } from "./routingKeyStore";
 import { panic } from "./utils";
 
 /**
- * Configuration for the AMQP socket
+ * Configuration for the AMQP socket.
  */
 const amqpConfig = {
   queue: {
@@ -29,9 +29,11 @@ const amqpConfig = {
 };
 
 /**
- * Creates an AMQP socket
- * @param routingKeyStore The routing-key store to use
- * @returns The created AMQP socket
+ * Creates an AMQP socket.
+ *
+ * @param   routingKeyStore The routing-key store to use.
+ *
+ * @returns                 The created AMQP socket.
  */
 export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
   const opt = {
@@ -51,10 +53,11 @@ export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
 }
 
 /**
- * Context for publishing a message
- * @param routingKey The routing key to send the message to
- * @param callID The call ID of the message
- * @param headers The headers of the message
+ * Context for publishing a message.
+ *
+ * @param routingKey The routing key to send the message to.
+ * @param callID     The call ID of the message.
+ * @param headers    The headers of the message.
  */
 interface PublishContext {
   routingKey: string;
@@ -85,20 +88,23 @@ export class AmqpSocket {
   }
 
   /**
-   * Registers a handler for a specific action
-   * @param key The action to register the handler for
-   * @param handler The handler to register
+   * Registers a handler for a specific action.
+   *
+   * @param key     The action to register the handler for.
+   * @param handler The handler to register.
    */
   public handle(key: string, handler: AuthHandler) {
     this.handlers[key] = handler;
   }
 
   /**
-   * Publishes a message to the frontend
-   * @param context Publish context needed to send the message
-   * @param response The response to send to the frontend
-   * @param type The type of the message (used for type-based callbacks in the frontend)
-   * @param status The status of the message (e.g. success, error, ...)
+   * Publishes a message to the frontend.
+   *
+   * @param context  Publish context needed to send the message.
+   * @param response The response to send to the frontend.
+   * @param type     The type of the message (used for type-based callbacks in
+   *   the frontend)
+   * @param status   The status of the message (e.g. success, error, ...)
    */
   private publish(
     context: PublishContext,
@@ -122,26 +128,27 @@ export class AmqpSocket {
   }
 
   /**
-   * Publishes a success message to the frontend
-   * @param context Publish context needed to send the message
-   * @param response The response to send to the frontend
+   * Publishes a success message to the frontend.
+   *
+   * @param context  Publish context needed to send the message.
+   * @param response The response to send to the frontend.
    */
   private publishSuccess(context: PublishContext, response: unknown) {
     this.publish(context, response, "mp_backend_result", "success");
   }
 
   /**
-   * Publishes an error message to the frontend
-   * @param context Publish context needed to send the message
-   * @param error The error message to send to the frontend
+   * Publishes an error message to the frontend.
+   *
+   * @param context Publish context needed to send the message.
+   * @param error   The error message to send to the frontend.
    */
   private publishError(context: PublishContext, error: string) {
     this.publish(context, { error: error }, "mp_backend_error", "error");
   }
 
   /**
-   * Start listening for messages.
-   * This function will block the current thread.
+   * Start listening for messages. This function will block the current thread.
    */
   public listen() {
     this.channel.consume(amqpConfig.queue.request, async message => {

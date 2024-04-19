@@ -118,19 +118,23 @@ main();
 // Utility functions
 
 /**
- * Pick a random element from the given list
- * @param choices A list of choices
- * @returns A random element from the list
+ * Pick a random element from the given list.
+ *
+ * @param   choices A list of choices.
+ *
+ * @returns         A random element from the list.
  */
 function chooseFrom<T>(choices: Readonly<T[]>): T {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
 /**
- * Draw n elements randomly from the list of choices without repetition
- * @param choices A list of choices
- * @param n The number of desired elements
- * @returns A list of n elements
+ * Draw n elements randomly from the list of choices without repetition.
+ *
+ * @param   choices A list of choices.
+ * @param   n       The number of desired elements.
+ *
+ * @returns         A list of n elements.
  */
 function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
   const indices = choices.map((_, i) => i),
@@ -143,10 +147,12 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
 }
 
 /**
- * Create a list of number based on a range
- * @param start the start of the range, defaults to 0
- * @param end the end of the range, inclusive
- * @returns a list of numbers [start, ..., end]
+ * Create a list of number based on a range.
+ *
+ * @param   start The start of the range, defaults to 0.
+ * @param   end   The end of the range, inclusive.
+ *
+ * @returns       A list of numbers [start, ..., end]
  */
 function range(start: number, end?: number | undefined): number[] {
   return Array(end ? end - start : start)
