@@ -79,6 +79,7 @@ export async function buildAmqp(ctx: Context) {
   amqp.handle("addons/get-by-id", getAddonByIdHandler(ctx));
   amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(ctx));
   amqp.handle("addons/get-by-user", getAddonsByUserIdHandler(ctx));
+  amqp.handle("addons/search", searchAddonsHandler(ctx));
 
   return amqp;
 }
