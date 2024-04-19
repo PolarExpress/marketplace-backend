@@ -136,3 +136,42 @@ export const getAddonsByUserIdHandler =
 
     return { addons: joined_addons };
   };
+
+////////////////////////////////////////////////////////////////////////////////
+
+const searchAddonsSchema = z.object({
+  searchTerm: z.string(),
+  page: z.coerce.number().int().gte(0).default(0),
+  category: z.nativeEnum(AddonCategory).optional()
+});
+
+export const searchAddonsHandler =
+  (ctx: Context) =>
+  async (req: object): Promise<object> => {
+    const args = searchAddonsSchema.parse(req);
+
+    const queryFilter: Filter<Addon> = {
+      name: { $regex: args.searchTerm, $options: "i" }
+    };
+
+    if (args.category) {
+      queryFilter.category = args.category;
+    }
+
+    const addons = await ctx.addons
+      .find(queryFilter)
+      .skip(args.page * pageSize)
+      .limit(pageSize)
+      .toArray();
+
+    const joined_addons = await Promise.all(
+      addons.map(async addon => {
+        const author =
+          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+          throwFn(new Error("Could not find the addon's author"));
+        return { ...addon, author };
+      })
+    );
+
+    return { addons: joined_addons };
+  };

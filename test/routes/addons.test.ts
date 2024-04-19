@@ -21,7 +21,8 @@ import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
   getAddonsHandler,
-  getAddonsByUserIdHandler
+  getAddonsByUserIdHandler,
+  searchAddonsHandler
 } from "../../src/routes/addons";
 
 type GetAddonsResult = { addons: WithId<Addon & { author: WithId<Author> }>[] };
@@ -206,5 +207,94 @@ test("get-addons-by-userid::invalid-query-invalid-category", async () => {
       },
       mockSession("3")
     )
+  ).rejects.toThrow();
+});
+
+test("search-addons::valid-query-required-params", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await searchAddonsHandler(ctx)({
+    searchTerm: dummyAddons[0].name
+  })) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([dummyAddons[0]]);
+  expect(response.addons[0].author).toStrictEqual(dummyAuthors[0]);
+});
+
+test("search-addons::valid-query-all-params", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await searchAddonsHandler(ctx)({
+    searchTerm: dummyAddons[2].name,
+    page: 0,
+    category: AddonCategory.DATA_SOURCE
+  })) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([dummyAddons[2]]);
+  expect(response.addons[0].author).toStrictEqual(dummyAuthors[1]);
+});
+
+test("search-addons::valid-query-case-insensitive", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await searchAddonsHandler(ctx)({
+    searchTerm: dummyAddons[0].name.toLowerCase()
+  })) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([dummyAddons[0]]);
+  expect(response.addons[0].author).toStrictEqual(dummyAuthors[0]);
+});
+
+test("search-addons::valid-query-partial-match", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await searchAddonsHandler(ctx)({
+    searchTerm: "addon"
+  })) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([
+    dummyAddons[0],
+    dummyAddons[1],
+    dummyAddons[2]
+  ]);
+  for (const addon of response.addons) {
+    const authorId = addon.authorId;
+    const author = dummyAuthors.find(
+      author => author._id.toString() === authorId
+    );
+    expect(addon.author).toStrictEqual(author);
+  }
+});
+
+test("search-addons::valid-query-empty-search-term", async () => {
+  const [, ctx] = createMockContext();
+
+  const search = (await searchAddonsHandler(ctx)({
+    searchTerm: ""
+  })) as GetAddonsResult;
+  const all = (await getAddonsHandler(ctx)({})) as GetAddonsResult;
+
+  expect(search).toStrictEqual(all);
+});
+
+test("search-addons::invalid-query-invalid-page", async () => {
+  const [, ctx] = createMockContext();
+
+  await expect(
+    searchAddonsHandler(ctx)({
+      searchTerm: "A",
+      page: "invalidPage"
+    })
+  ).rejects.toThrow();
+});
+
+test("search-addons::invalid-query-invalid-category", async () => {
+  const [, ctx] = createMockContext();
+
+  await expect(
+    searchAddonsHandler(ctx)({
+      searchTerm: "A",
+      category: "invalidCategory"
+    })
   ).rejects.toThrow();
 });

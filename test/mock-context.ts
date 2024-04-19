@@ -22,21 +22,21 @@ export const dummyAuthors: WithId<Author>[] = [
 
 export const dummyAddons: WithId<Addon>[] = [
   {
-    name: "A",
+    name: "Addon A",
     summary: "This is A",
     icon: "icon.png",
     category: AddonCategory.VISUALISATION,
     authorId: dummyAuthors[0]._id.toString()
   },
   {
-    name: "B",
+    name: "Addon B",
     summary: "This is B",
     icon: "icon.png",
     category: AddonCategory.MACHINE_LEARNING,
     authorId: dummyAuthors[0]._id.toString()
   },
   {
-    name: "C",
+    name: "Addon C",
     summary: "This is C",
     icon: "icon.png",
     category: AddonCategory.DATA_SOURCE,

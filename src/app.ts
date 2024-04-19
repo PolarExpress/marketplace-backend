@@ -20,7 +20,8 @@ import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
   getAddonsHandler,
-  getAddonsByUserIdHandler
+  getAddonsByUserIdHandler,
+  searchAddonsHandler
 } from "./routes/addons";
 import path from "path";
 
@@ -52,6 +53,7 @@ export function buildExpress(ctx: Context): Express {
     "/addons/get-readme",
     expressHandler(getAddonReadMeByIdHandler(ctx))
   );
+  app.post("/addons/search", expressHandler(searchAddonsHandler(ctx)));
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
