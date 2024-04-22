@@ -10,10 +10,8 @@ import { randCompanyName, randText, seed, randUuid } from "@ngneat/falso";
 import { MongoClient, ObjectId, WithId } from "mongodb";
 import "dotenv/config";
 
-import fs from "node:fs/promises";
-import path from "node:path";
-
 import { Addon, AddonCategory, Author, User } from "./src/types";
+import { MinioService } from "./src/minio";
 
 // Seeding individual entities
 
@@ -51,6 +49,7 @@ async function main() {
   // Set the seed if one is given.
   seed(process.argv[2]);
 
+  const minio = new MinioService();
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
   const db = mongo.db(process.env.MP_DATABASE_NAME!);
   const col_addons = db.collection("addons");
@@ -63,13 +62,10 @@ async function main() {
   await col_authors.deleteMany();
   await col_users.deleteMany();
 
-  const data_path = path.join(__dirname, "data");
-  for (const file of await fs.readdir(data_path)) {
-    if (file !== ".gitkeep") {
-      const addon_data_path = path.join(data_path, file);
-      await fs.rm(addon_data_path, { recursive: true });
-    }
-  }
+  const exists = await minio.client.bucketExists(minio.addonBucket);
+  exists
+    ? await minio.emptyBucket(minio.addonBucket)
+    : await minio.client.makeBucket(minio.addonBucket);
 
   // ... and fill it up with the seeded data
   console.log("Creating users...");
@@ -88,11 +84,15 @@ async function main() {
     addons.push(addon);
     await col_addons.insertOne(addon);
 
-    const addon_data_path = path.join(data_path, addon._id.toString());
-    await fs.mkdir(addon_data_path);
-    await fs.writeFile(
-      path.join(addon_data_path, "README.md"),
-      `# README for ${addon.name}`
+    const readmeContent = `# README for ${addon.name}`;
+    const addonDirectory = `${addon._id.toString()}/`;
+    await minio.client.putObject(
+      minio.addonBucket,
+      `${addonDirectory}README.md`,
+      readmeContent,
+      {
+        "Content-Type": "text/markdown"
+      }
     );
   }
 

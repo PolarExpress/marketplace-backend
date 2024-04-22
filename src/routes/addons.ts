@@ -7,7 +7,6 @@
  */
 
 import { ObjectId, Filter } from "mongodb";
-import { join } from "node:path";
 import { z } from "zod";
 
 import { Context } from "../context";
@@ -81,10 +80,11 @@ export const getAddonReadMeByIdHandler =
     const args = getAddonReadMeByIdSchema.parse(req);
 
     try {
-      const data = await ctx.fs.readFile(
-        join(__dirname, "../../", "data", args.id, "README.md")
+      const buffer = await ctx.minio.readFile(
+        ctx.minio.addonBucket,
+        `${args.id}/README.md`
       );
-      return { readme: data.toString() };
+      return { readme: buffer.toString() };
     } catch {
       throw new Error("Could not load addon data from file store");
     }
@@ -128,8 +128,9 @@ export const getAddonsByUserIdHandler =
     const joined_addons = await Promise.all(
       addons.map(async addon => {
         const author =
-          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-          throwFn(new Error("Could not find the addon's author"));
+          (await ctx.authors.findOne({
+            _id: new ObjectId(addon.authorId)
+          })) ?? throwFn(new Error("Could not find the addon's author"));
         return { ...addon, author };
       })
     );
