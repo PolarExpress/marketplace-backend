@@ -20,8 +20,7 @@ import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
   getAddonsHandler,
-  getAddonsByUserIdHandler,
-  searchAddonsHandler
+  getAddonsByUserIdHandler
 } from "./routes/addons";
 import path from "path";
 
@@ -54,7 +53,6 @@ export function buildExpress(ctx: Context): Express {
     "/addons/get-readme",
     expressHandler(getAddonReadMeByIdHandler(ctx))
   );
-  app.post("/addons/search", expressHandler(searchAddonsHandler(ctx)));
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
@@ -80,7 +78,6 @@ export async function buildAmqp(ctx: Context) {
   amqp.handle("addons/get-by-id", getAddonByIdHandler(ctx));
   amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(ctx));
   amqp.handle("addons/get-by-user", getAddonsByUserIdHandler(ctx));
-  amqp.handle("addons/search", searchAddonsHandler(ctx));
 
   return amqp;
 }

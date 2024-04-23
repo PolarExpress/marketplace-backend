@@ -21,7 +21,8 @@ const pageSize = 20;
 
 const getAddonsSchema = z.object({
   page: z.coerce.number().int().gte(0).default(0),
-  category: z.nativeEnum(AddonCategory).optional()
+  category: z.nativeEnum(AddonCategory).optional(),
+  searchTerm: z.string().default("")
 });
 
 export const getAddonsHandler =
@@ -29,8 +30,16 @@ export const getAddonsHandler =
   async (req: object): Promise<object> => {
     const args = getAddonsSchema.parse(req);
 
+    const queryFilter: Filter<Addon> = {
+      name: { $regex: args.searchTerm, $options: "i" }
+    };
+
+    if (args.category) {
+      queryFilter.category = args.category;
+    }
+
     const addons = await ctx.addons
-      .find(args.category ? { category: args.category } : {})
+      .find(queryFilter)
       .skip(args.page * pageSize)
       .limit(pageSize)
       .toArray();
@@ -113,45 +122,6 @@ export const getAddonsByUserIdHandler =
 
     const queryFilter: AddonQueryFilter = {
       _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
-    };
-
-    if (args.category) {
-      queryFilter.category = args.category;
-    }
-
-    const addons = await ctx.addons
-      .find(queryFilter)
-      .skip(args.page * pageSize)
-      .limit(pageSize)
-      .toArray();
-
-    const joined_addons = await Promise.all(
-      addons.map(async addon => {
-        const author =
-          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-          throwFn(new Error("Could not find the addon's author"));
-        return { ...addon, author };
-      })
-    );
-
-    return { addons: joined_addons };
-  };
-
-////////////////////////////////////////////////////////////////////////////////
-
-const searchAddonsSchema = z.object({
-  searchTerm: z.string(),
-  page: z.coerce.number().int().gte(0).default(0),
-  category: z.nativeEnum(AddonCategory).optional()
-});
-
-export const searchAddonsHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
-    const args = searchAddonsSchema.parse(req);
-
-    const queryFilter: Filter<Addon> = {
-      name: { $regex: args.searchTerm, $options: "i" }
     };
 
     if (args.category) {
