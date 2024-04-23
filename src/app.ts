@@ -80,7 +80,11 @@ export async function buildAmqp(ctx: Context) {
     },
 
     successType: "mp_backend_result",
-    errorType: "mp_backend_error"
+    errorType: "mp_backend_error",
+    
+    bodyMapper: message => {
+      return JSON.parse(JSON.parse(message.content.toString()).fromFrontend.body);
+    }
   };
 
   const routingKeyStore = await createRoutingKeyStore();
