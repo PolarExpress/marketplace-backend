@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { Context } from "../context";
 import { User } from "../types";
-import { SessionData } from "../amqp";
+import { SessionData } from "ts-amqp-socket";
 import { throwFn } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
