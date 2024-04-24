@@ -7,7 +7,7 @@
  */
 
 import { NextFunction, Request, Response } from "express";
-import { Handler } from "./amqp";
+import { Handler } from "ts-amqp-socket";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
