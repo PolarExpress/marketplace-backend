@@ -13,7 +13,12 @@ import { Context } from "./context";
 import { expressHandler } from "./utils";
 
 import { installHandler, uninstallHandler } from "./routes/install";
-import { AmqpSocket, AmqpConfig, createRoutingKeyStore, createAmqpSocket } from "ts-amqp-socket";
+import {
+  AmqpSocket,
+  AmqpConfig,
+  createRoutingKeyStore,
+  createAmqpSocket
+} from "ts-amqp-socket";
 
 import {
   getAddonByIdHandler,
