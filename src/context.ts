@@ -7,9 +7,9 @@
  */
 
 import { MongoClient, Collection } from "mongodb";
-import fs from "fs/promises";
 
 import { Addon, Author, User } from "./types";
+import { MinioService } from "./minio";
 
 /**
  * Context contains all the dependencies that are required by the resolvers
@@ -20,7 +20,7 @@ export interface Context {
   addons: Collection<Addon>;
   authors: Collection<Author>;
   users: Collection<User>;
-  fs: typeof fs;
+  minio: MinioService;
 }
 
 export async function createContext(): Promise<Context> {
@@ -31,5 +31,7 @@ export async function createContext(): Promise<Context> {
   const authors = db.collection<Author>("authors");
   const users = db.collection<User>("users");
 
-  return { addons, authors, users, fs };
+  const minio = new MinioService();
+
+  return { addons, authors, users, minio };
 }

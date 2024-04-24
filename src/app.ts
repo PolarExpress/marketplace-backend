@@ -26,7 +26,6 @@ import {
   getAddonsHandler,
   getAddonsByUserIdHandler
 } from "./routes/addons";
-import path from "path";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +48,9 @@ export class App {
 export function buildExpress(ctx: Context): Express {
   const app = express();
   app.use(express.json());
+  app.use(cors());
+
+  app.use(cors());
 
   app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
   app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
@@ -65,7 +67,7 @@ export function buildExpress(ctx: Context): Express {
     }
   );
 
-  app.use("/store", cors(), express.static(path.join(__dirname, "../data")));
+  app.get("/store/:filepath(*)", cors(), ctx.minio.serveFile.bind(ctx.minio));
 
   return app;
 }

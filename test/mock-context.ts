@@ -7,13 +7,13 @@
  */
 
 import { DeepMockProxy, mockDeep } from "jest-mock-extended";
-import fs from "fs/promises";
 
 import { Context } from "../src/context";
 import { Addon, AddonCategory, Author, User } from "../src/types";
 
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { Db, MongoClient, ObjectId, WithId } from "mongodb";
+import { MinioService } from "../src/minio";
 
 export const dummyAuthors: WithId<Author>[] = [
   { userId: "1" },
@@ -22,21 +22,21 @@ export const dummyAuthors: WithId<Author>[] = [
 
 export const dummyAddons: WithId<Addon>[] = [
   {
-    name: "A",
+    name: "Addon A",
     summary: "This is A",
     icon: "icon.png",
     category: AddonCategory.VISUALISATION,
     authorId: dummyAuthors[0]._id.toString()
   },
   {
-    name: "B",
+    name: "Addon B",
     summary: "This is B",
     icon: "icon.png",
     category: AddonCategory.MACHINE_LEARNING,
     authorId: dummyAuthors[0]._id.toString()
   },
   {
-    name: "C",
+    name: "Addon C",
     summary: "This is C",
     icon: "icon.png",
     category: AddonCategory.DATA_SOURCE,
@@ -83,7 +83,7 @@ afterAll(async () => {
 });
 
 export type MockContext = Context & {
-  fs: DeepMockProxy<typeof fs>;
+  minio: DeepMockProxy<MinioService>;
 };
 
 export function createMockContext(): [MockContext, Context] {
@@ -91,7 +91,7 @@ export function createMockContext(): [MockContext, Context] {
     addons: db.collection<Addon>("addons"),
     authors: db.collection<Author>("authors"),
     users: db.collection<User>("users"),
-    fs: mockDeep<typeof fs>()
+    minio: mockDeep<MinioService>()
   };
   return [context, context];
 }

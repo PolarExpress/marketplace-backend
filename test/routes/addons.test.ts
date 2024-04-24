@@ -42,12 +42,12 @@ test("get-addons::valid-query-all-params", async () => {
 
   const response = (await getAddonsHandler(ctx)({
     page: 0,
-    category: AddonCategory.DATA_SOURCE
+    category: AddonCategory.VISUALISATION,
+    searchTerm: dummyAddons[0].name
   })) as GetAddonsResult;
 
-  expect(response.addons).toMatchObject(
-    dummyAddons.filter(addon => addon.category === AddonCategory.DATA_SOURCE)
-  );
+  expect(response.addons).toMatchObject([dummyAddons[0]]);
+  expect(response.addons[0].author).toStrictEqual(dummyAuthors[0]);
 });
 
 test("get-addons::invalid-query-invalid-page", async () => {
@@ -68,6 +68,48 @@ test("get-addons::invalid-query-invalid-category", async () => {
       category: "invalidCategory"
     })
   ).rejects.toThrow();
+});
+
+test("get-addons::invalid-query-invalid-searchterm", async () => {
+  const [, ctx] = createMockContext();
+
+  await expect(
+    getAddonsHandler(ctx)({
+      searchTerm: 42
+    })
+  ).rejects.toThrow();
+});
+
+test("get-addons::valid-query-case-insensitive", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await getAddonsHandler(ctx)({
+    searchTerm: dummyAddons[0].name.toLowerCase()
+  })) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([dummyAddons[0]]);
+  expect(response.addons[0].author).toStrictEqual(dummyAuthors[0]);
+});
+
+test("get-addons::valid-query-partial-match", async () => {
+  const [, ctx] = createMockContext();
+
+  const response = (await getAddonsHandler(ctx)({
+    searchTerm: "addon"
+  })) as GetAddonsResult;
+
+  expect(response.addons).toMatchObject([
+    dummyAddons[0],
+    dummyAddons[1],
+    dummyAddons[2]
+  ]);
+  for (const addon of response.addons) {
+    const authorId = addon.authorId;
+    const author = dummyAuthors.find(
+      author => author._id.toString() === authorId
+    );
+    expect(addon.author).toStrictEqual(author);
+  }
 });
 
 type GetAddonByIdResult = { addon: WithId<Addon & { author: WithId<Author> }> };
@@ -96,7 +138,7 @@ test("get-addon-by-id::invalid-id", async () => {
 test("get-addon-readme::valid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
 
-  mockCtx.fs.readFile.mockResolvedValue(Buffer.from("Hello"));
+  mockCtx.minio.readFile.mockResolvedValue(Buffer.from("Hello"));
 
   const response = await getAddonReadMeByIdHandler(ctx)({
     id: dummyAddons[0]._id.toString()
@@ -108,7 +150,7 @@ test("get-addon-readme::valid-id", async () => {
 test("get-addon-readme::invalid-id", async () => {
   const [mockCtx, ctx] = createMockContext();
 
-  mockCtx.fs.readFile.mockRejectedValue(null);
+  mockCtx.minio.readFile.mockRejectedValue(null);
 
   await expect(
     getAddonReadMeByIdHandler(ctx)({
