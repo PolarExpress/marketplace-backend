@@ -90,6 +90,7 @@ async function main() {
       minio.addonBucket,
       `${addonDirectory}README.md`,
       readmeContent,
+      undefined,
       {
         "Content-Type": "text/markdown"
       }

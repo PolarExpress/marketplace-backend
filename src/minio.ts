@@ -73,14 +73,15 @@ export class MinioService {
     objectPath: string
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
+      // @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
       this.client.getObject(bucketName, objectPath, (err, dataStream) => {
         if (err) reject(err);
 
         const chunks: Buffer[] = [];
 
-        dataStream.on("data", chunk => chunks.push(chunk));
+        dataStream.on("data", (chunk: Buffer) => chunks.push(chunk));
 
-        dataStream.on("error", err => reject(err));
+        dataStream.on("error", (err: Error) => reject(err));
 
         dataStream.on("end", () => {
           const data = Buffer.concat(chunks);
@@ -102,6 +103,7 @@ export class MinioService {
       return res.status(400).json({ error: "Invalid file path" });
     }
 
+    // @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
     this.client.getObject(bucket, objectPath.join("/"), (err, stream) => {
       if (err) {
         return err.message.includes("does not exist")
