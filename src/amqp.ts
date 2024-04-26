@@ -8,20 +8,20 @@
 
 import amqp from "amqplib";
 
-import { AmqpRequest, AmqpResponse, AuthHandler } from "./types";
 import { RoutingKeyStore } from "./routingKeyStore";
+import { AmqpRequest, AmqpResponse, AuthHandler } from "./types";
 import { panic } from "./utils";
 
 /**
  * Configuration for the AMQP socket
  */
 const amqpConfig = {
-  queue: {
-    request: "mp-backend-request-queue"
-  },
   exchange: {
     request: "requests-exchange",
     response: "ui-direct-exchange"
+  },
+  queue: {
+    request: "mp-backend-request-queue"
   },
   routingKey: {
     request: "mp-backend-request"
@@ -57,9 +57,9 @@ export async function createAmqpSocket(routingKeyStore: RoutingKeyStore) {
  * @param headers The headers of the message
  */
 interface PublishContext {
-  routingKey: string;
   callID: string;
   headers: amqp.MessagePropertyHeaders | undefined;
+  routingKey: string;
 }
 
 interface AmqpRequestData {
@@ -85,15 +85,6 @@ export class AmqpSocket {
   }
 
   /**
-   * Registers a handler for a specific action
-   * @param key The action to register the handler for
-   * @param handler The handler to register
-   */
-  public handle(key: string, handler: AuthHandler) {
-    this.handlers[key] = handler;
-  }
-
-  /**
    * Publishes a message to the frontend
    * @param context Publish context needed to send the message
    * @param response The response to send to the frontend
@@ -107,10 +98,10 @@ export class AmqpSocket {
     status: string
   ) {
     const responseMessage: AmqpResponse = {
-      value: response,
-      type: type,
       callID: context.callID,
-      status: status
+      status: status,
+      type: type,
+      value: response
     };
 
     this.channel.publish(
@@ -119,6 +110,15 @@ export class AmqpSocket {
       Buffer.from(JSON.stringify(responseMessage)),
       { headers: context.headers }
     );
+  }
+
+  /**
+   * Publishes an error message to the frontend
+   * @param context Publish context needed to send the message
+   * @param error The error message to send to the frontend
+   */
+  private publishError(context: PublishContext, error: string) {
+    this.publish(context, { error: error }, "mp_backend_error", "error");
   }
 
   /**
@@ -131,12 +131,12 @@ export class AmqpSocket {
   }
 
   /**
-   * Publishes an error message to the frontend
-   * @param context Publish context needed to send the message
-   * @param error The error message to send to the frontend
+   * Registers a handler for a specific action
+   * @param key The action to register the handler for
+   * @param handler The handler to register
    */
-  private publishError(context: PublishContext, error: string) {
-    this.publish(context, { error: error }, "mp_backend_error", "error");
+  public handle(key: string, handler: AuthHandler) {
+    this.handlers[key] = handler;
   }
 
   /**
@@ -166,9 +166,9 @@ export class AmqpSocket {
       }
 
       const ctx: PublishContext = {
-        routingKey: routingKey,
         callID: content.fromFrontend.callID,
-        headers: message.properties.headers
+        headers: message.properties.headers,
+        routingKey: routingKey
       };
 
       if (body.action == null) {

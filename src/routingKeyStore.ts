@@ -7,6 +7,7 @@
  */
 
 import { createClient } from "redis";
+
 import { panic } from "./utils";
 
 /**
@@ -20,7 +21,7 @@ export class RoutingKeyStore {
     this.redis = redis;
   }
 
-  async get(sessionID: string): Promise<string | null> {
+  async get(sessionID: string): Promise<null | string> {
     const redisResponse = await this.redis.get(`routing ${sessionID}`);
     if (!redisResponse) {
       return null;
@@ -37,11 +38,11 @@ export async function createRoutingKeyStore() {
   const [redis_host, redis_port] =
     process.env.REDIS_ADDRESS?.split(":") ?? panic("REDIS_ADDRESS not set");
   const redis = createClient({
+    password: process.env.REDIS_PASSWORD ?? panic("REDIS_PASSWORD not set"),
     socket: {
       host: redis_host,
       port: Number(redis_port)
-    },
-    password: process.env.REDIS_PASSWORD ?? panic("REDIS_PASSWORD not set")
+    }
   });
 
   await redis.connect();

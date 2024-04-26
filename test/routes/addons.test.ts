@@ -9,22 +9,21 @@
 import { WithId } from "mongodb";
 
 import {
+  getAddonByIdHandler,
+  getAddonReadMeByIdHandler,
+  getAddonsByUserIdHandler,
+  getAddonsHandler
+} from "../../src/routes/addons";
+import { Addon, AddonCategory, Author } from "../../src/types";
+import {
+  createMockContext,
   dummyAddons,
   dummyAuthors,
   dummyUsers,
-  createMockContext,
   mockSession
 } from "../mock-context";
 
-import { Addon, AddonCategory, Author } from "../../src/types";
-import {
-  getAddonByIdHandler,
-  getAddonReadMeByIdHandler,
-  getAddonsHandler,
-  getAddonsByUserIdHandler
-} from "../../src/routes/addons";
-
-type GetAddonsResult = { addons: WithId<Addon & { author: WithId<Author> }>[] };
+type GetAddonsResult = { addons: WithId<{ author: WithId<Author> } & Addon>[] };
 
 test("get-addons::valid-query-required-params", async () => {
   const [, ctx] = createMockContext();
@@ -32,6 +31,7 @@ test("get-addons::valid-query-required-params", async () => {
   const response = (await getAddonsHandler(ctx)({})) as GetAddonsResult;
 
   expect(response.addons).toMatchObject(dummyAddons);
+
   for (const addon of response.addons) {
     expect(dummyAuthors).toContainEqual(addon.author);
   }
@@ -41,8 +41,8 @@ test("get-addons::valid-query-all-params", async () => {
   const [, ctx] = createMockContext();
 
   const response = (await getAddonsHandler(ctx)({
-    page: 0,
     category: AddonCategory.VISUALISATION,
+    page: 0,
     searchTerm: dummyAddons[0].name
   })) as GetAddonsResult;
 
@@ -103,16 +103,18 @@ test("get-addons::valid-query-partial-match", async () => {
     dummyAddons[1],
     dummyAddons[2]
   ]);
+
   for (const addon of response.addons) {
     const authorId = addon.authorId;
     const author = dummyAuthors.find(
       author => author._id.toString() === authorId
     );
+
     expect(addon.author).toStrictEqual(author);
   }
 });
 
-type GetAddonByIdResult = { addon: WithId<Addon & { author: WithId<Author> }> };
+type GetAddonByIdResult = { addon: WithId<{ author: WithId<Author> } & Addon> };
 
 test("get-addon-by-id::valid-id", async () => {
   const [, ctx] = createMockContext();
@@ -160,7 +162,7 @@ test("get-addon-readme::invalid-id", async () => {
 });
 
 type GetAddonsByUserIdResult = {
-  addons: WithId<Addon & { author: WithId<Author> }>[];
+  addons: WithId<{ author: WithId<Author> } & Addon>[];
 };
 
 // Find the expectedAddons via dummyUsers and their installedAddons when given a userId
@@ -172,7 +174,7 @@ function findExpectedAddonsByUserId(userId: string) {
   }
 
   // Construct expected addons for the user
-  const expectedAddons = user.installedAddons
+  return user.installedAddons
     .map(addonId => dummyAddons.find(addon => addon._id.toString() === addonId))
     .filter((addon): addon is WithId<Addon> => !!addon) // Ensure addon is found
     .map(addon => {
@@ -188,8 +190,6 @@ function findExpectedAddonsByUserId(userId: string) {
         author: { ...author } // Append the found author object to the addon
       };
     });
-
-  return expectedAddons;
 }
 
 test("get-addons-by-userid::valid-query-required-params", async () => {
@@ -203,6 +203,7 @@ test("get-addons-by-userid::valid-query-required-params", async () => {
   const expectedAddons = findExpectedAddonsByUserId("3");
 
   expect(response.addons).toMatchObject(expectedAddons); // hardcoded option: [dummyAddons[0], dummyAddons[2]]
+
   for (const addon of response.addons) {
     expect(dummyAuthors).toContainEqual(addon.author);
   }
@@ -213,13 +214,14 @@ test("get-addons-by-userid::valid-query-all-params", async () => {
 
   const response = (await getAddonsByUserIdHandler(ctx)(
     {
-      page: 0,
-      category: AddonCategory.DATA_SOURCE
+      category: AddonCategory.DATA_SOURCE,
+      page: 0
     },
     mockSession("3")
   )) as GetAddonsResult;
 
   expect(response.addons).toMatchObject([dummyAddons[2]]); //hardcoded for now
+
   for (const addon of response.addons) {
     expect(dummyAuthors).toContainEqual(addon.author);
   }

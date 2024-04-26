@@ -6,20 +6,11 @@
  * (Department of Information and Computing Sciences)
  */
 
+import { FlatCompat } from "@eslint/eslintrc";
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 const rule = {
-  meta: {
-    type: "maintenance",
-    docs: {
-      description:
-        "Ensure a specific comment exists at the top of the document",
-      category: "Mandatory",
-      recommended: true
-    },
-    fixable: "code"
-  },
   create(context) {
     const commentText =
       "\n" +
@@ -40,32 +31,48 @@ const rule = {
           )
         ) {
           context.report({
-            node: comments[0] ?? node.body[0],
-            message: "Copyright comment not found at the top",
             fix(fixer) {
               return fixer.insertTextBefore(
                 comments[0] ?? node.body[0],
                 `/*${commentText}*/\n\n`
               );
-            }
+            },
+            message: "Copyright comment not found at the top",
+            node: comments[0] ?? node.body[0]
           });
-          return;
         }
       }
     };
+  },
+  meta: {
+    docs: {
+      category: "Mandatory",
+      description:
+        "Ensure a specific comment exists at the top of the document",
+      recommended: true
+    },
+    fixable: "code",
+    type: "maintenance"
   }
 };
 
 const plugin = { rules: { "enforce-copyright-comment": rule } };
+const compat = new FlatCompat();
 
 export default tseslint.config(
   {
+    ignores: ["**/*.config.*"],
     plugins: { custom: plugin },
-    rules: { "custom/enforce-copyright-comment": "error" },
-    ignores: ["**/*.config.*"]
+    rules: { "custom/enforce-copyright-comment": "error" }
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  ...compat.extends(
+    "plugin:sonarjs/recommended",
+    "plugin:perfectionist/recommended-natural",
+    "plugin:jest/recommended",
+    "plugin:jest-formatting/strict"
+  ),
   {
     ignores: ["build", "data", "load_addons.js", "addons"]
   }

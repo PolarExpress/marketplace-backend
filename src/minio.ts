@@ -13,19 +13,35 @@ import { BucketItem, Client } from "minio";
  * Provides methods for interacting with MinIO
  */
 export class MinioService {
-  /** The MinIO client used to interact with the MinIO server */
-  public client: Client;
-
   /** Name of the bucket for storing addons */
   public readonly addonBucket: string = "addons";
 
+  /** The MinIO client used to interact with the MinIO server */
+  public client: Client;
+
   constructor() {
     this.client = new Client({
+      accessKey: process.env.MINIO_ACCESSKEY!,
       endPoint: process.env.MINIO_ENDPOINT!,
       port: Number(process.env.MINIO_PORT!),
-      useSSL: false,
-      accessKey: process.env.MINIO_ACCESSKEY!,
-      secretKey: process.env.MINIO_SECRETKEY!
+      secretKey: process.env.MINIO_SECRETKEY!,
+      useSSL: false
+    });
+  }
+
+  /**
+   * Recursively lists all objects in the specified bucket
+   * @param bucketName Name of the bucket to list objects from
+   * @returns A promise that resolves with an array of bucket items
+   */
+  private async listObjects(bucketName: string): Promise<BucketItem[]> {
+    const data: BucketItem[] = [];
+    const stream = this.client.listObjectsV2(bucketName, undefined, true);
+
+    return new Promise((resolve, reject) => {
+      stream.on("data", obj => data.push(obj));
+      stream.on("error", err => reject(err));
+      stream.on("end", () => resolve(data));
     });
   }
 
@@ -43,22 +59,6 @@ export class MinioService {
         objects.map(obj => obj.name!),
         err => (err ? reject(err) : resolve())
       );
-    });
-  }
-
-  /**
-   * Recursively lists all objects in the specified bucket
-   * @param bucketName Name of the bucket to list objects from
-   * @returns A promise that resolves with an array of bucket items
-   */
-  private async listObjects(bucketName: string): Promise<BucketItem[]> {
-    const data: BucketItem[] = [];
-    const stream = this.client.listObjectsV2(bucketName, undefined, true);
-
-    return new Promise((resolve, reject) => {
-      stream.on("data", obj => data.push(obj));
-      stream.on("error", err => reject(err));
-      stream.on("end", () => resolve(data));
     });
   }
 

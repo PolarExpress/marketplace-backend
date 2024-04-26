@@ -6,7 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { ObjectId, Filter } from "mongodb";
+import { Filter, ObjectId } from "mongodb";
 import { z } from "zod";
 
 import { Context } from "../context";
@@ -19,8 +19,8 @@ const pageSize = 20;
 ////////////////////////////////////////////////////////////////////////////////
 
 const getAddonsSchema = z.object({
-  page: z.coerce.number().int().gte(0).default(0),
   category: z.nativeEnum(AddonCategory).optional(),
+  page: z.coerce.number().int().gte(0).default(0),
   searchTerm: z.string().default("")
 });
 
@@ -30,7 +30,7 @@ export const getAddonsHandler =
     const args = getAddonsSchema.parse(req);
 
     const queryFilter: Filter<Addon> = {
-      name: { $regex: args.searchTerm, $options: "i" }
+      name: { $options: "i", $regex: args.searchTerm }
     };
 
     if (args.category) {
@@ -102,8 +102,8 @@ export const getAddonReadMeByIdHandler =
 ////////////////////////////////////////////////////////////////////////////////
 
 const getAddonsByUserIdSchema = z.object({
-  page: z.coerce.number().int().gte(0).default(0),
-  category: z.nativeEnum(AddonCategory).optional()
+  category: z.nativeEnum(AddonCategory).optional(),
+  page: z.coerce.number().int().gte(0).default(0)
 });
 
 interface AddonQueryFilter extends Filter<Addon> {

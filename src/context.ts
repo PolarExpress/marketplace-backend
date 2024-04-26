@@ -6,10 +6,10 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { MongoClient, Collection } from "mongodb";
+import { Collection, MongoClient } from "mongodb";
 
-import { Addon, Author, User } from "./types";
 import { MinioService } from "./minio";
+import { Addon, Author, User } from "./types";
 
 /**
  * Context contains all the dependencies that are required by the resolvers
@@ -19,8 +19,8 @@ import { MinioService } from "./minio";
 export interface Context {
   addons: Collection<Addon>;
   authors: Collection<Author>;
-  users: Collection<User>;
   minio: MinioService;
+  users: Collection<User>;
 }
 
 export async function createContext(): Promise<Context> {
@@ -33,5 +33,5 @@ export async function createContext(): Promise<Context> {
 
   const minio = new MinioService();
 
-  return { addons, authors, users, minio };
+  return { addons, authors, minio, users };
 }
