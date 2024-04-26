@@ -73,7 +73,7 @@ export class MinioService {
     objectPath: string
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-    // @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
+      // @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
       this.client.getObject(bucketName, objectPath, (err, dataStream) => {
         if (err) reject(err);
 
