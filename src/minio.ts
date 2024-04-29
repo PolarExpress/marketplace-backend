@@ -10,13 +10,17 @@ import { Request, Response } from "express";
 import { BucketItem, Client } from "minio";
 
 /**
- * Provides methods for interacting with MinIO
+ * Provides methods for interacting with MinIO.
  */
 export class MinioService {
-  /** Name of the bucket for storing addons */
+  /**
+   * Name of the bucket for storing addons.
+   */
   public readonly addonBucket: string = "addons";
 
-  /** The MinIO client used to interact with the MinIO server */
+  /**
+   * The MinIO client used to interact with the MinIO server.
+   */
   public client: Client;
 
   constructor() {
@@ -30,9 +34,11 @@ export class MinioService {
   }
 
   /**
-   * Recursively lists all objects in the specified bucket
-   * @param bucketName Name of the bucket to list objects from
-   * @returns A promise that resolves with an array of bucket items
+   * Recursively lists all objects in the specified bucket.
+   *
+   * @param   bucketName Name of the bucket to list objects from.
+   *
+   * @returns            A promise that resolves with an array of bucket items.
    */
   private async listObjects(bucketName: string): Promise<BucketItem[]> {
     const data: BucketItem[] = [];
@@ -46,9 +52,11 @@ export class MinioService {
   }
 
   /**
-   * Empties the specified bucket by recursively removing all objects
-   * @param bucketName Name of the bucket to empty
-   * @returns A promise that resolves when the bucket is emptied
+   * Empties the specified bucket by recursively removing all objects.
+   *
+   * @param   bucketName Name of the bucket to empty.
+   *
+   * @returns            A promise that resolves when the bucket is emptied.
    */
   public async emptyBucket(bucketName: string): Promise<void> {
     const objects = await this.listObjects(bucketName);
@@ -64,16 +72,19 @@ export class MinioService {
 
   /**
    * Retrieves the content of a file from MinIO.
-   * @param bucketName Name of the bucket the file is in.
-   * @param objectPath Path of the object within the bucket.
-   * @returns A promise that resolves with a Buffer containing the file content.
+   *
+   * @param   bucketName Name of the bucket the file is in.
+   * @param   objectPath Path of the object within the bucket.
+   *
+   * @returns            A promise that resolves with a Buffer containing the
+   *   file content.
    */
   public async readFile(
     bucketName: string,
     objectPath: string
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      // @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
+      //// @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
       this.client.getObject(bucketName, objectPath, (err, dataStream) => {
         if (err) reject(err);
 
@@ -92,8 +103,8 @@ export class MinioService {
   }
 
   /**
-   * Serves a file from MinIO.
-   * Streams the file directly to the provided response object.
+   * Serves a file from MinIO. Streams the file directly to the provided
+   * response object.
    */
   public serveFile(req: Request, res: Response) {
     const filepath = req.params.filepath;
@@ -103,7 +114,7 @@ export class MinioService {
       return res.status(400).json({ error: "Invalid file path" });
     }
 
-    // @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
+    //// @ts-expect-error minIO incorrectly exports getObject's type as a promisified version of the function
     this.client.getObject(bucket, objectPath.join("/"), (err, stream) => {
       if (err) {
         return err.message.includes("does not exist")
