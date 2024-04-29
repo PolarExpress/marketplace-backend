@@ -6,7 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { WithId, ObjectId } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
 import { z } from "zod";
 
 import { Context } from "../context";
@@ -26,8 +26,8 @@ export const installHandler =
     let user = await ctx.users.findOne({ userId: session.userID });
     if (!user) {
       const inserted_user = await ctx.users.insertOne({
-        userId: session.userID,
-        installedAddons: []
+        installedAddons: [],
+        userId: session.userID
       });
       user = (await ctx.users.findOne({
         _id: inserted_user.insertedId

@@ -6,12 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { randCompanyName, randText, seed, randUuid } from "@ngneat/falso";
-import { MongoClient, ObjectId, WithId } from "mongodb";
+import { randCompanyName, randText, randUuid, seed } from "@ngneat/falso";
 import "dotenv/config";
+import { MongoClient, ObjectId, WithId } from "mongodb";
 
-import { Addon, AddonCategory, Author, User } from "./src/types";
 import { MinioService } from "./src/minio";
+import { Addon, AddonCategory, Author, User } from "./src/types";
 
 // Seeding individual entities
 
@@ -19,27 +19,27 @@ type Seeded<T> = WithId<T>;
 
 function seed_user(): Seeded<User> {
   return {
-    userId: randUuid(),
+    _id: new ObjectId(),
     installedAddons: [],
-    _id: new ObjectId()
+    userId: randUuid()
   };
 }
 
 function seed_author(user: WithId<User>): Seeded<Author> {
   return {
-    userId: user.userId,
-    _id: new ObjectId()
+    _id: new ObjectId(),
+    userId: user.userId
   };
 }
 
 function seed_addon(author: WithId<Author>): Seeded<Addon> {
   return {
-    name: randCompanyName(),
-    summary: randText({ charCount: 50 }),
-    icon: "icon.png",
-    category: chooseFrom(Object.values(AddonCategory)),
+    _id: new ObjectId(),
     authorId: author._id.toString(),
-    _id: new ObjectId()
+    category: chooseFrom(Object.values(AddonCategory)),
+    icon: "icon.png",
+    name: randCompanyName(),
+    summary: randText({ charCount: 50 })
   };
 }
 

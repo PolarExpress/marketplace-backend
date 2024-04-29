@@ -7,13 +7,12 @@
  */
 
 import { DeepMockProxy, mockDeep } from "jest-mock-extended";
+import { Db, MongoClient, ObjectId, WithId } from "mongodb";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
 import { Context } from "../src/context";
-import { Addon, AddonCategory, Author, User } from "../src/types";
-
-import { MongoMemoryServer } from "mongodb-memory-server";
-import { Db, MongoClient, ObjectId, WithId } from "mongodb";
 import { MinioService } from "../src/minio";
+import { Addon, AddonCategory, Author, User } from "../src/types";
 
 export const dummyAuthors: WithId<Author>[] = [
   { userId: "1" },
@@ -22,37 +21,37 @@ export const dummyAuthors: WithId<Author>[] = [
 
 export const dummyAddons: WithId<Addon>[] = [
   {
-    name: "Addon A",
-    summary: "This is A",
-    icon: "icon.png",
+    authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.VISUALISATION,
-    authorId: dummyAuthors[0]._id.toString()
+    icon: "icon.png",
+    name: "Addon A",
+    summary: "This is A"
   },
   {
-    name: "Addon B",
-    summary: "This is B",
-    icon: "icon.png",
+    authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.MACHINE_LEARNING,
-    authorId: dummyAuthors[0]._id.toString()
+    icon: "icon.png",
+    name: "Addon B",
+    summary: "This is B"
   },
   {
-    name: "Addon C",
-    summary: "This is C",
-    icon: "icon.png",
+    authorId: dummyAuthors[1]._id.toString(),
     category: AddonCategory.DATA_SOURCE,
-    authorId: dummyAuthors[1]._id.toString()
+    icon: "icon.png",
+    name: "Addon C",
+    summary: "This is C"
   }
 ].map(addon => ({ _id: new ObjectId(), ...addon }));
 
 export const dummyUsers: WithId<User>[] = [
-  { userId: "1", installedAddons: [] },
-  { userId: "2", installedAddons: [] },
+  { installedAddons: [], userId: "1" },
+  { installedAddons: [], userId: "2" },
   {
-    userId: "3",
     installedAddons: [
       dummyAddons[0]._id.toString(),
       dummyAddons[2]._id.toString()
-    ]
+    ],
+    userId: "3"
   }
 ].map(user => ({ _id: new ObjectId(), ...user }));
 
@@ -82,28 +81,28 @@ afterAll(async () => {
   await mongo.stop();
 });
 
-export type MockContext = Context & {
+export type MockContext = {
   minio: DeepMockProxy<MinioService>;
-};
+} & Context;
 
 export function createMockContext(): [MockContext, Context] {
   const context = {
     addons: db.collection<Addon>("addons"),
     authors: db.collection<Author>("authors"),
-    users: db.collection<User>("users"),
-    minio: mockDeep<MinioService>()
+    minio: mockDeep<MinioService>(),
+    users: db.collection<User>("users")
   };
   return [context, context];
 }
 
 export function mockSession(userID: string) {
   return {
-    username: "username",
-    userID,
     impersonateID: "impersonateID",
-    sessionID: "sessionID",
-    saveStateID: "saveStateID",
+    jwt: "jwt",
     roomID: "roomID",
-    jwt: "jwt"
+    saveStateID: "saveStateID",
+    sessionID: "sessionID",
+    userID,
+    username: "username"
   };
 }

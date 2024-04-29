@@ -1,4 +1,4 @@
-npm run --silent lint > /dev/null || EXIT_CODE=$?
+npm run --silent lint:fix > /dev/null || EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then 
     >&2 echo "Lint failed, please fix the errors before committing."

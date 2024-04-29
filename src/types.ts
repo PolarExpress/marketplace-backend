@@ -7,34 +7,34 @@
  */
 
 export interface SessionData {
-  username: string;
-  userID: string;
   impersonateID: string;
-  sessionID: string;
-  saveStateID: string;
-  roomID: string;
   jwt: string;
+  roomID: string;
+  saveStateID: string;
+  sessionID: string;
+  userID: string;
+  username: string;
 }
 
 export interface AmqpRequest {
-  sessionData: SessionData;
   fromFrontend: {
-    callID: string;
     body: string;
+    callID: string;
   };
+  sessionData: SessionData;
 }
 
 export interface AmqpResponse {
-  value: unknown;
-  type: string;
   callID: string;
   status: string;
+  type: string;
+  value: unknown;
 }
 
 export enum AddonCategory {
-  VISUALISATION = "VISUALISATION",
+  DATA_SOURCE = "DATA_SOURCE",
   MACHINE_LEARNING = "MACHINE_LEARNING",
-  DATA_SOURCE = "DATA_SOURCE"
+  VISUALISATION = "VISUALISATION"
 }
 
 export interface Author {
@@ -42,16 +42,16 @@ export interface Author {
 }
 
 export interface User {
-  userId: string;
   installedAddons: string[];
+  userId: string;
 }
 
 export interface Addon {
+  authorId: string;
+  category: AddonCategory;
+  icon: string;
   name: string;
   summary: string;
-  icon: string;
-  category: AddonCategory;
-  authorId: string;
 }
 
 export type Handler = (req: object) => Promise<unknown>;

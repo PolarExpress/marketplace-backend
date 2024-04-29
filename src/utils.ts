@@ -7,6 +7,7 @@
  */
 
 import { NextFunction, Request, Response } from "express";
+
 import { Handler } from "./types";
 
 // type hack to allow express-validator to sanitize query parameters

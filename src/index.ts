@@ -6,10 +6,10 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { createContext } from "./context";
-import { buildApp } from "./app";
-
 import "dotenv/config";
+
+import { buildApp } from "./app";
+import { createContext } from "./context";
 
 (async () => {
   // Create the app and start the server
