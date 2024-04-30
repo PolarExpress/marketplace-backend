@@ -8,17 +8,14 @@
 
 import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
-
-import { Context } from "./context";
-import { expressHandler } from "./utils";
-
 import {
-  AmqpSocket,
   AmqpConfig,
-  createRoutingKeyStore,
-  createAmqpSocket
+  AmqpSocket,
+  createAmqpSocket,
+  createRoutingKeyStore
 } from "ts-amqp-socket";
 
+import { Context } from "./context";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
@@ -26,6 +23,7 @@ import {
   getAddonsHandler
 } from "./routes/addons";
 import { installHandler, uninstallHandler } from "./routes/install";
+import { expressHandler } from "./utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -74,25 +72,25 @@ export function buildExpress(ctx: Context): Express {
 
 export async function buildAmqp(ctx: Context) {
   const amqpConfig: AmqpConfig = {
-    queue: {
-      request: "mp-backend-request-queue"
+    bodyMapper: message => {
+      return JSON.parse(
+        JSON.parse(message.content.toString()).fromFrontend.body
+      );
     },
+    errorType: "mp_backend_error",
     exchange: {
       request: "requests-exchange",
       response: "ui-direct-exchange"
+    },
+
+    queue: {
+      request: "mp-backend-request-queue"
     },
     routingKey: {
       request: "mp-backend-request"
     },
 
-    successType: "mp_backend_result",
-    errorType: "mp_backend_error",
-
-    bodyMapper: message => {
-      return JSON.parse(
-        JSON.parse(message.content.toString()).fromFrontend.body
-      );
-    }
+    successType: "mp_backend_result"
   };
 
   const routingKeyStore = await createRoutingKeyStore();
