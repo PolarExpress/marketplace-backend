@@ -18,7 +18,8 @@ declare module "express" {
 }
 
 /**
- * `throw` wrapped in a function, so we can use it in null coalescing statements.
+ * `throw` wrapped in a function, so we can use it in null coalescing
+ * statements.
  */
 export const throwFn = (e: Error): never => {
   throw e;
@@ -41,11 +42,13 @@ export const panic = (message: string): never => {
 };
 
 /**
- * Wraps an asynchronous endpoint function with error handling.
- * Any errors thrown by the endpoint function will be passed to the `next` function.
+ * Wraps an asynchronous endpoint function with error handling. Any errors
+ * thrown by the endpoint function will be passed to the `next` function.
  *
- * @param fn - The asynchronous endpoint function to wrap.
- * @returns A middleware function that handles errors thrown by the endpoint function.
+ * @param   fn - The asynchronous endpoint function to wrap.
+ *
+ * @returns    A middleware function that handles errors thrown by the endpoint
+ *   function.
  */
 export const asyncCatch =
   (fn: (req: Request, res: Response) => Promise<void>) =>

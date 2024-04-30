@@ -7,9 +7,9 @@
  */
 
 export enum AddonCategory {
-  VISUALISATION = "VISUALISATION",
+  DATA_SOURCE = "DATA_SOURCE",
   MACHINE_LEARNING = "MACHINE_LEARNING",
-  DATA_SOURCE = "DATA_SOURCE"
+  VISUALISATION = "VISUALISATION"
 }
 
 export interface Author {
@@ -17,14 +17,14 @@ export interface Author {
 }
 
 export interface User {
-  userId: string;
   installedAddons: string[];
+  userId: string;
 }
 
 export interface Addon {
+  authorId: string;
+  category: AddonCategory;
+  icon: string;
   name: string;
   summary: string;
-  icon: string;
-  category: AddonCategory;
-  authorId: string;
 }

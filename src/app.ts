@@ -6,13 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
+import express, { Express, NextFunction, Request, Response } from "express";
 
 import { Context } from "./context";
 import { expressHandler } from "./utils";
 
-import { installHandler, uninstallHandler } from "./routes/install";
 import {
   AmqpSocket,
   AmqpConfig,
@@ -23,9 +22,10 @@ import {
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
-  getAddonsHandler,
-  getAddonsByUserIdHandler
+  getAddonsByUserIdHandler,
+  getAddonsHandler
 } from "./routes/addons";
+import { installHandler, uninstallHandler } from "./routes/install";
 
 ////////////////////////////////////////////////////////////////////////////////
 

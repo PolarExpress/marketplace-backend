@@ -6,12 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { randCompanyName, randText, seed, randUuid } from "@ngneat/falso";
-import { MongoClient, ObjectId, WithId } from "mongodb";
+import { randCompanyName, randText, randUuid, seed } from "@ngneat/falso";
 import "dotenv/config";
+import { MongoClient, ObjectId, WithId } from "mongodb";
 
-import { Addon, AddonCategory, Author, User } from "./src/types";
 import { MinioService } from "./src/minio";
+import { Addon, AddonCategory, Author, User } from "./src/types";
 
 // Seeding individual entities
 
@@ -19,27 +19,27 @@ type Seeded<T> = WithId<T>;
 
 function seed_user(): Seeded<User> {
   return {
-    userId: randUuid(),
+    _id: new ObjectId(),
     installedAddons: [],
-    _id: new ObjectId()
+    userId: randUuid()
   };
 }
 
 function seed_author(user: WithId<User>): Seeded<Author> {
   return {
-    userId: user.userId,
-    _id: new ObjectId()
+    _id: new ObjectId(),
+    userId: user.userId
   };
 }
 
 function seed_addon(author: WithId<Author>): Seeded<Addon> {
   return {
-    name: randCompanyName(),
-    summary: randText({ charCount: 50 }),
-    icon: "icon.png",
-    category: chooseFrom(Object.values(AddonCategory)),
+    _id: new ObjectId(),
     authorId: author._id.toString(),
-    _id: new ObjectId()
+    category: chooseFrom(Object.values(AddonCategory)),
+    icon: "icon.png",
+    name: randCompanyName(),
+    summary: randText({ charCount: 50 })
   };
 }
 
@@ -90,6 +90,7 @@ async function main() {
       minio.addonBucket,
       `${addonDirectory}README.md`,
       readmeContent,
+      undefined,
       {
         "Content-Type": "text/markdown"
       }
@@ -118,19 +119,23 @@ main();
 // Utility functions
 
 /**
- * Pick a random element from the given list
- * @param choices A list of choices
- * @returns A random element from the list
+ * Pick a random element from the given list.
+ *
+ * @param   choices A list of choices.
+ *
+ * @returns         A random element from the list.
  */
 function chooseFrom<T>(choices: Readonly<T[]>): T {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
 /**
- * Draw n elements randomly from the list of choices without repetition
- * @param choices A list of choices
- * @param n The number of desired elements
- * @returns A list of n elements
+ * Draw n elements randomly from the list of choices without repetition.
+ *
+ * @param   choices A list of choices.
+ * @param   n       The number of desired elements.
+ *
+ * @returns         A list of n elements.
  */
 function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
   const indices = choices.map((_, i) => i),
@@ -143,10 +148,12 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
 }
 
 /**
- * Create a list of number based on a range
- * @param start the start of the range, defaults to 0
- * @param end the end of the range, inclusive
- * @returns a list of numbers [start, ..., end]
+ * Create a list of number based on a range.
+ *
+ * @param   start The start of the range, defaults to 0.
+ * @param   end   The end of the range, inclusive.
+ *
+ * @returns       A list of numbers [start, ..., end]
  */
 function range(start: number, end?: number | undefined): number[] {
   return Array(end ? end - start : start)

@@ -6,8 +6,8 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { dummyAddons, createMockContext, mockSession } from "../mock-context";
 import { installHandler, uninstallHandler } from "../../src/routes/install";
+import { createMockContext, dummyAddons, mockSession } from "../mock-context";
 
 test("install::valid-query_correct-return", async () => {
   const [, ctx] = createMockContext();
@@ -19,6 +19,7 @@ test("install::valid-query_correct-return", async () => {
   await expect(response).resolves.not.toBeDefined();
 
   const user = await ctx.users.findOne({ userId: "1" });
+
   expect(user?.installedAddons).toContain(addonID);
 });
 
@@ -37,6 +38,7 @@ test("install::invalid-addon-id_should-throw", async () => {
     { addonID: "invalid-addon-id" },
     session
   );
+
   await expect(response).rejects.toBeDefined();
 });
 
@@ -48,9 +50,11 @@ test("install::invalid-user-id_should-create-new-user", async () => {
     { addonID: dummyAddons[0]._id.toString() },
     session
   );
+
   await expect(response).resolves.not.toBeDefined();
 
   const new_user = await ctx.users.findOne({ userId: "4" });
+
   expect(new_user).not.toBeNull();
 });
 
@@ -73,6 +77,7 @@ test("uninstall::valid-query_correct-return", async () => {
   await expect(response).resolves.not.toBeDefined();
 
   const user = await ctx.users.findOne({ userId: "3" });
+
   expect(user?.installedAddons).not.toContain(addonID);
 });
 
