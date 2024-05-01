@@ -116,16 +116,15 @@ export const getAddonsByUserIdHandler =
   async (req: object, session: SessionData): Promise<object> => {
     const args = getAddonsByUserIdSchema.parse(req);
 
-    const user =
-      (await ctx.users.findOne({ userId: session.userID })) ??
-      (await (async () => {
-        const document = {
-          installedAddons: [],
-          userId: session.userID
-        };
-        const { insertedId } = await ctx.users.insertOne(document);
-        return { ...document, _id: insertedId };
-      })());
+    let user = await ctx.users.findOne({ userId: session.userID });
+    if (!user) {
+      const document = {
+        installedAddons: [],
+        userId: session.userID
+      };
+      const { insertedId } = await ctx.users.insertOne(document);
+      user = { ...document, _id: insertedId };
+    }
 
     const queryFilter: AddonQueryFilter = {
       _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
