@@ -118,7 +118,14 @@ export const getAddonsByUserIdHandler =
 
     const user =
       (await ctx.users.findOne({ userId: session.userID })) ??
-      throwFn(new Error("Could not find the user in the session"));
+      (await (async () => {
+        const document = {
+          userId: session.userID,
+          installedAddons: []
+        };
+        const { insertedId } = await ctx.users.insertOne(document);
+        return { ...document, _id: insertedId };
+      })());
 
     const queryFilter: AddonQueryFilter = {
       _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
