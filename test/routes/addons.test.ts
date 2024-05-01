@@ -192,6 +192,14 @@ function findExpectedAddonsByUserId(userId: string) {
     });
 }
 
+test("get-addons-by-userid::missing-user-in-database", async () => {
+  const [, ctx] = createMockContext();
+
+  await getAddonsByUserIdHandler(ctx)({}, mockSession("4"));
+
+  expect(await ctx.users.findOne({ userId: "4" })).toBeTruthy();
+});
+
 test("get-addons-by-userid::valid-query-required-params", async () => {
   const [, ctx] = createMockContext();
 
