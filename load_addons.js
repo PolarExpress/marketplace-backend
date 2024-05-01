@@ -32,7 +32,8 @@ const Minio = require("minio");
   const addons_dir = resolve(__dirname, "addons");
   try {
     await rm(addons_dir, { recursive: true });
-  } catch { } finally {
+  } catch {
+  } finally {
     await mkdir(addons_dir);
   }
 
