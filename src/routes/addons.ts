@@ -120,8 +120,8 @@ export const getAddonsByUserIdHandler =
       (await ctx.users.findOne({ userId: session.userID })) ??
       (await (async () => {
         const document = {
-          userId: session.userID,
-          installedAddons: []
+          installedAddons: [],
+          userId: session.userID
         };
         const { insertedId } = await ctx.users.insertOne(document);
         return { ...document, _id: insertedId };
