@@ -20,6 +20,7 @@
     "minio": "^7.1.3",
     "mongodb": "^6.5.0",
     "redis": "^4.6.13",
+    "ts-amqp-socket": "github:PolarExpress/ts-amqp-socket",
     "zod": "^3.22.4"
   },
   "devDependencies": {

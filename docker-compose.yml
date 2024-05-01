@@ -1,19 +1,11 @@
 version: "3.9"
 
 services:
-  db: # database service
-    container_name: gp-marketplace-db
-    extends:
-      file: docker-compose.base.yml
-      service: db
-
   backend:
     container_name: gp-marketplace-backend
     extends:
       file: docker-compose.base.yml
       service: backend-base
-    depends_on:
-      - db
 
 volumes:
   db-data:

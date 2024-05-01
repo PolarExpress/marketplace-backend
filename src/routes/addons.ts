@@ -7,10 +7,11 @@
  */
 
 import { Filter, ObjectId } from "mongodb";
+import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
 
 import { Context } from "../context";
-import { Addon, AddonCategory, SessionData } from "../types";
+import { Addon, AddonCategory } from "../types";
 import { throwFn } from "../utils";
 
 // TODO: move this to a better place

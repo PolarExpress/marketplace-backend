@@ -8,8 +8,13 @@
 
 import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
+import {
+  AmqpConfig,
+  AmqpSocket,
+  createAmqpSocket,
+  createRoutingKeyStore
+} from "ts-amqp-socket";
 
-import { AmqpSocket, createAmqpSocket } from "./amqp";
 import { Context } from "./context";
 import {
   getAddonByIdHandler,
@@ -18,7 +23,6 @@ import {
   getAddonsHandler
 } from "./routes/addons";
 import { installHandler, uninstallHandler } from "./routes/install";
-import { createRoutingKeyStore } from "./routingKeyStore";
 import { expressHandler } from "./utils";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +71,30 @@ export function buildExpress(ctx: Context): Express {
 }
 
 export async function buildAmqp(ctx: Context) {
+  const amqpConfig: AmqpConfig = {
+    bodyMapper: message => {
+      return JSON.parse(
+        JSON.parse(message.content.toString()).fromFrontend.body
+      );
+    },
+    errorType: "mp_backend_error",
+    exchange: {
+      request: "requests-exchange",
+      response: "ui-direct-exchange"
+    },
+
+    queue: {
+      request: "mp-backend-request-queue"
+    },
+    routingKey: {
+      request: "mp-backend-request"
+    },
+
+    successType: "mp_backend_result"
+  };
+
   const routingKeyStore = await createRoutingKeyStore();
-  const amqp = await createAmqpSocket(routingKeyStore);
+  const amqp = await createAmqpSocket(amqpConfig, routingKeyStore);
 
   amqp.handle("install", installHandler(ctx));
   amqp.handle("uninstall", uninstallHandler(ctx));

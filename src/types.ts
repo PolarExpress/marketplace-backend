@@ -6,31 +6,6 @@
  * (Department of Information and Computing Sciences)
  */
 
-export interface SessionData {
-  impersonateID: string;
-  jwt: string;
-  roomID: string;
-  saveStateID: string;
-  sessionID: string;
-  userID: string;
-  username: string;
-}
-
-export interface AmqpRequest {
-  fromFrontend: {
-    body: string;
-    callID: string;
-  };
-  sessionData: SessionData;
-}
-
-export interface AmqpResponse {
-  callID: string;
-  status: string;
-  type: string;
-  value: unknown;
-}
-
 export enum AddonCategory {
   DATA_SOURCE = "DATA_SOURCE",
   MACHINE_LEARNING = "MACHINE_LEARNING",
@@ -53,9 +28,3 @@ export interface Addon {
   name: string;
   summary: string;
 }
-
-export type Handler = (req: object) => Promise<unknown>;
-export type AuthHandler = (
-  req: object,
-  session: SessionData
-) => Promise<unknown>;
