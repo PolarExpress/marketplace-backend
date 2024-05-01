@@ -7,10 +7,11 @@
  */
 
 import { ObjectId, WithId } from "mongodb";
+import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
 
 import { Context } from "../context";
-import { SessionData, User } from "../types";
+import { User } from "../types";
 import { throwFn } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
