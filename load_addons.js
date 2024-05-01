@@ -3,9 +3,10 @@ require("dotenv/config");
 const { promisify } = require("node:util");
 const { resolve } = require("node:path");
 const { exec } = require("node:child_process");
-const { cp, mkdir } = require("node:fs/promises");
+const { readFile, mkdir, readdir, rm } = require("node:fs/promises");
 
 const { MongoClient } = require("mongodb");
+const Minio = require("minio");
 
 (async () => {
   const addons = ["rawjsonvis", "matrixvis"];
@@ -20,7 +21,25 @@ const { MongoClient } = require("mongodb");
     userId: ""
   });
 
-  mkdir(resolve(__dirname, "data", "addons"), { recursive: true });
+  const minio = new Minio.Client({
+    endPoint: process.env.MINIO_ENDPOINT,
+    port: Number(process.env.MINIO_PORT),
+    useSSL: false,
+    accessKey: process.env.MINIO_ACCESSKEY,
+    secretKey: process.env.MINIO_SECRETKEY
+  });
+
+  const addons_dir = resolve(__dirname, "addons");
+  try {
+    await rm(addons_dir, { recursive: true });
+  } finally {
+    await mkdir(addons_dir);
+  }
+
+  await collection.deleteMany();
+
+  if (!(await promisify(minio.bucketExists.bind(minio))("addons")))
+    await promisify(minio.makeBucket.bind(minio))("addons");
 
   for (const addon of addons) {
     const document = await collection.insertOne({
@@ -31,19 +50,29 @@ const { MongoClient } = require("mongodb");
       authorId: author.insertedId
     });
 
-    const dest = resolve(
-      __dirname,
-      "data",
-      "addons",
-      document.insertedId.toString()
-    );
+    const id = document.insertedId.toString();
+
+    const dest = resolve(__dirname, "addons", id);
+    console.log(`Cloning and building ${addon}`);
     const url = `git@github.com:PolarExpress/${addon}.git`;
     await pexec(`git clone ${url} ${dest}`);
 
     const icon_path = resolve(__dirname, "icon.png");
-    // await cp(icon_path, resolve(dest, "public", "icon.png"));
-
     await pexec(`cd ${dest} && pnpm i && pnpm build`);
+
+    minio.putObject(
+      "addons",
+      `${id}/README.md`,
+      await readFile(resolve(dest, "README.md"))
+    );
+
+    const dist_path = resolve(dest, "dist");
+    for (const file of await readdir(dist_path, { recursive: true })) {
+      if (file.match(/\.\w+$/)) {
+        const buffer = await readFile(resolve(dist_path, file));
+        minio.putObject("addons", `${id}/${file}`, buffer);
+      }
+    }
   }
 
   await mongo.close();
