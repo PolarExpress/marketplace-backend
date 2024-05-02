@@ -84,6 +84,7 @@ export class MinioService {
     objectPath: string
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
+      // @ts-expect-error exported minio types are wrong
       this.client.getObject(bucketName, objectPath, (err, dataStream) => {
         if (err) reject(err);
 
@@ -113,6 +114,7 @@ export class MinioService {
       return res.status(400).json({ error: "Invalid file path" });
     }
 
+    // @ts-expect-error exported minio types are wrong
     this.client.getObject(bucket, objectPath.join("/"), (err, stream) => {
       if (err) {
         return err.message.includes("does not exist")
