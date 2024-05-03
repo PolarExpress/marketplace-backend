@@ -7,6 +7,7 @@
  */
 
 import { Request, Response } from "express";
+import mime from "mime-types";
 import { BucketItem, Client } from "minio";
 
 /**
@@ -123,5 +124,8 @@ export class MinioService {
       }
       stream.pipe(res);
     });
+
+    const type = mime.lookup(filepath) || "text/plain";
+    res.header("Content-Type", type);
   }
 }
