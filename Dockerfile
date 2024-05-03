@@ -1,4 +1,4 @@
-FROM node:21-bookworm AS base
+FROM node:22-bookworm AS base
 
 RUN npm install -g pnpm
 # ------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ RUN npm run build
 
 # ------------------------------------------------------------------------------
 
-FROM node:21-alpine AS prod
+FROM node:22-alpine AS prod
 
 WORKDIR /app
 
