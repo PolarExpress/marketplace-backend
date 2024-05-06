@@ -13,15 +13,15 @@ const Minio = require("minio");
   const mlAddons = [
     {
       name: "Centrality",
-      id: "ffff00000000000000000000",
+      id: "ffff00000000000000000000"
     },
     {
       name: "Community Detection",
-      id: "ffff00000000000000000001",
+      id: "ffff00000000000000000001"
     },
     {
       name: "Link Prediction",
-      id: "ffff00000000000000000002",
+      id: "ffff00000000000000000002"
     },
     {
       name: "Centrality",
