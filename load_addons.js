@@ -5,12 +5,20 @@ const { resolve } = require("node:path");
 const { exec } = require("node:child_process");
 const { readFile, mkdir, readdir, rm } = require("node:fs/promises");
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const Minio = require("minio");
 
 (async () => {
-  const addons = ["rawjsonvis", "matrixvis"];
-
+  const visAddons = ["rawjsonvis"];
+  const mlAddons = [
+    {
+      name: "Centrality", id: "ffff00000000000000000000",
+      name: "Community Detection", id: "ffff00000000000000000001",
+      name: "Link Prediction", id: "ffff00000000000000000002",
+      name: "Centrality", id: "ffff00000000000000000003",
+    }
+  ];
+  
   const pexec = promisify(exec);
 
   const mongo = await MongoClient.connect(process.env.MONGO_URI);
@@ -42,7 +50,7 @@ const Minio = require("minio");
   if (!(await promisify(minio.bucketExists.bind(minio))("addons")))
     await promisify(minio.makeBucket.bind(minio))("addons");
 
-  for (const addon of addons) {
+  for (const addon of visAddons) {
     const document = await collection.insertOne({
       name: addon,
       summary: "",
@@ -70,10 +78,28 @@ const Minio = require("minio");
     const dist_path = resolve(dest, "dist");
     for (const file of await readdir(dist_path, { recursive: true })) {
       if (file.match(/\.\w+$/)) {
+        console.log(`Uploading ${id}/dist/${file}`);        
         const buffer = await readFile(resolve(dist_path, file));
-        minio.putObject("addons", `${id}/${file}`, buffer);
+        minio.putObject("addons", `${id}/dist/${file}`, buffer);
       }
     }
+  }
+
+  for (const addon of mlAddons){
+    const document = await collection.insertOne({
+      _id: new ObjectId(addon.id),
+      name: addon.name,
+      summary: "",
+      icon: "icon.png",
+      category: "MACHINE_LEARNING",
+      authorId: author.insertedId
+    });
+    console.log('Inserted document:', document.insertedId);
+    minio.putObject(
+      "addons",
+      `${addon.id}/README.md`,
+      "This is a placeholder README.md file."
+    );
   }
 
   await mongo.close();
