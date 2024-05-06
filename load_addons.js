@@ -14,10 +14,16 @@ const Minio = require("minio");
     {
       name: "Centrality",
       id: "ffff00000000000000000000",
+    },
+    {
       name: "Community Detection",
       id: "ffff00000000000000000001",
+    },
+    {
       name: "Link Prediction",
       id: "ffff00000000000000000002",
+    },
+    {
       name: "Centrality",
       id: "ffff00000000000000000003"
     }
