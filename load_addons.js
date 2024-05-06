@@ -12,13 +12,17 @@ const Minio = require("minio");
   const visAddons = ["rawjsonvis"];
   const mlAddons = [
     {
-      name: "Centrality", id: "ffff00000000000000000000",
-      name: "Community Detection", id: "ffff00000000000000000001",
-      name: "Link Prediction", id: "ffff00000000000000000002",
-      name: "Centrality", id: "ffff00000000000000000003",
+      name: "Centrality",
+      id: "ffff00000000000000000000",
+      name: "Community Detection",
+      id: "ffff00000000000000000001",
+      name: "Link Prediction",
+      id: "ffff00000000000000000002",
+      name: "Centrality",
+      id: "ffff00000000000000000003"
     }
   ];
-  
+
   const pexec = promisify(exec);
 
   const mongo = await MongoClient.connect(process.env.MONGO_URI);
@@ -78,14 +82,14 @@ const Minio = require("minio");
     const dist_path = resolve(dest, "dist");
     for (const file of await readdir(dist_path, { recursive: true })) {
       if (file.match(/\.\w+$/)) {
-        console.log(`Uploading ${id}/dist/${file}`);        
+        console.log(`Uploading ${id}/dist/${file}`);
         const buffer = await readFile(resolve(dist_path, file));
         minio.putObject("addons", `${id}/dist/${file}`, buffer);
       }
     }
   }
 
-  for (const addon of mlAddons){
+  for (const addon of mlAddons) {
     const document = await collection.insertOne({
       _id: new ObjectId(addon.id),
       name: addon.name,
@@ -94,7 +98,7 @@ const Minio = require("minio");
       category: "MACHINE_LEARNING",
       authorId: author.insertedId
     });
-    console.log('Inserted document:', document.insertedId);
+    console.log("Inserted document:", document.insertedId);
     minio.putObject(
       "addons",
       `${addon.id}/README.md`,
