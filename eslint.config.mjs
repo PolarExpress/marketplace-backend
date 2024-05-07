@@ -76,6 +76,12 @@ export default tseslint.config(
   ),
   {
     rules: {
+      "unicorn/filename-case": [
+        "error",
+        {
+          case: "camelCase"
+        }
+      ],
       "unicorn/no-array-callback-reference": "off",
       "unicorn/prefer-top-level-await": "off"
     }

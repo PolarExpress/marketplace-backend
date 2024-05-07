@@ -21,7 +21,7 @@ import {
   dummyAuthors,
   dummyUsers,
   mockSession
-} from "../mock-context";
+} from "../mockContext";
 
 type GetAddonsResult = { addons: WithId<{ author: WithId<Author> } & Addon>[] };
 

@@ -7,7 +7,7 @@
  */
 
 import { installHandler, uninstallHandler } from "../../src/routes/install";
-import { createMockContext, dummyAddons, mockSession } from "../mock-context";
+import { createMockContext, dummyAddons, mockSession } from "../mockContext";
 
 test("install::valid-query_correct-return", async () => {
   const [, context] = createMockContext();
