@@ -48,14 +48,15 @@ export function buildExpress(ctx: Context): Express {
   app.use(express.json());
   app.use(cors());
 
-  app.use(cors());
-
   app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
   app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
   app.post(
     "/addons/get-readme",
     expressHandler(getAddonReadMeByIdHandler(ctx))
   );
+
+  app.get("/store/:filepath(*)", cors(), ctx.minio.serveFile.bind(ctx.minio));
+  // app.use("/store/addons", express.static(resolve(__dirname, "../addons")));
 
   app.use(
     (err: Error, req: Request, res: Response, next: NextFunction): void => {
@@ -64,8 +65,6 @@ export function buildExpress(ctx: Context): Express {
       next();
     }
   );
-
-  app.get("/store/:filepath(*)", cors(), ctx.minio.serveFile.bind(ctx.minio));
 
   return app;
 }

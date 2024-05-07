@@ -87,7 +87,10 @@ export class MinioService {
     return new Promise((resolve, reject) => {
       // @ts-expect-error exported minio types are wrong
       this.client.getObject(bucketName, objectPath, (err, dataStream) => {
-        if (err) reject(err);
+        if (err) {
+          reject(err);
+          return;
+        }
 
         const chunks: Buffer[] = [];
 
@@ -119,7 +122,7 @@ export class MinioService {
     this.client.getObject(bucket, objectPath.join("/"), (err, stream) => {
       if (err) {
         return err.message.includes("does not exist")
-          ? res.status(404).json({ error: "File not found" })
+          ? res.status(404).json({ error: err })
           : res.status(500).json({ error: "Internal server error" });
       }
       stream.pipe(res);
