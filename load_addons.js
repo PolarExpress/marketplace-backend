@@ -24,7 +24,7 @@ const Minio = require("minio");
       id: "ffff00000000000000000002"
     },
     {
-      name: "Centrality",
+      name: "Shortest Path",
       id: "ffff00000000000000000003"
     }
   ];
@@ -88,9 +88,9 @@ const Minio = require("minio");
     const dist_path = resolve(dest, "dist");
     for (const file of await readdir(dist_path, { recursive: true })) {
       if (file.match(/\.\w+$/)) {
-        console.log(`Uploading ${id}/dist/${file}`);
+        console.log(`Uploading ${id}/${file}`);
         const buffer = await readFile(resolve(dist_path, file));
-        minio.putObject("addons", `${id}/dist/${file}`, buffer);
+        minio.putObject("addons", `${id}/${file}`, buffer);
       }
     }
   }
