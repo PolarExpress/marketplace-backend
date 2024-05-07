@@ -26,10 +26,10 @@ export interface Context {
 export async function createContext(): Promise<Context> {
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
 
-  const db = mongo.db(process.env.MP_DATABASE_NAME!);
-  const addons = db.collection<Addon>("addons");
-  const authors = db.collection<Author>("authors");
-  const users = db.collection<User>("users");
+  const database = mongo.db(process.env.MP_DATABASE_NAME!);
+  const addons = database.collection<Addon>("addons");
+  const authors = database.collection<Author>("authors");
+  const users = database.collection<User>("users");
 
   const minio = new MinioService();
 

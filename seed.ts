@@ -51,10 +51,10 @@ async function main() {
 
   const minio = new MinioService();
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
-  const db = mongo.db(process.env.MP_DATABASE_NAME!);
-  const col_addons = db.collection("addons");
-  const col_authors = db.collection("authors");
-  const col_users = db.collection("users");
+  const database = mongo.db(process.env.MP_DATABASE_NAME!);
+  const col_addons = database.collection("addons");
+  const col_authors = database.collection("authors");
+  const col_users = database.collection("users");
 
   // Delete all the data that is already there, ...
   console.log("Deleting previous data...");
@@ -78,7 +78,7 @@ async function main() {
 
   console.log("Creating addons...");
   const addons: Seeded<Addon>[] = [];
-  for (let i = 0; i < 12; i++) {
+  for (let index = 0; index < 12; index++) {
     const random = Math.floor(Math.random() * authors.length);
     const addon = seed_addon(authors[random]);
     addons.push(addon);
@@ -138,13 +138,13 @@ function chooseFrom<T>(choices: Readonly<T[]>): T {
  * @returns         A list of n elements.
  */
 function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
-  const indices = choices.map((_, i) => i),
+  const indices = choices.map((_, index) => index),
     result = [];
-  for (let i = 0; i < n; i++)
+  for (let index = 0; index < n; index++)
     result.push(
       indices.splice(Math.floor(Math.random() * indices.length), 1)[0]
     );
-  return result.map(i => choices[i]);
+  return result.map(index => choices[index]);
 }
 
 /**
@@ -156,7 +156,6 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
  * @returns       A list of numbers [start, ..., end]
  */
 function range(start: number, end?: number | undefined): number[] {
-  return Array(end ? end - start : start)
-    .fill(0)
-    .map((_, i) => start + i);
+  const length = end ? end - start + 1 : start;
+  return Array.from({ length }, (_, index) => start + index);
 }

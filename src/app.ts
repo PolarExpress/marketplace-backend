@@ -43,34 +43,43 @@ export class App {
   }
 }
 
-export function buildExpress(ctx: Context): Express {
+export function buildExpress(context: Context): Express {
   const app = express();
   app.use(express.json());
   app.use(cors());
 
   app.use(cors());
 
-  app.post("/addons/get", expressHandler(getAddonsHandler(ctx)));
-  app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(ctx)));
+  app.post("/addons/get", expressHandler(getAddonsHandler(context)));
+  app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(context)));
   app.post(
     "/addons/get-readme",
-    expressHandler(getAddonReadMeByIdHandler(ctx))
+    expressHandler(getAddonReadMeByIdHandler(context))
   );
 
   app.use(
-    (err: Error, req: Request, res: Response, next: NextFunction): void => {
-      console.error(err);
-      res.status(500).json({ error: "Internal server error" });
+    (
+      error: Error,
+      request: Request,
+      response: Response,
+      next: NextFunction
+    ): void => {
+      console.error(error);
+      response.status(500).json({ error: "Internal server error" });
       next();
     }
   );
 
-  app.get("/store/:filepath(*)", cors(), ctx.minio.serveFile.bind(ctx.minio));
+  app.get(
+    "/store/:filepath(*)",
+    cors(),
+    context.minio.serveFile.bind(context.minio)
+  );
 
   return app;
 }
 
-export async function buildAmqp(ctx: Context) {
+export async function buildAmqp(context: Context) {
   const amqpConfig: AmqpConfig = {
     bodyMapper: message => {
       return JSON.parse(
@@ -96,20 +105,20 @@ export async function buildAmqp(ctx: Context) {
   const routingKeyStore = await createRoutingKeyStore();
   const amqp = await createAmqpSocket(amqpConfig, routingKeyStore);
 
-  amqp.handle("install", installHandler(ctx));
-  amqp.handle("uninstall", uninstallHandler(ctx));
+  amqp.handle("install", installHandler(context));
+  amqp.handle("uninstall", uninstallHandler(context));
 
-  amqp.handle("addons/get", getAddonsHandler(ctx));
-  amqp.handle("addons/get-by-id", getAddonByIdHandler(ctx));
-  amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(ctx));
-  amqp.handle("addons/get-by-user", getAddonsByUserIdHandler(ctx));
+  amqp.handle("addons/get", getAddonsHandler(context));
+  amqp.handle("addons/get-by-id", getAddonByIdHandler(context));
+  amqp.handle("addons/get-readme", getAddonReadMeByIdHandler(context));
+  amqp.handle("addons/get-by-user", getAddonsByUserIdHandler(context));
 
   return amqp;
 }
 
-export async function buildApp(ctx: Context): Promise<App> {
-  const express = buildExpress(ctx);
-  const amqp = await buildAmqp(ctx);
+export async function buildApp(context: Context): Promise<App> {
+  const express = buildExpress(context);
+  const amqp = await buildAmqp(context);
 
   return new App(express, amqp);
 }

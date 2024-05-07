@@ -25,7 +25,7 @@ const rule = {
         const comments = context.sourceCode.getCommentsBefore(node.body[0]);
         if (
           !(
-            comments.length &&
+            comments.length > 0 &&
             comments[0].range[0] === 0 &&
             comments[0].value == commentText
           )
@@ -70,10 +70,17 @@ export default tseslint.config(
   ...compat.extends(
     "plugin:sonarjs/recommended",
     "plugin:perfectionist/recommended-natural",
+    "plugin:unicorn/recommended",
     "plugin:jest/recommended",
     "plugin:jest-formatting/strict"
   ),
   {
-    ignores: ["build", "data", "load_addons.js", "addons"]
+    rules: {
+      "unicorn/no-array-callback-reference": "off",
+      "unicorn/prefer-top-level-await": "off"
+    }
+  },
+  {
+    ignores: ["build", "data", "load_addons.js", "addons", "coverage"]
   }
 );
