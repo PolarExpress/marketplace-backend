@@ -1,9 +1,7 @@
 {
   "collectCoverage": true,
   "coverageDirectory": "coverage",
-  "coverageReporters": [
-    "lcov"
-  ],
+  "coverageReporters": ["lcov"],
   "coverageThreshold": {
     "global": {
       "branches": 80,
@@ -15,9 +13,5 @@
   "clearMocks": true,
   "preset": "ts-jest",
   "testEnvironment": "node",
-  "testPathIgnorePatterns": [
-    "node_modules",
-    "build",
-    "data"
-  ]
+  "testPathIgnorePatterns": ["node_modules", "build", "data"]
 }
