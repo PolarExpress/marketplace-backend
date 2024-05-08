@@ -70,11 +70,11 @@ async function main() {
 
   const minio = new MinioService();
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
-  
-  const db = mongo.db(process.env.MP_DATABASE_NAME!);
-  const colAddons = db.collection("addons");
-  const colAuthors = db.collection("authors");
-  const colUsers = db.collection("users");
+
+  const database = mongo.db(process.env.MP_DATABASE_NAME!);
+  const colAddons = database.collection("addons");
+  const colAuthors = database.collection("authors");
+  const colUsers = database.collection("users");
 
   // Delete all the data that is already there, ...
   console.log("Deleting previous data...");

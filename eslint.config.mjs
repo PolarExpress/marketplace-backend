@@ -96,7 +96,7 @@ export default tseslint.config(
           selector: "enumMember"
         }
       ],
-      "custom/enforce-copyright-comment": "error"
+      "custom/enforce-copyright-comment": "error",
       "unicorn/prevent-abbreviations": [
         "error",
         {
@@ -130,6 +130,13 @@ export default tseslint.config(
     }
   },
   {
-    ignores: ["build", "data", "load_addons.js", "addons", "coverage"]
+    ignores: [
+      "build",
+      "data",
+      "load_addons.js",
+      "addons",
+      "coverage",
+      "**/*.config.*"
+    ]
   }
 );
