@@ -21,14 +21,14 @@ import {
   dummyAuthors,
   dummyUsers,
   mockSession
-} from "../mock-context";
+} from "../mockContext";
 
 type GetAddonsResult = { addons: WithId<{ author: WithId<Author> } & Addon>[] };
 
 test("get-addons::valid-query-required-params", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonsHandler(ctx)({})) as GetAddonsResult;
+  const response = (await getAddonsHandler(context)({})) as GetAddonsResult;
 
   expect(response.addons).toMatchObject(dummyAddons);
 
@@ -38,9 +38,9 @@ test("get-addons::valid-query-required-params", async () => {
 });
 
 test("get-addons::valid-query-all-params", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonsHandler(ctx)({
+  const response = (await getAddonsHandler(context)({
     category: AddonCategory.VISUALISATION,
     page: 0,
     searchTerm: dummyAddons[0].name
@@ -51,39 +51,39 @@ test("get-addons::valid-query-all-params", async () => {
 });
 
 test("get-addons::invalid-query-invalid-page", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
   await expect(
-    getAddonsHandler(ctx)({
+    getAddonsHandler(context)({
       page: "invalidPage"
     })
   ).rejects.toThrow();
 });
 
 test("get-addons::invalid-query-invalid-category", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
   await expect(
-    getAddonsHandler(ctx)({
+    getAddonsHandler(context)({
       category: "invalidCategory"
     })
   ).rejects.toThrow();
 });
 
 test("get-addons::invalid-query-invalid-searchterm", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
   await expect(
-    getAddonsHandler(ctx)({
+    getAddonsHandler(context)({
       searchTerm: 42
     })
   ).rejects.toThrow();
 });
 
 test("get-addons::valid-query-case-insensitive", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonsHandler(ctx)({
+  const response = (await getAddonsHandler(context)({
     searchTerm: dummyAddons[0].name.toLowerCase()
   })) as GetAddonsResult;
 
@@ -92,9 +92,9 @@ test("get-addons::valid-query-case-insensitive", async () => {
 });
 
 test("get-addons::valid-query-partial-match", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonsHandler(ctx)({
+  const response = (await getAddonsHandler(context)({
     searchTerm: "addon"
   })) as GetAddonsResult;
 
@@ -117,9 +117,9 @@ test("get-addons::valid-query-partial-match", async () => {
 type GetAddonByIdResult = { addon: WithId<{ author: WithId<Author> } & Addon> };
 
 test("get-addon-by-id::valid-id", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonByIdHandler(ctx)({
+  const response = (await getAddonByIdHandler(context)({
     id: dummyAddons[0]._id.toString()
   })) as GetAddonByIdResult;
 
@@ -128,21 +128,21 @@ test("get-addon-by-id::valid-id", async () => {
 });
 
 test("get-addon-by-id::invalid-id", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
   await expect(
-    getAddonByIdHandler(ctx)({
+    getAddonByIdHandler(context)({
       id: "invalidId"
     })
   ).rejects.toThrow();
 });
 
 test("get-addon-readme::valid-id", async () => {
-  const [mockCtx, ctx] = createMockContext();
+  const [mockContext, context] = createMockContext();
 
-  mockCtx.minio.readFile.mockResolvedValue(Buffer.from("Hello"));
+  mockContext.minio.readFile.mockResolvedValue(Buffer.from("Hello"));
 
-  const response = await getAddonReadMeByIdHandler(ctx)({
+  const response = await getAddonReadMeByIdHandler(context)({
     id: dummyAddons[0]._id.toString()
   });
 
@@ -150,12 +150,13 @@ test("get-addon-readme::valid-id", async () => {
 });
 
 test("get-addon-readme::invalid-id", async () => {
-  const [mockCtx, ctx] = createMockContext();
+  const [mockContext, context] = createMockContext();
 
-  mockCtx.minio.readFile.mockRejectedValue(null);
+  // eslint-disable-next-line unicorn/no-useless-undefined -- mockRejectedValue needs a value
+  mockContext.minio.readFile.mockRejectedValue(undefined);
 
   await expect(
-    getAddonReadMeByIdHandler(ctx)({
+    getAddonReadMeByIdHandler(context)({
       id: "invalidId"
     })
   ).rejects.toThrow();
@@ -193,17 +194,17 @@ function findExpectedAddonsByUserId(userId: string) {
 }
 
 test("get-addons-by-userid::missing-user-in-database", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  await getAddonsByUserIdHandler(ctx)({}, mockSession("4"));
+  await getAddonsByUserIdHandler(context)({}, mockSession("4"));
 
-  expect(await ctx.users.findOne({ userId: "4" })).toBeTruthy();
+  expect(await context.users.findOne({ userId: "4" })).toBeTruthy();
 });
 
 test("get-addons-by-userid::valid-query-required-params", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonsByUserIdHandler(ctx)(
+  const response = (await getAddonsByUserIdHandler(context)(
     {},
     mockSession("3")
   )) as GetAddonsByUserIdResult;
@@ -218,9 +219,9 @@ test("get-addons-by-userid::valid-query-required-params", async () => {
 });
 
 test("get-addons-by-userid::valid-query-all-params", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
-  const response = (await getAddonsByUserIdHandler(ctx)(
+  const response = (await getAddonsByUserIdHandler(context)(
     {
       category: AddonCategory.DATA_SOURCE,
       page: 0
@@ -236,10 +237,10 @@ test("get-addons-by-userid::valid-query-all-params", async () => {
 });
 
 test("get-addons-by-userid::invalid-query-invalid-page", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
   await expect(
-    getAddonsByUserIdHandler(ctx)(
+    getAddonsByUserIdHandler(context)(
       {
         page: "invalidPage"
       },
@@ -249,10 +250,10 @@ test("get-addons-by-userid::invalid-query-invalid-page", async () => {
 });
 
 test("get-addons-by-userid::invalid-query-invalid-category", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
 
   await expect(
-    getAddonsByUserIdHandler(ctx)(
+    getAddonsByUserIdHandler(context)(
       {
         category: "invalidCategory"
       },
