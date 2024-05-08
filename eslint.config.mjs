@@ -63,7 +63,18 @@ export default tseslint.config(
   {
     ignores: ["**/*.config.*"],
     plugins: { custom: plugin },
-    rules: { "custom/enforce-copyright-comment": "error" }
+    rules: {
+      "custom/enforce-copyright-comment": "error",
+      "unicorn/prevent-abbreviations": [
+        "error",
+        {
+          replacements: {
+            e: false,
+            i: false // "e" and "i" are industry standard.
+          }
+        }
+      ]
+    }
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
