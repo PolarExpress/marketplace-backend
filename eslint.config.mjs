@@ -25,7 +25,7 @@ const rule = {
         const comments = context.sourceCode.getCommentsBefore(node.body[0]);
         if (
           !(
-            comments.length &&
+            comments.length > 0 &&
             comments[0].range[0] === 0 &&
             comments[0].value == commentText
           )
@@ -97,6 +97,15 @@ export default tseslint.config(
         }
       ],
       "custom/enforce-copyright-comment": "error"
+      "unicorn/prevent-abbreviations": [
+        "error",
+        {
+          replacements: {
+            e: false,
+            i: false // "e" and "i" are industry standard.
+          }
+        }
+      ]
     }
   },
   eslint.configs.recommended,
@@ -104,10 +113,23 @@ export default tseslint.config(
   ...compat.extends(
     "plugin:sonarjs/recommended",
     "plugin:perfectionist/recommended-natural",
+    "plugin:unicorn/recommended",
     "plugin:jest/recommended",
     "plugin:jest-formatting/strict"
   ),
   {
-    ignores: ["build", "data", "load_addons.js", "addons"]
+    rules: {
+      "unicorn/filename-case": [
+        "error",
+        {
+          case: "camelCase"
+        }
+      ],
+      "unicorn/no-array-callback-reference": "off",
+      "unicorn/prefer-top-level-await": "off"
+    }
+  },
+  {
+    ignores: ["build", "data", "load_addons.js", "addons", "coverage"]
   }
 );
