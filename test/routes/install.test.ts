@@ -53,9 +53,9 @@ test("install::invalid-user-id_should-create-new-user", async () => {
 
   await expect(response).resolves.not.toBeDefined();
 
-  const new_user = await context.users.findOne({ userId: "4" });
+  const newUser = await context.users.findOne({ userId: "4" });
 
-  expect(new_user).not.toBeNull();
+  expect(newUser).not.toBeNull();
 });
 
 test("install::already-installed-addon_should-throw", async () => {

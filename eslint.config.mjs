@@ -64,6 +64,38 @@ export default tseslint.config(
     ignores: ["**/*.config.*"],
     plugins: { custom: plugin },
     rules: {
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          selector: "default",
+          trailingUnderscore: "allow"
+        },
+
+        {
+          format: ["camelCase"],
+          selector: "import"
+        },
+        {
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          selector: "variable",
+          trailingUnderscore: "allow"
+        },
+        {
+          format: ["PascalCase"],
+          selector: "typeLike"
+        },
+        {
+          format: null,
+          selector: "objectLiteralProperty"
+        },
+        {
+          format: ["UPPER_CASE"],
+          selector: "enumMember"
+        }
+      ],
       "custom/enforce-copyright-comment": "error",
       "unicorn/prevent-abbreviations": [
         "error",
@@ -98,6 +130,13 @@ export default tseslint.config(
     }
   },
   {
-    ignores: ["build", "data", "load_addons.js", "addons", "coverage"]
+    ignores: [
+      "build",
+      "data",
+      "load_addons.js",
+      "addons",
+      "coverage",
+      "**/*.config.*"
+    ]
   }
 );

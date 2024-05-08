@@ -26,12 +26,12 @@ export const installHandler =
 
     let user = await context.users.findOne({ userId: session.userID });
     if (!user) {
-      const inserted_user = await context.users.insertOne({
+      const insertedUser = await context.users.insertOne({
         installedAddons: [],
         userId: session.userID
       });
       user = (await context.users.findOne({
-        _id: inserted_user.insertedId
+        _id: insertedUser.insertedId
       })) as WithId<User>;
     }
 
