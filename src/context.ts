@@ -12,9 +12,9 @@ import { MinioService } from "./minio";
 import { Addon, Author, User } from "./types";
 
 /**
- * Context contains all the dependencies that are required by the resolvers
- * (e.g. PrismaClient). This allows us to easily mock these dependencies in
- * tests, and to easily switch out implementations.
+ * Context containing all the dependencies that are required by the resolvers
+ * (e.g. PrismaClient). This allows for easy mocking of these dependencies in
+ * tests, and switching out implementations.
  */
 export interface Context {
   addons: Collection<Addon>;
@@ -23,6 +23,12 @@ export interface Context {
   users: Collection<User>;
 }
 
+/**
+ * Creates a context with a mongodb database and its collections, and minIO
+ * services.
+ *
+ * @returns A context object.
+ */
 export async function createContext(): Promise<Context> {
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
 

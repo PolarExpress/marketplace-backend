@@ -43,6 +43,13 @@ export class App {
   }
 }
 
+/**
+ * Builds an Express instance.
+ *
+ * @param   ctx The context to use for handling the requests.
+ *
+ * @returns     An Express instance.
+ */
 export function buildExpress(ctx: Context): Express {
   const app = express();
   app.use(express.json());
@@ -69,7 +76,13 @@ export function buildExpress(ctx: Context): Express {
 
   return app;
 }
-
+/**
+ * Creates an AMQP socket using the context object given.
+ *
+ * @param   ctx The context to handle.
+ *
+ * @returns     An AMQP socket.
+ */
 export async function buildAmqp(ctx: Context) {
   const amqpConfig: AmqpConfig = {
     bodyMapper: message => {
@@ -106,7 +119,13 @@ export async function buildAmqp(ctx: Context) {
 
   return amqp;
 }
-
+/**
+ * Builds the app by using the express and AMQP builder functions.
+ *
+ * @param   ctx The context object to use.
+ *
+ * @returns     An App instance.
+ */
 export async function buildApp(ctx: Context): Promise<App> {
   const express = buildExpress(ctx);
   const amqp = await buildAmqp(ctx);

@@ -44,7 +44,7 @@ export const getAddonsHandler =
       .limit(pageSize)
       .toArray();
 
-    const joined_addons = await Promise.all(
+    const joinedAddons = await Promise.all(
       addons.map(async addon => {
         const author =
           (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
@@ -53,7 +53,7 @@ export const getAddonsHandler =
       })
     );
 
-    return { addons: joined_addons };
+    return { addons: joinedAddons };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ export const getAddonsByUserIdHandler =
       .limit(pageSize)
       .toArray();
 
-    const joined_addons = await Promise.all(
+    const joinedAddons = await Promise.all(
       addons.map(async addon => {
         const author =
           (await ctx.authors.findOne({
@@ -151,5 +151,5 @@ export const getAddonsByUserIdHandler =
       })
     );
 
-    return { addons: joined_addons };
+    return { addons: joinedAddons };
   };

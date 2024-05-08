@@ -63,7 +63,41 @@ export default tseslint.config(
   {
     ignores: ["**/*.config.*"],
     plugins: { custom: plugin },
-    rules: { "custom/enforce-copyright-comment": "error" }
+    rules: {
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          selector: "default",
+          trailingUnderscore: "allow"
+        },
+
+        {
+          format: ["camelCase"],
+          selector: "import"
+        },
+        {
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          selector: "variable",
+          trailingUnderscore: "allow"
+        },
+        {
+          format: ["PascalCase"],
+          selector: "typeLike"
+        },
+        {
+          format: null,
+          selector: "objectLiteralProperty"
+        },
+        {
+          format: ["UPPER_CASE"],
+          selector: "enumMember"
+        }
+      ],
+      "custom/enforce-copyright-comment": "error"
+    }
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

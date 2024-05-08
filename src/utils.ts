@@ -18,8 +18,10 @@ declare module "express" {
 }
 
 /**
- * `throw` wrapped in a function, so we can use it in null coalescing
+ * `throw` wrapped in a function, so it can be used in null coalescing
  * statements.
+ *
+ * @param e - The error that is thrown.
  */
 export const throwFn = (e: Error): never => {
   throw e;

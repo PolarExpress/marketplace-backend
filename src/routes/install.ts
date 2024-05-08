@@ -26,12 +26,12 @@ export const installHandler =
 
     let user = await ctx.users.findOne({ userId: session.userID });
     if (!user) {
-      const inserted_user = await ctx.users.insertOne({
+      const insertedUser = await ctx.users.insertOne({
         installedAddons: [],
         userId: session.userID
       });
       user = (await ctx.users.findOne({
-        _id: inserted_user.insertedId
+        _id: insertedUser.insertedId
       })) as WithId<User>;
     }
 
