@@ -33,4 +33,4 @@ jobs:
           if-no-files-found: error # this should never fail!
 
   check:
-    uses: PolarExpress/actions/.github/workflows/ci-workflow.yml
+    uses: PolarExpress/actions/.github/workflows/ci-workflow.yml@main
