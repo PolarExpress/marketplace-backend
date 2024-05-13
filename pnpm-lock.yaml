@@ -38,8 +38,8 @@ dependencies:
 
 devDependencies:
   '@graphpolaris/ts-configs':
-    specifier: github:PolarExpress/ts-configs#prettier
-    version: github.com/PolarExpress/ts-configs/5910bf66600ab59440a360061ca90e82f48dfcee
+    specifier: github:PolarExpress/ts-configs
+    version: github.com/PolarExpress/ts-configs/01e769c892a3a22db57c56f093aee524c7872809
   '@ngneat/falso':
     specifier: ^7.2.0
     version: 7.2.0
@@ -5088,8 +5088,8 @@ packages:
       - supports-color
     dev: false
 
-  github.com/PolarExpress/ts-configs/5910bf66600ab59440a360061ca90e82f48dfcee:
-    resolution: {tarball: https://codeload.github.com/PolarExpress/ts-configs/tar.gz/5910bf66600ab59440a360061ca90e82f48dfcee}
+  github.com/PolarExpress/ts-configs/01e769c892a3a22db57c56f093aee524c7872809:
+    resolution: {tarball: https://codeload.github.com/PolarExpress/ts-configs/tar.gz/01e769c892a3a22db57c56f093aee524c7872809}
     name: ts-configs
     version: 1.0.0
     dev: true
