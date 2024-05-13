@@ -39,7 +39,7 @@ dependencies:
 devDependencies:
   '@graphpolaris/ts-configs':
     specifier: github:PolarExpress/ts-configs#prettier
-    version: github.com/PolarExpress/ts-configs/a1f479fa5fc497092ce5e829f90dd52187f58c59
+    version: github.com/PolarExpress/ts-configs/5910bf66600ab59440a360061ca90e82f48dfcee
   '@ngneat/falso':
     specifier: ^7.2.0
     version: 7.2.0
@@ -76,9 +76,6 @@ devDependencies:
   eslint-plugin-perfectionist:
     specifier: ^2.10.0
     version: 2.10.0(eslint@8.57.0)(typescript@5.3.3)
-  eslint-plugin-sonarjs:
-    specifier: ^0.25.1
-    version: 0.25.1(eslint@8.57.0)
   eslint-plugin-unicorn:
     specifier: ^52.0.0
     version: 52.0.0(eslint@8.57.0)
@@ -1558,7 +1555,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001617
-      electron-to-chromium: 1.4.763
+      electron-to-chromium: 1.4.764
       node-releases: 2.0.14
       update-browserslist-db: 1.0.15(browserslist@4.23.0)
     dev: true
@@ -1966,8 +1963,8 @@ packages:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
     dev: false
 
-  /electron-to-chromium@1.4.763:
-    resolution: {integrity: sha512-k4J8NrtJ9QrvHLRo8Q18OncqBCB7tIUyqxRcJnlonQ0ioHKYB988GcDFF3ZePmnb8eHEopDs/wPHR/iGAFgoUQ==}
+  /electron-to-chromium@1.4.764:
+    resolution: {integrity: sha512-ZXbPV46Y4dNCA+k7YHB+BYlzcoMtZ1yH6V0tQ1ul0wmA7RiwJfS29LSdRlE1myWBXRzEgm/Lz6tryj5WVQiLmg==}
     dev: true
 
   /emittery@0.13.1:
@@ -2079,15 +2076,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
-    dev: true
-
-  /eslint-plugin-sonarjs@0.25.1(eslint@8.57.0):
-    resolution: {integrity: sha512-5IOKvj/GMBNqjxBdItfotfRHo7w48496GOu1hxdeXuD0mB1JBlDCViiLHETDTfA8pDAVSBimBEQoetRXYceQEw==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      eslint: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-    dependencies:
-      eslint: 8.57.0
     dev: true
 
   /eslint-plugin-unicorn@52.0.0(eslint@8.57.0):
@@ -5100,8 +5088,8 @@ packages:
       - supports-color
     dev: false
 
-  github.com/PolarExpress/ts-configs/a1f479fa5fc497092ce5e829f90dd52187f58c59:
-    resolution: {tarball: https://codeload.github.com/PolarExpress/ts-configs/tar.gz/a1f479fa5fc497092ce5e829f90dd52187f58c59}
+  github.com/PolarExpress/ts-configs/5910bf66600ab59440a360061ca90e82f48dfcee:
+    resolution: {tarball: https://codeload.github.com/PolarExpress/ts-configs/tar.gz/5910bf66600ab59440a360061ca90e82f48dfcee}
     name: ts-configs
     version: 1.0.0
     dev: true
