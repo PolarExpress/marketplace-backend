@@ -7,34 +7,34 @@
  */
 
 import { installHandler, uninstallHandler } from "../../src/routes/install";
-import { createMockContext, dummyAddons, mockSession } from "../mock-context";
+import { createMockContext, dummyAddons, mockSession } from "../mockContext";
 
 test("install::valid-query_correct-return", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("1");
 
   const addonID = dummyAddons[0]._id.toString();
-  const response = installHandler(ctx)({ addonID }, session);
+  const response = installHandler(context)({ addonID }, session);
 
   await expect(response).resolves.not.toBeDefined();
 
-  const user = await ctx.users.findOne({ userId: "1" });
+  const user = await context.users.findOne({ userId: "1" });
 
   expect(user?.installedAddons).toContain(addonID);
 });
 
 test("install::missing-args_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("1");
 
-  await expect(installHandler(ctx)({}, session)).rejects.toBeDefined();
+  await expect(installHandler(context)({}, session)).rejects.toBeDefined();
 });
 
 test("install::invalid-addon-id_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("1");
 
-  const response = installHandler(ctx)(
+  const response = installHandler(context)(
     { addonID: "invalid-addon-id" },
     session
   );
@@ -43,74 +43,80 @@ test("install::invalid-addon-id_should-throw", async () => {
 });
 
 test("install::invalid-user-id_should-create-new-user", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("4");
 
-  const response = installHandler(ctx)(
+  const response = installHandler(context)(
     { addonID: dummyAddons[0]._id.toString() },
     session
   );
 
   await expect(response).resolves.not.toBeDefined();
 
-  const new_user = await ctx.users.findOne({ userId: "4" });
+  const newUser = await context.users.findOne({ userId: "4" });
 
-  expect(new_user).not.toBeNull();
+  expect(newUser).not.toBeNull();
 });
 
 test("install::already-installed-addon_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("3");
 
   await expect(
-    installHandler(ctx)({ addonID: dummyAddons[0]._id.toString() }, session)
+    installHandler(context)({ addonID: dummyAddons[0]._id.toString() }, session)
   ).rejects.toBeDefined();
 });
 
 test("uninstall::valid-query_correct-return", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("3");
 
   const addonID = dummyAddons[2]._id.toString();
-  const response = uninstallHandler(ctx)({ addonID }, session);
+  const response = uninstallHandler(context)({ addonID }, session);
 
   await expect(response).resolves.not.toBeDefined();
 
-  const user = await ctx.users.findOne({ userId: "3" });
+  const user = await context.users.findOne({ userId: "3" });
 
   expect(user?.installedAddons).not.toContain(addonID);
 });
 
 test("uninstall::missing-args_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("3");
 
-  await expect(uninstallHandler(ctx)({}, session)).rejects.toBeDefined();
+  await expect(uninstallHandler(context)({}, session)).rejects.toBeDefined();
 });
 
 test("uninstall::invalid-addon-id_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("3");
 
   await expect(
-    uninstallHandler(ctx)({ addonID: "invalid-addon-id" }, session)
+    uninstallHandler(context)({ addonID: "invalid-addon-id" }, session)
   ).rejects.toBeDefined();
 });
 
 test("uninstall::invalid-user-id_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("5");
 
   await expect(
-    uninstallHandler(ctx)({ addonID: dummyAddons[0]._id.toString() }, session)
+    uninstallHandler(context)(
+      { addonID: dummyAddons[0]._id.toString() },
+      session
+    )
   ).rejects.toBeDefined();
 });
 
 test("uninstall::addon-not-installed_should-throw", async () => {
-  const [, ctx] = createMockContext();
+  const [, context] = createMockContext();
   const session = mockSession("3");
 
   await expect(
-    uninstallHandler(ctx)({ addonID: dummyAddons[1]._id.toString() }, session)
+    uninstallHandler(context)(
+      { addonID: dummyAddons[1]._id.toString() },
+      session
+    )
   ).rejects.toBeDefined();
 });

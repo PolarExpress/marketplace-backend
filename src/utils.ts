@@ -18,11 +18,13 @@ declare module "express" {
 }
 
 /**
- * `throw` wrapped in a function, so we can use it in null coalescing
+ * `throw` wrapped in a function, so it can be used in null coalescing
  * statements.
+ *
+ * @param e - The error that is thrown.
  */
-export const throwFn = (e: Error): never => {
-  throw e;
+export const throwFunction = (error: Error): never => {
+  throw error;
 };
 
 export class PanicError extends Error {
@@ -51,12 +53,13 @@ export const panic = (message: string): never => {
  *   function.
  */
 export const asyncCatch =
-  (fn: (req: Request, res: Response) => Promise<void>) =>
-  (req: Request, res: Response, next: NextFunction) =>
-    fn(req, res).catch(next);
+  (function_: (request: Request, response: Response) => Promise<void>) =>
+  (request: Request, response: Response, next: NextFunction) =>
+    function_(request, response).catch(next);
 
 export const expressHandler =
-  (handler: Handler) => (req: Request, res: Response, next: NextFunction) =>
-    handler(req.body)
-      .then(result => res.status(200).json(result))
-      .catch(next);
+  (handler: Handler) =>
+  (request: Request, response: Response, next: NextFunction) =>
+    handler(request.body)
+      .then(result => response.status(200).json(result))
+      .catch(error => next(error));

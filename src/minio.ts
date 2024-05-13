@@ -46,8 +46,8 @@ export class MinioService {
     const stream = this.client.listObjectsV2(bucketName, undefined, true);
 
     return new Promise((resolve, reject) => {
-      stream.on("data", obj => data.push(obj));
-      stream.on("error", err => reject(err));
+      stream.on("data", object => data.push(object));
+      stream.on("error", error => reject(error));
       stream.on("end", () => resolve(data));
     });
   }
@@ -65,8 +65,8 @@ export class MinioService {
     return new Promise((resolve, reject) => {
       this.client.removeObjects(
         bucketName,
-        objects.map(obj => obj.name!),
-        err => (err ? reject(err) : resolve())
+        objects.map(object => object.name!),
+        error => (error ? reject(error) : resolve())
       );
     });
   }
@@ -86,9 +86,9 @@ export class MinioService {
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       // @ts-expect-error exported minio types are wrong
-      this.client.getObject(bucketName, objectPath, (err, dataStream) => {
-        if (err) {
-          reject(err);
+      this.client.getObject(bucketName, objectPath, (error, dataStream) => {
+        if (error) {
+          reject(error);
           return;
         }
 
@@ -96,7 +96,7 @@ export class MinioService {
 
         dataStream.on("data", (chunk: Buffer) => chunks.push(chunk));
 
-        dataStream.on("error", (err: Error) => reject(err));
+        dataStream.on("error", (error: Error) => reject(error));
 
         dataStream.on("end", () => {
           const data = Buffer.concat(chunks);
@@ -110,25 +110,25 @@ export class MinioService {
    * Serves a file from MinIO. Streams the file directly to the provided
    * response object.
    */
-  public serveFile(req: Request, res: Response) {
-    const filepath = req.params.filepath;
+  public serveFile(request: Request, response: Response) {
+    const filepath = request.params.filepath;
     const [bucket, ...objectPath] = filepath.split("/");
 
-    if (!bucket || !objectPath.length) {
-      return res.status(400).json({ error: "Invalid file path" });
+    if (!bucket || objectPath.length === 0) {
+      return response.status(400).json({ error: "Invalid file path" });
     }
 
     // @ts-expect-error exported minio types are wrong
-    this.client.getObject(bucket, objectPath.join("/"), (err, stream) => {
-      if (err) {
-        return err.message.includes("does not exist")
-          ? res.status(404).json({ error: err })
-          : res.status(500).json({ error: "Internal server error" });
+    this.client.getObject(bucket, objectPath.join("/"), (error, stream) => {
+      if (error) {
+        return error.message.includes("does not exist")
+          ? response.status(404).json({ error: "File not found" })
+          : response.status(500).json({ error: "Internal server error" });
       }
-      stream.pipe(res);
+      stream.pipe(response);
     });
 
     const type = mime.lookup(filepath) || "text/plain";
-    res.header("Content-Type", type);
+    response.header("Content-Type", type);
   }
 }

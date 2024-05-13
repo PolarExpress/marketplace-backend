@@ -25,7 +25,7 @@ const rule = {
         const comments = context.sourceCode.getCommentsBefore(node.body[0]);
         if (
           !(
-            comments.length &&
+            comments.length > 0 &&
             comments[0].range[0] === 0 &&
             comments[0].value == commentText
           )
@@ -63,17 +63,80 @@ export default tseslint.config(
   {
     ignores: ["**/*.config.*"],
     plugins: { custom: plugin },
-    rules: { "custom/enforce-copyright-comment": "error" }
+    rules: {
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          selector: "default",
+          trailingUnderscore: "allow"
+        },
+
+        {
+          format: ["camelCase"],
+          selector: "import"
+        },
+        {
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+          selector: "variable",
+          trailingUnderscore: "allow"
+        },
+        {
+          format: ["PascalCase"],
+          selector: "typeLike"
+        },
+        {
+          format: null,
+          selector: "objectLiteralProperty"
+        },
+        {
+          format: ["UPPER_CASE"],
+          selector: "enumMember"
+        }
+      ],
+      "custom/enforce-copyright-comment": "error",
+      "unicorn/prevent-abbreviations": [
+        "error",
+        {
+          replacements: {
+            e: false,
+            i: false // "e" and "i" are industry standard.
+          }
+        }
+      ]
+    }
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...compat.extends(
     "plugin:sonarjs/recommended",
     "plugin:perfectionist/recommended-natural",
+    "plugin:unicorn/recommended",
     "plugin:jest/recommended",
     "plugin:jest-formatting/strict"
   ),
   {
-    ignores: ["build", "data", "load_addons.js", "addons"]
+    rules: {
+      "unicorn/filename-case": [
+        "error",
+        {
+          case: "camelCase"
+        }
+      ],
+      "unicorn/no-array-callback-reference": "off",
+      "unicorn/prefer-top-level-await": "off"
+    }
+  },
+  {
+    ignores: [
+      "build",
+      "data",
+      "load_addons.js",
+      "addons",
+      "coverage",
+      "**/*.config.*"
+    ]
   }
 );

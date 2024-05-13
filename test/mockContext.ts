@@ -55,17 +55,17 @@ export const dummyUsers: WithId<User>[] = [
   }
 ].map(user => ({ _id: new ObjectId(), ...user }));
 
-let mongo: MongoMemoryServer, connection: MongoClient, db: Db;
+let mongo: MongoMemoryServer, connection: MongoClient, database: Db;
 
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
 
   connection = await MongoClient.connect(mongo.getUri());
-  db = connection.db("test");
+  database = connection.db("test");
 
-  const addons = db.collection("addons");
-  const authors = db.collection("authors");
-  const users = db.collection("users");
+  const addons = database.collection("addons");
+  const authors = database.collection("authors");
+  const users = database.collection("users");
 
   await addons.deleteMany();
   await authors.deleteMany();
@@ -87,10 +87,10 @@ export type MockContext = {
 
 export function createMockContext(): [MockContext, Context] {
   const context = {
-    addons: db.collection<Addon>("addons"),
-    authors: db.collection<Author>("authors"),
+    addons: database.collection<Addon>("addons"),
+    authors: database.collection<Author>("authors"),
     minio: mockDeep<MinioService>(),
-    users: db.collection<User>("users")
+    users: database.collection<User>("users")
   };
   return [context, context];
 }

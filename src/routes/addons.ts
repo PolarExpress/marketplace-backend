@@ -12,7 +12,7 @@ import { z } from "zod";
 
 import { Context } from "../context";
 import { Addon, AddonCategory } from "../types";
-import { throwFn } from "../utils";
+import { throwFunction } from "../utils";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -26,34 +26,35 @@ const getAddonsSchema = z.object({
 });
 
 export const getAddonsHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
-    const args = getAddonsSchema.parse(req);
+  (context: Context) =>
+  async (request: object): Promise<object> => {
+    const arguments_ = getAddonsSchema.parse(request);
 
     const queryFilter: Filter<Addon> = {
-      name: { $options: "i", $regex: args.searchTerm }
+      name: { $options: "i", $regex: arguments_.searchTerm }
     };
 
-    if (args.category) {
-      queryFilter.category = args.category;
+    if (arguments_.category) {
+      queryFilter.category = arguments_.category;
     }
 
-    const addons = await ctx.addons
+    const addons = await context.addons
       .find(queryFilter)
-      .skip(args.page * pageSize)
+      .skip(arguments_.page * pageSize)
       .limit(pageSize)
       .toArray();
 
-    const joined_addons = await Promise.all(
+    const joinedAddons = await Promise.all(
       addons.map(async addon => {
         const author =
-          (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-          throwFn(new Error("Could not find the addon's author"));
+          (await context.authors.findOne({
+            _id: new ObjectId(addon.authorId)
+          })) ?? throwFunction(new Error("Could not find the addon's author"));
         return { ...addon, author };
       })
     );
 
-    return { addons: joined_addons };
+    return { addons: joinedAddons };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,17 +64,17 @@ const getAddonByIdSchema = z.object({
 });
 
 export const getAddonByIdHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
-    const args = getAddonByIdSchema.parse(req);
+  (context: Context) =>
+  async (request: object): Promise<object> => {
+    const arguments_ = getAddonByIdSchema.parse(request);
 
     const addon =
-      (await ctx.addons.findOne({ _id: new ObjectId(args.id) })) ??
-      throwFn(new Error("Could not find the addon with given id"));
+      (await context.addons.findOne({ _id: new ObjectId(arguments_.id) })) ??
+      throwFunction(new Error("Could not find the addon with given id"));
 
     const author =
-      (await ctx.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-      throwFn(new Error("Could nnot find  the addon's author"));
+      (await context.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
+      throwFunction(new Error("Could nnot find  the addon's author"));
 
     return { addon: { ...addon, author } };
   };
@@ -85,14 +86,14 @@ const getAddonReadMeByIdSchema = z.object({
 });
 
 export const getAddonReadMeByIdHandler =
-  (ctx: Context) =>
-  async (req: object): Promise<object> => {
-    const args = getAddonReadMeByIdSchema.parse(req);
+  (context: Context) =>
+  async (request: object): Promise<object> => {
+    const arguments_ = getAddonReadMeByIdSchema.parse(request);
 
     try {
-      const buffer = await ctx.minio.readFile(
-        ctx.minio.addonBucket,
-        `${args.id}/README.md`
+      const buffer = await context.minio.readFile(
+        context.minio.addonBucket,
+        `${arguments_.id}/README.md`
       );
       return { readme: buffer.toString() };
     } catch {
@@ -113,17 +114,17 @@ interface AddonQueryFilter extends Filter<Addon> {
 }
 
 export const getAddonsByUserIdHandler =
-  (ctx: Context) =>
-  async (req: object, session: SessionData): Promise<object> => {
-    const args = getAddonsByUserIdSchema.parse(req);
+  (context: Context) =>
+  async (request: object, session: SessionData): Promise<object> => {
+    const arguments_ = getAddonsByUserIdSchema.parse(request);
 
-    let user = await ctx.users.findOne({ userId: session.userID });
+    let user = await context.users.findOne({ userId: session.userID });
     if (!user) {
       const document = {
         installedAddons: [],
         userId: session.userID
       };
-      const { insertedId } = await ctx.users.insertOne(document);
+      const { insertedId } = await context.users.insertOne(document);
       user = { ...document, _id: insertedId };
     }
 
@@ -131,25 +132,25 @@ export const getAddonsByUserIdHandler =
       _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
     };
 
-    if (args.category) {
-      queryFilter.category = args.category;
+    if (arguments_.category) {
+      queryFilter.category = arguments_.category;
     }
 
-    const addons = await ctx.addons
+    const addons = await context.addons
       .find(queryFilter)
-      .skip(args.page * pageSize)
+      .skip(arguments_.page * pageSize)
       .limit(pageSize)
       .toArray();
 
-    const joined_addons = await Promise.all(
+    const joinedAddons = await Promise.all(
       addons.map(async addon => {
         const author =
-          (await ctx.authors.findOne({
+          (await context.authors.findOne({
             _id: new ObjectId(addon.authorId)
-          })) ?? throwFn(new Error("Could not find the addon's author"));
+          })) ?? throwFunction(new Error("Could not find the addon's author"));
         return { ...addon, author };
       })
     );
 
-    return { addons: joined_addons };
+    return { addons: joinedAddons };
   };
