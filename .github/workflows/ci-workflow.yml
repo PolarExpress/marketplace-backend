@@ -12,6 +12,7 @@ jobs:
     name: Jest (unit tests)
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
+    needs: check
 
     steps:
       - name: Check out Git repository
@@ -31,47 +32,5 @@ jobs:
           retention-days: 30
           if-no-files-found: error # this should never fail!
 
-  build:
-    name: tsc (build)
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      - name: Set up environment
-        uses: ./.github/actions/ci-env
-
-      - name: Build project
-        run: pnpm build
-
-  eslint:
-    name: ESLint (linting)
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      - name: Set up environment
-        uses: ./.github/actions/ci-env
-
-      - name: Run linter
-        run: pnpm lint
-
-  prettier:
-    name: Prettier (formatting)
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      - name: Set up environment
-        uses: ./.github/actions/ci-env
-
-      - name: Run Prettier
-        run: npx prettier --check .
+  check:
+    uses: PolarExpress/ts-configs/.github/workflows/ci-workflow.yml@main
