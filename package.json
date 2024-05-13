@@ -25,7 +25,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@graphpolaris/ts-configs": "github:PolarExpress/ts-configs",
+    "@graphpolaris/ts-configs": "github:PolarExpress/ts-configs#prettier",
     "@ngneat/falso": "^7.2.0",
     "@types/amqplib": "^0.10.5",
     "@types/cors": "^2.8.17",
