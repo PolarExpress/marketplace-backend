@@ -6,4 +6,12 @@
  * (Department of Information and Computing Sciences)
  */
 
-export { default } from "@graphpolaris/ts-configs/eslint";
+import { FlatCompat } from "@eslint/eslintrc";
+import baseConfig from "@graphpolaris/ts-configs/eslint";
+
+const compat = new FlatCompat();
+
+export default [
+  ...baseConfig,
+  ...compat.extends("plugin:jest/recommended", "plugin:jest-formatting/strict")
+];
