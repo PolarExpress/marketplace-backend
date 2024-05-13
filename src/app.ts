@@ -74,7 +74,7 @@ export function buildExpress(context: Context): Express {
       next();
     }
   );
-  
+
   app.get(
     "/store/:filepath(*)",
     cors(),
