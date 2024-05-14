@@ -12,6 +12,7 @@ import { MongoClient, ObjectId, WithId } from "mongodb";
 
 import { MinioService } from "./src/minio";
 import { Addon, AddonCategory, Author, User } from "./src/types";
+import { panic } from "./src/utils";
 
 // Seeding individual entities
 
@@ -66,7 +67,7 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
 
 async function main() {
   if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
-    console.log("No MongoDB environment variable set. Seeding failed");
+    panic("No MongoDB environment variable set. Seeding failed");
     return;
   }
   // Set the seed if one is given.

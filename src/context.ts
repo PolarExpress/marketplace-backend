@@ -10,6 +10,7 @@ import { Collection, MongoClient } from "mongodb";
 
 import { MinioService } from "./minio";
 import { Addon, Author, User } from "./types";
+import { panic } from "./utils";
 
 /**
  * Context containing all the dependencies that are required by the resolvers
@@ -31,9 +32,7 @@ export interface Context {
  */
 export async function createContext(): Promise<Context> {
   if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
-    console.log(
-      "No MongoDB environment variable set, context creation failed."
-    );
+    panic("No MongoDB environment variable set, context creation failed.");
   }
 
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);
