@@ -38,6 +38,9 @@ export const getAddonsHandler =
       queryFilter.category = arguments_.category;
     }
 
+    const totalCount = await context.addons.countDocuments(queryFilter);
+    const totalPages = Math.ceil(totalCount / pageSize);
+
     const addons = await context.addons
       .find(queryFilter)
       .skip(arguments_.page * pageSize)
@@ -54,7 +57,7 @@ export const getAddonsHandler =
       })
     );
 
-    return { addons: joinedAddons };
+    return { addons: joinedAddons, totalPages };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
