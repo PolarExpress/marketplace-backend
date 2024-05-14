@@ -30,8 +30,10 @@ export interface Context {
  * @returns A context object.
  */
 export async function createContext(): Promise<Context> {
-  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)){
-    console.log("No MongoDB environment variable set, context creation failed.");
+  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
+    console.log(
+      "No MongoDB environment variable set, context creation failed."
+    );
   }
 
   const mongo = await MongoClient.connect(process.env.MONGO_URI!);

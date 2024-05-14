@@ -11,12 +11,19 @@ const Minio = require("minio");
 (async () => {
   const addons = ["rawjsonvis", "matrixvis"];
 
-  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)){
+  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
     console.log("No MongoDB environment variable set: loading add-ons failed.");
     return;
   }
 
-  if (!(process.env.MINIO_ACCESSKEY && process.env.MINIO_ENDPOINT && process.env.MINIO_PORT && process.env.MINIO_SECRETKEY)){
+  if (
+    !(
+      process.env.MINIO_ACCESSKEY &&
+      process.env.MINIO_ENDPOINT &&
+      process.env.MINIO_PORT &&
+      process.env.MINIO_SECRETKEY
+    )
+  ) {
     console.log("Missing minIO environment variables: loading add-ons failed.");
     return;
   }
