@@ -55,8 +55,6 @@ export function buildExpress(context: Context): Express {
   app.use(express.json());
   app.use(cors());
 
-  app.use(cors());
-
   app.post("/addons/get", expressHandler(getAddonsHandler(context)));
   app.post("/addons/get-by-id", expressHandler(getAddonByIdHandler(context)));
   app.post(

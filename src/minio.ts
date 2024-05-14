@@ -87,7 +87,10 @@ export class MinioService {
     return new Promise((resolve, reject) => {
       // @ts-expect-error exported minio types are wrong
       this.client.getObject(bucketName, objectPath, (error, dataStream) => {
-        if (error) reject(error);
+        if (error) {
+          reject(error);
+          return;
+        }
 
         const chunks: Buffer[] = [];
 
