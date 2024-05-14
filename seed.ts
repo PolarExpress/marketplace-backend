@@ -65,6 +65,10 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
 // Run all seeding functions
 
 async function main() {
+  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)){
+    console.log("No MongoDB environment variable set. Seeding failed");
+    return;
+  }
   // Set the seed if one is given.
   seed(process.argv[2]);
 
