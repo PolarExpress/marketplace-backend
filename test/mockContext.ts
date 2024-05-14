@@ -74,12 +74,12 @@ beforeAll(async () => {
   await addons.insertMany(dummyAddons);
   await authors.insertMany(dummyAuthors);
   await users.insertMany(dummyUsers);
-});
+}, 20000);
 
 afterAll(async () => {
   await connection.close();
   await mongo.stop();
-});
+}, 10000);
 
 export type MockContext = {
   minio: DeepMockProxy<MinioService>;
