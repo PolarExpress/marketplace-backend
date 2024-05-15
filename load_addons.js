@@ -31,6 +31,25 @@ const { error } = require("node:console");
     );
   }
 
+  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
+    throw new error(
+      "No MongoDB environment variable set: loading add-ons failed."
+    );
+  }
+
+  if (
+    !(
+      process.env.MINIO_ACCESSKEY &&
+      process.env.MINIO_ENDPOINT &&
+      process.env.MINIO_PORT &&
+      process.env.MINIO_SECRETKEY
+    )
+  ) {
+    throw new error(
+      "Missing minIO environment variables: loading add-ons failed."
+    );
+  }
+
   const pexec = promisify(exec);
 
   const mongo = await MongoClient.connect(process.env.MONGO_URI);
