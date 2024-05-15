@@ -7,13 +7,15 @@ const { readFile, mkdir, readdir, rm } = require("node:fs/promises");
 
 const { MongoClient } = require("mongodb");
 const Minio = require("minio");
+const { error } = require("node:console");
 
 (async () => {
   const addons = ["rawjsonvis", "matrixvis"];
 
   if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
-    console.log("No MongoDB environment variable set: loading add-ons failed.");
-    return;
+    throw new error(
+      "No MongoDB environment variable set: loading add-ons failed."
+    );
   }
 
   if (
@@ -24,8 +26,9 @@ const Minio = require("minio");
       process.env.MINIO_SECRETKEY
     )
   ) {
-    console.log("Missing minIO environment variables: loading add-ons failed.");
-    return;
+    throw new error(
+      "Missing minIO environment variables: loading add-ons failed."
+    );
   }
 
   const pexec = promisify(exec);
