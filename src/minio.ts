@@ -10,6 +10,8 @@ import { Request, Response } from "express";
 import mime from "mime-types";
 import { BucketItem, Client } from "minio";
 
+import environment from "./environment";
+
 /**
  * Provides methods for interacting with MinIO.
  */
@@ -26,10 +28,10 @@ export class MinioService {
 
   constructor() {
     this.client = new Client({
-      accessKey: process.env.MINIO_ACCESSKEY!,
-      endPoint: process.env.MINIO_ENDPOINT!,
-      port: Number(process.env.MINIO_PORT!),
-      secretKey: process.env.MINIO_SECRETKEY!,
+      accessKey: environment.MINIO_ACCESSKEY!,
+      endPoint: environment.MINIO_ENDPOINT!,
+      port: Number(environment.MINIO_PORT!),
+      secretKey: environment.MINIO_SECRETKEY!,
       useSSL: false
     });
   }

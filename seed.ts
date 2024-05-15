@@ -10,9 +10,9 @@ import { randCompanyName, randText, randUuid, seed } from "@ngneat/falso";
 import "dotenv/config";
 import { MongoClient, ObjectId, WithId } from "mongodb";
 
+import environment from "./src/environment";
 import { MinioService } from "./src/minio";
 import { Addon, AddonCategory, Author, User } from "./src/types";
-import { panic } from "./src/utils";
 
 // Seeding individual entities
 
@@ -66,17 +66,13 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
 // Run all seeding functions
 
 async function main() {
-  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
-    panic("No MongoDB environment variable set. Seeding failed");
-    return;
-  }
   // Set the seed if one is given.
   seed(process.argv[2]);
 
   const minio = new MinioService();
-  const mongo = await MongoClient.connect(process.env.MONGO_URI!);
+  const mongo = await MongoClient.connect(environment.MONGO_URI!);
 
-  const database = mongo.db(process.env.MP_DATABASE_NAME!);
+  const database = mongo.db(environment.MP_DATABASE_NAME!);
   const colAddons = database.collection("addons");
   const colAuthors = database.collection("authors");
   const colUsers = database.collection("users");
