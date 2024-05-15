@@ -1,4 +1,5 @@
 require("dotenv/config");
+import environment from "./src/environment";
 
 const { promisify } = require("node:util");
 const { resolve } = require("node:path");
@@ -7,53 +8,14 @@ const { readFile, mkdir, readdir, rm } = require("node:fs/promises");
 
 const { MongoClient } = require("mongodb");
 const Minio = require("minio");
-const { error } = require("node:console");
 
 (async () => {
   const addons = ["rawjsonvis", "matrixvis"];
 
-  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
-    throw new error(
-      "No MongoDB environment variable set: loading add-ons failed."
-    );
-  }
-
-  if (
-    !(
-      process.env.MINIO_ACCESSKEY &&
-      process.env.MINIO_ENDPOINT &&
-      process.env.MINIO_PORT &&
-      process.env.MINIO_SECRETKEY
-    )
-  ) {
-    throw new error(
-      "Missing minIO environment variables: loading add-ons failed."
-    );
-  }
-
-  if (!(process.env.MONGO_URI && process.env.MP_DATABASE_NAME)) {
-    throw new error(
-      "No MongoDB environment variable set: loading add-ons failed."
-    );
-  }
-
-  if (
-    !(
-      process.env.MINIO_ACCESSKEY &&
-      process.env.MINIO_ENDPOINT &&
-      process.env.MINIO_PORT &&
-      process.env.MINIO_SECRETKEY
-    )
-  ) {
-    throw new error(
-      "Missing minIO environment variables: loading add-ons failed."
-    );
-  }
-
   const pexec = promisify(exec);
 
-  const mongo = await MongoClient.connect(process.env.MONGO_URI);
-  const db = mongo.db(process.env.MP_DATABASE_NAME);
+  const mongo = await MongoClient.connect(environment.MONGO_URI);
+  const db = mongo.db(environment.MP_DATABASE_NAME);
   const collection = db.collection("addons");
 
   const author = await db.collection("authors").insertOne({
@@ -61,11 +23,11 @@ const { error } = require("node:console");
   });
 
   const minio = new Minio.Client({
-    endPoint: process.env.MINIO_ENDPOINT,
-    port: Number(process.env.MINIO_PORT),
+    endPoint: environment.MINIO_ENDPOINT,
+    port: Number(environment.MINIO_PORT),
     useSSL: false,
-    accessKey: process.env.MINIO_ACCESSKEY,
-    secretKey: process.env.MINIO_SECRETKEY
+    accessKey: environment.MINIO_ACCESSKEY,
+    secretKey: environment.MINIO_SECRETKEY
   });
 
   const addons_dir = resolve(__dirname, "addons");

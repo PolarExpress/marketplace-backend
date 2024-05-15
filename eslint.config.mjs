@@ -133,7 +133,7 @@ export default tseslint.config(
     ignores: [
       "build",
       "data",
-      "load_addons.js",
+      "load_addons.ts",
       "addons",
       "coverage",
       "**/*.config.*"
