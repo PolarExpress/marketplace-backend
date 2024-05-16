@@ -37,6 +37,9 @@ dependencies:
     version: 3.23.5
 
 devDependencies:
+  '@graphpolaris/ts-configs':
+    specifier: github:PolarExpress/ts-configs
+    version: github.com/PolarExpress/ts-configs/b5a764b7635d8e0076bb8537a7224ff74ad1b6f0
   '@ngneat/falso':
     specifier: ^7.2.0
     version: 7.2.0
@@ -73,9 +76,6 @@ devDependencies:
   eslint-plugin-perfectionist:
     specifier: ^2.10.0
     version: 2.10.0(eslint@8.57.0)(typescript@5.3.3)
-  eslint-plugin-sonarjs:
-    specifier: ^0.25.1
-    version: 0.25.1(eslint@8.57.0)
   eslint-plugin-unicorn:
     specifier: ^52.0.0
     version: 52.0.0(eslint@8.57.0)
@@ -2151,15 +2151,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
-    dev: true
-
-  /eslint-plugin-sonarjs@0.25.1(eslint@8.57.0):
-    resolution: {integrity: sha512-5IOKvj/GMBNqjxBdItfotfRHo7w48496GOu1hxdeXuD0mB1JBlDCViiLHETDTfA8pDAVSBimBEQoetRXYceQEw==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      eslint: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-    dependencies:
-      eslint: 8.57.0
     dev: true
 
   /eslint-plugin-unicorn@52.0.0(eslint@8.57.0):
@@ -5185,3 +5176,9 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: false
+
+  github.com/PolarExpress/ts-configs/b5a764b7635d8e0076bb8537a7224ff74ad1b6f0:
+    resolution: {tarball: https://codeload.github.com/PolarExpress/ts-configs/tar.gz/b5a764b7635d8e0076bb8537a7224ff74ad1b6f0}
+    name: ts-configs
+    version: 1.0.0
+    dev: true
