@@ -108,18 +108,19 @@ const Minio = require("minio");
     const id = document.insertedId.toString();
     const adapterDest = "../ml-addon-adapter";
     const envFilePath = "../../deployment/dockercompose/.env";
+    const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
     const serviceDest = resolve(__dirname, "addons", `${id}-service`);
     console.log(`Cloning and building ${addon.name}`);
     await pexec(`git clone ${addon.repo} ${serviceDest}`);
     await pexec(`cd ${serviceDest} && docker build -t ${id}-service .`);
     await pexec(
-      `docker run -d --name ${id}-service --network=graphpolaris_network ${id}-service --prod true`
+      `docker run -d --name ${id}-service --network=${network} ${id}-service --prod true`
     );
 
     await pexec(`cd ${adapterDest} && docker build -t ${id}-adapter .`);
     await pexec(
-      `docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=graphpolaris_network -e ADDON_ID=${id} ${id}-adapter`
+      `docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=${network} -e ADDON_ID=${id} ${id}-adapter`
     );
 
     minio.putObject(
