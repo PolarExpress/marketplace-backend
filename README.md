@@ -43,6 +43,21 @@ If you want to set the seed of the generated data to get deterministic results, 
 pnpm seed -- <your seed here>
 ```
 
+## Scripts
+
+To manage the application, use `pnpm <script>`, where `<script>` is one of the following:
+
+- `build` - Compile the TypeScript code to JavaScript.
+- `dev` - Start the development server with TypeScript and dotenv configuration.
+- `start` - Start the production server using the compiled JavaScript code.
+- `seed` - Seed the database with initial data.
+- `test` - Run the test suite using Jest.
+- `load` - Load additional modules using `ts-node`.
+- `lint` - Run ESLint to lint the code.
+- `lint:fix` - Automatically fix ESLint issues.
+- `format` - Format the code using Prettier.
+- `prepare` - Prepare the environment for Husky Git hooks (skipped in production).
+
 ## API
 
 The marketplace backend has two APIs: one for AMQP messages and one for HTTP requests. The HTTP API exists because a client has to be logged in to use the AMQP network.
