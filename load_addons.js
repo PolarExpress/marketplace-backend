@@ -13,19 +13,19 @@ const Minio = require("minio");
   const mlAddons = [
     {
       name: "Centrality",
-      id: "ffff00000000000000000000"
+      repo: "https://github.com/PolarExpress/centrality"
     },
     {
       name: "Community Detection",
-      id: "ffff00000000000000000001"
+      repo: "https://github.com/PolarExpress/community-detection"
     },
     {
       name: "Link Prediction",
-      id: "ffff00000000000000000002"
+      repo: "https://github.com/PolarExpress/link-prediction"
     },
     {
       name: "Shortest Path",
-      id: "ffff00000000000000000003"
+      repo: "https://github.com/PolarExpress/shortest-path"
     }
   ];
 
@@ -97,7 +97,6 @@ const Minio = require("minio");
 
   for (const addon of mlAddons) {
     const document = await collection.insertOne({
-      _id: new ObjectId(addon.id),
       name: addon.name,
       summary: "",
       icon: "icon.png",
@@ -105,6 +104,20 @@ const Minio = require("minio");
       authorId: author.insertedId
     });
     console.log("Inserted document:", document.insertedId);
+
+    const id = document.insertedId.toString();
+    const adapterDest = "../ml-addon-adapter";
+    const envFilePath = "../../deployment/dockercompose/.env";
+
+    const serviceDest = resolve(__dirname, "addons", `${id}-service`);
+    console.log(`Cloning and building ${addon.name}`);
+    await pexec(`git clone ${addon.repo} ${serviceDest}`);
+    await pexec(`cd ${serviceDest} && docker build -t ${id}-service .`);
+    await pexec(`docker run -d --name ${id}-service --network=graphpolaris_network ${id}-service --prod true`);
+
+    await pexec(`cd ${adapterDest} && docker build -t ${id}-adapter .`);
+    await pexec(`docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=graphpolaris_network -e ADDON_ID=${id} ${id}-adapter`);
+
     minio.putObject(
       "addons",
       `${addon.id}/README.md`,
