@@ -70,9 +70,9 @@ async function main() {
   seed(process.argv[2]);
 
   const minio = new MinioService();
-  const mongo = await MongoClient.connect(environment.MONGO_URI!);
+  const mongo = await MongoClient.connect(environment.MONGO_URI);
 
-  const database = mongo.db(environment.MP_DATABASE_NAME!);
+  const database = mongo.db(environment.MP_DATABASE_NAME);
   const colAddons = database.collection("addons");
   const colAuthors = database.collection("authors");
   const colUsers = database.collection("users");

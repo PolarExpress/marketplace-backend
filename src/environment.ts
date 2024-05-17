@@ -8,7 +8,10 @@
 
 import { z } from "zod";
 
-// The environment variable schema that zod checks for, containing all the environment variables in the backend.
+/**
+ * The environment variable schema that zod checks for, containing all the
+ * environment variables in the backend.
+ */
 const environmentSchema = z.object({
   MINIO_ACCESSKEY: z.string(),
   MINIO_ENDPOINT: z.string(),
@@ -28,8 +31,14 @@ const environmentSchema = z.object({
   REDIS_PASSWORD: z.string()
 });
 
+const parsedEnvironment = environmentSchema.safeParse(process.env);
+
+if (!parsedEnvironment.success) {
+  throw new Error("Invalid environment variables.");
+}
+
 /**
- * Environment variable object that has been checked.
+ * Environment object that has been checked.
  */
-const environment = environmentSchema.parse(process.env);
+const environment = parsedEnvironment.data;
 export default environment;

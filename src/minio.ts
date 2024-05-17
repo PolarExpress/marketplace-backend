@@ -28,10 +28,10 @@ export class MinioService {
 
   constructor() {
     this.client = new Client({
-      accessKey: environment.MINIO_ACCESSKEY!,
-      endPoint: environment.MINIO_ENDPOINT!,
-      port: Number(environment.MINIO_PORT!),
-      secretKey: environment.MINIO_SECRETKEY!,
+      accessKey: environment.MINIO_ACCESSKEY,
+      endPoint: environment.MINIO_ENDPOINT,
+      port: Number(environment.MINIO_PORT),
+      secretKey: environment.MINIO_SECRETKEY,
       useSSL: false
     });
   }
