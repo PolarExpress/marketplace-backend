@@ -113,10 +113,14 @@ const Minio = require("minio");
     console.log(`Cloning and building ${addon.name}`);
     await pexec(`git clone ${addon.repo} ${serviceDest}`);
     await pexec(`cd ${serviceDest} && docker build -t ${id}-service .`);
-    await pexec(`docker run -d --name ${id}-service --network=graphpolaris_network ${id}-service --prod true`);
+    await pexec(
+      `docker run -d --name ${id}-service --network=graphpolaris_network ${id}-service --prod true`
+    );
 
     await pexec(`cd ${adapterDest} && docker build -t ${id}-adapter .`);
-    await pexec(`docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=graphpolaris_network -e ADDON_ID=${id} ${id}-adapter`);
+    await pexec(
+      `docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=graphpolaris_network -e ADDON_ID=${id} ${id}-adapter`
+    );
 
     minio.putObject(
       "addons",
