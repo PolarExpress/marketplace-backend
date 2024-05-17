@@ -1,90 +1,103 @@
-# PolarExpress backend
+# PolarExpress Backend
 
-Backend and infrastructure for the GraphPolaris marketplace.
+This is the backend and infrastructure for the GraphPolaris marketplace.
 
-## How to run
-
-### Requirements
+## Requirements
 
 - A running instance of the GraphPolaris infrastructure, specifically:
-    - RabbitMQ
-    - MongoDB
-    - Redis
-    - MinIO
+  - RabbitMQ
+  - MongoDB
+  - Redis
+  - MinIO
 - Node.js 21 or later
 - pnpm
 
-### Steps
+## Installation
 
-1. Make sure all the required services listed in the Requirements section are
-running
-2. Create a `.env` file and set the required environment variables to match
-your setup. For an example, see the `sample.env` file.
-3. Run `pnpm install` to install the needed modules.
-4. Run `pnpm dev` to start the backend.
+Before starting the application, ensure the following services are running:
 
-### Seeding the database
-To seed the database, simply run
-```pnpm seed```
+1. RabbitMQ
+2. MongoDB
+3. Redis
+4. MinIO
+
+Next, follow these steps:
+
+1. Create a `.env` file and set the required environment variables to match your setup. For an example, see the `sample.env` file.
+2. Install the dependencies using `pnpm install`.
+3. Start the backend by running `pnpm dev`.
+
+## Seeding the Database
+
+To seed the database, run:
+
+```sh
+pnpm seed
+```
+
 This will populate the database with randomly generated data.
 
-In case you want to set the seed of the generated data to get deterministic
-results, run
-```pnpm seed -- <your seed here>```
+If you want to set the seed of the generated data to get deterministic results, run:
+
+```sh
+pnpm seed -- <your seed here>
+```
 
 ## API
-marketplace-backend has two APIs: one for AMQP messages and one for HTTP 
-requests. The HTTP API exists because a client has to be logged in in order to
-make use of the AMQP network.
 
-### HTTP endpoints
+The marketplace backend has two APIs: one for AMQP messages and one for HTTP requests. The HTTP API exists because a client has to be logged in to use the AMQP network.
+
+### HTTP Endpoints
+
 #### `/addons/get`
+
 ```ts
 POST /addons/get {
-    category: "VISUALISATION" | "MACHINE_LEARNING" | undefined
-    page: number | undefined
+    category: "VISUALISATION" | "MACHINE_LEARNING" | undefined,
+    page: number | undefined,
+    searchTerm: string | undefined
 }
-=> { addons: [...] }
+=> { addons: [...], totalPages: number }
 ```
-Get a list of addons. 
-- `category`: filter by category
-- `page`: page number of the page to get (default = 0)
+
+Get a list of addons.
+
+- `category`: Filter by category.
+- `page`: Page number of the page to get (default = 0).
+- `searchTerm`: Optional search term to filter addons by name.
 
 #### `/addons/get-by-id`
+
 ```ts
 POST /addons/get-by-id {
-    addonId: string
+    id: string
 }
 => { addon: {...} }
 ```
+
 Get an addon with the specified ID.
-- `addonId`: the `_id` of the addon
+
+- `id`: The `_id` of the addon.
 
 #### `/addons/get-readme`
+
 ```ts
 POST /addons/get-readme {
-    addonId: string
+    id: string
 }
 => { readme: "..." }
 ```
-Get the contents of the README.md file belonging to the given addon.
-- `addonId`: the `_id` of the addon
+
+Get the contents of the README.md file for the given addon.
+
+- `id`: The `_id` of the addon.
 
 #### `/store/...`
+
 This endpoint provides access to the MinIO data store.
 
-### AMQP endpoints
-Because AMQP is a publish-and-subscribe protocol, the concept of "endpoints"
-does not exist and is merely an abstraction on top of the AMQP routing. 
-*client-updater-service* provides the one half of this abstraction, while the
-*ts-amqp-socket* package provides the other half. Communication with 
-*client-updater-service* is dealt with by `broker.tsx` in both the marketplace
-frontend and the GraphPolaris frontend. 
+### AMQP Endpoints
 
-In contrast to other microservices, *marketplace-backend* does not make use of
-the subKey field to denote different endpoints. This has to do with the limited
-expandability of this system, requiring modifications to the `go-common`
-repository. Instead, an `action` field is assumed to exist in the `body` object
-of the message. This field corresponds with the handler keys specified in the
-`AmqpSocket.handle()` calls. See the `ts-amqp-socket` package for more info.
+Because AMQP is a publish-and-subscribe protocol, the concept of "endpoints" does not exist and is merely an abstraction on top of the AMQP routing. The *client-updater-service* provides one half of this abstraction, while the *ts-amqp-socket* package provides the other half. Communication with the *client-updater-service* is handled by `broker.tsx` in both the marketplace frontend and the GraphPolaris frontend.
 
+Unlike other microservices, *marketplace-backend* does not use the `subKey` field to denote different endpoints. This is due to the limited expandability of this system, which requires modifications to the `go-common` repository. Instead, an `action` field is assumed to exist in the `body` object of the message. This field corresponds with the handler keys specified in the `AmqpSocket.handle()` calls. See the `ts-amqp-socket` package for more information.
