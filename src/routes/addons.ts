@@ -15,7 +15,7 @@ import { Addon, AddonCategory } from "../types";
 import { throwFunction } from "../utils";
 
 // TODO: move this to a better place
-const pageSize = 2;
+const pageSize = 20;
 
 ////////////////////////////////////////////////////////////////////////////////
 
