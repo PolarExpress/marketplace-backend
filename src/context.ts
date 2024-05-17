@@ -8,6 +8,7 @@
 
 import { Collection, MongoClient } from "mongodb";
 
+import environment from "./environment";
 import { MinioService } from "./minio";
 import { Addon, Author, User } from "./types";
 
@@ -30,9 +31,9 @@ export interface Context {
  * @returns A context object.
  */
 export async function createContext(): Promise<Context> {
-  const mongo = await MongoClient.connect(process.env.MONGO_URI!);
+  const mongo = await MongoClient.connect(environment.MONGO_URI);
 
-  const database = mongo.db(process.env.MP_DATABASE_NAME!);
+  const database = mongo.db(environment.MP_DATABASE_NAME);
   const addons = database.collection<Addon>("addons");
   const authors = database.collection<Author>("authors");
   const users = database.collection<User>("users");

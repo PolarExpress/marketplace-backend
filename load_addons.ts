@@ -1,4 +1,5 @@
 require("dotenv/config");
+import environment from "./src/environment";
 
 const { promisify } = require("node:util");
 const { resolve } = require("node:path");
@@ -31,8 +32,8 @@ const Minio = require("minio");
 
   const pexec = promisify(exec);
 
-  const mongo = await MongoClient.connect(process.env.MONGO_URI);
-  const db = mongo.db(process.env.MP_DATABASE_NAME);
+  const mongo = await MongoClient.connect(environment.MONGO_URI);
+  const db = mongo.db(environment.MP_DATABASE_NAME);
   const collection = db.collection("addons");
 
   const author = await db.collection("authors").insertOne({
@@ -40,11 +41,11 @@ const Minio = require("minio");
   });
 
   const minio = new Minio.Client({
-    endPoint: process.env.MINIO_ENDPOINT,
-    port: Number(process.env.MINIO_PORT),
+    endPoint: environment.MINIO_ENDPOINT,
+    port: Number(environment.MINIO_PORT),
     useSSL: false,
-    accessKey: process.env.MINIO_ACCESSKEY,
-    secretKey: process.env.MINIO_SECRETKEY
+    accessKey: environment.MINIO_ACCESSKEY,
+    secretKey: environment.MINIO_SECRETKEY
   });
 
   const addons_dir = resolve(__dirname, "addons");
