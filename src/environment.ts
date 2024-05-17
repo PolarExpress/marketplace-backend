@@ -9,26 +9,27 @@
 import { z } from "zod";
 
 /**
- * The environment variable schema that zod checks for, containing all the
- * environment variables in the backend.
+ * Environment variable schema containing all the environment variables in the
+ * backend.
  */
 const environmentSchema = z.object({
-  MINIO_ACCESSKEY: z.string(),
-  MINIO_ENDPOINT: z.string(),
-  MINIO_PORT: z.coerce.number(),
+  MINIO_ACCESSKEY: z.string().min(1),
+  MINIO_ENDPOINT: z.string().min(1),
+  MINIO_PORT: z.string().regex(/^\d+$/).transform(Number),
+  MINIO_SECRETKEY: z.string().min(1),
 
-  MINIO_SECRETKEY: z.string(),
-  MONGO_URI: z.string().url(),
-  MP_BACKEND_PORT: z.coerce.number(),
+  MONGO_URI: z.string().url().min(1),
+
+  MP_BACKEND_PORT: z.string().regex(/^\d+$/).transform(Number),
   MP_DATABASE_NAME: z.string().min(1),
 
-  RABBIT_HOST: z.string(),
-  RABBIT_PASSWORD: z.string(),
+  RABBIT_HOST: z.string().min(1),
+  RABBIT_PASSWORD: z.string().min(1),
+  RABBIT_PORT: z.string().regex(/^\d+$/).transform(Number),
+  RABBIT_USER: z.string().min(1),
 
-  RABBIT_PORT: z.coerce.number().min(1),
-  RABBIT_USER: z.string(),
-  REDIS_ADDRESS: z.string(),
-  REDIS_PASSWORD: z.string()
+  REDIS_ADDRESS: z.string().min(1),
+  REDIS_PASSWORD: z.string().min(1)
 });
 
 const parsedEnvironment = environmentSchema.safeParse(process.env);
@@ -38,7 +39,7 @@ if (!parsedEnvironment.success) {
 }
 
 /**
- * Environment object that has been checked.
+ * Parsed environment object.
  */
 const environment = parsedEnvironment.data;
 export default environment;

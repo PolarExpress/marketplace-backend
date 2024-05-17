@@ -15,7 +15,7 @@ import environment from "./environment";
 (async () => {
   // Create the app and start the server
   const app = await buildApp(await createContext());
-  const port = Number(environment.MP_BACKEND_PORT);
+  const port = environment.MP_BACKEND_PORT;
 
   app.listen(port);
 })();
