@@ -33,6 +33,11 @@ export class App {
     public amqp: AmqpSocket
   ) {}
 
+  /**
+   * Starts the server to listen for HTTP and AMQP requests.
+   *
+   * @param port The port number to listen on.
+   */
   public listen(port: number): void {
     this.express.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);

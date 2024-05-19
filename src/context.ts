@@ -15,7 +15,7 @@ import { Addon, Author, User } from "./types";
 /**
  * Context containing all the dependencies that are required by the resolvers
  * (e.g. PrismaClient). This allows for easy mocking of these dependencies in
- * tests, and switching out implementations.
+ * tests and switching out implementations.
  */
 export interface Context {
   addons: Collection<Addon>;
@@ -25,8 +25,7 @@ export interface Context {
 }
 
 /**
- * Creates a context with a mongodb database and its collections, and minIO
- * services.
+ * Creates a context with the mongodb collections and MinIO service.
  *
  * @returns A context object.
  */
