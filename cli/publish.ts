@@ -6,7 +6,6 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { exec } from "node:child_process";
 import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
