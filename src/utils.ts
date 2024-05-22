@@ -8,6 +8,7 @@
 
 import { NextFunction, Request, Response } from "express";
 import { Handler } from "ts-amqp-socket";
+
 import { CustomError, InternalServerError } from "./errors";
 
 // type hack to allow express-validator to sanitize query parameters
@@ -53,11 +54,7 @@ export const panic = (message: string): never => {
  *   InternalServerError otherwise.
  */
 export const ensureCustomError = (error: unknown): CustomError => {
-  if (error instanceof CustomError) {
-    return error;
-  } else {
-    return new InternalServerError();
-  }
+  return error instanceof CustomError ? error : new InternalServerError();
 };
 
 /**
