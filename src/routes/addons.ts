@@ -9,8 +9,16 @@
 import { Filter, ObjectId } from "mongodb";
 import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
+import { fromError } from "zod-validation-error";
 
 import { Context } from "../context";
+import {
+  AddonNotFoundError,
+  AuthorNotFoundError,
+  CustomError,
+  InternalServerError,
+  ValidationError
+} from "../errors";
 import { Addon, AddonCategory } from "../types";
 import { throwFunction } from "../utils";
 
@@ -46,39 +54,51 @@ const getAddonsSchema = z.object({
 export const getAddonsHandler =
   (context: Context) =>
   async (request: object): Promise<object> => {
-    const arguments_ = getAddonsSchema.parse(request);
+    try {
+      const arguments_ = getAddonsSchema.parse(request);
 
-    // Create query filter based on search term and optional category
-    const queryFilter: Filter<Addon> = {
-      name: { $options: "i", $regex: arguments_.searchTerm }
-    };
+      // Create query filter based on search term and optional category
+      const queryFilter: Filter<Addon> = {
+        name: { $options: "i", $regex: arguments_.searchTerm }
+      };
 
-    if (arguments_.category) {
-      queryFilter.category = arguments_.category;
+      if (arguments_.category) {
+        queryFilter.category = arguments_.category;
+      }
+
+      // Pagination logic
+      const totalCount = await context.addons.countDocuments(queryFilter);
+      const totalPages = Math.ceil(totalCount / pageSize);
+
+      const addons = await context.addons
+        .find(queryFilter)
+        .skip(arguments_.page * pageSize)
+        .limit(pageSize)
+        .toArray();
+
+      // Join each addon with its corresponding author
+      const joinedAddons = await Promise.all(
+        addons.map(async addon => {
+          const author =
+            (await context.authors.findOne({
+              _id: new ObjectId(addon.authorId)
+            })) ?? throwFunction(new AuthorNotFoundError(addon.authorId));
+
+          return { ...addon, author };
+        })
+      );
+
+      return { addons: joinedAddons, totalPages };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromError(error);
+        throw new ValidationError(validationError.toString());
+      } else if (error instanceof CustomError) {
+        throw error;
+      } else {
+        throw new InternalServerError();
+      }
     }
-
-    // Pagination logic
-    const totalCount = await context.addons.countDocuments(queryFilter);
-    const totalPages = Math.ceil(totalCount / pageSize);
-
-    const addons = await context.addons
-      .find(queryFilter)
-      .skip(arguments_.page * pageSize)
-      .limit(pageSize)
-      .toArray();
-
-    // Join each addon with its corresponding author
-    const joinedAddons = await Promise.all(
-      addons.map(async addon => {
-        const author =
-          (await context.authors.findOne({
-            _id: new ObjectId(addon.authorId)
-          })) ?? throwFunction(new Error("Could not find the addon's author"));
-        return { ...addon, author };
-      })
-    );
-
-    return { addons: joinedAddons, totalPages };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,19 +121,32 @@ const getAddonByIdSchema = z.object({
 export const getAddonByIdHandler =
   (context: Context) =>
   async (request: object): Promise<object> => {
-    const arguments_ = getAddonByIdSchema.parse(request);
+    try {
+      const arguments_ = getAddonByIdSchema.parse(request);
 
-    // Find the addon by its ID
-    const addon =
-      (await context.addons.findOne({ _id: new ObjectId(arguments_.id) })) ??
-      throwFunction(new Error("Could not find the addon with given id"));
+      // Find the addon by its ID
+      const addon =
+        (await context.addons.findOne({
+          _id: new ObjectId(arguments_.id)
+        })) ?? throwFunction(new AddonNotFoundError(arguments_.id));
 
-    // Find the author of the addon
-    const author =
-      (await context.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-      throwFunction(new Error("Could nnot find  the addon's author"));
+      // Find the author of the addon
+      const author =
+        (await context.authors.findOne({
+          _id: new ObjectId(addon.authorId)
+        })) ?? throwFunction(new AuthorNotFoundError(addon.authorId));
 
-    return { addon: { ...addon, author } };
+      return { addon: { ...addon, author } };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromError(error);
+        throw new ValidationError(validationError.toString());
+      } else if (error instanceof CustomError) {
+        throw error;
+      } else {
+        throw new InternalServerError();
+      }
+    }
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,17 +169,24 @@ const getAddonReadMeByIdSchema = z.object({
 export const getAddonReadMeByIdHandler =
   (context: Context) =>
   async (request: object): Promise<object> => {
-    const arguments_ = getAddonReadMeByIdSchema.parse(request);
-
     try {
+      const arguments_ = getAddonReadMeByIdSchema.parse(request);
+
       // Read README file from MinIO storage
       const buffer = await context.minio.readFile(
         context.minio.addonBucket,
         `${arguments_.id}/README.md`
       );
       return { readme: buffer.toString() };
-    } catch {
-      throw new Error("Could not load addon data from file store");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromError(error);
+        throw new ValidationError(validationError.toString());
+      } else if (error instanceof CustomError) {
+        throw error;
+      } else {
+        throw new InternalServerError();
+      }
     }
   };
 
@@ -189,46 +229,58 @@ interface AddonQueryFilter extends Filter<Addon> {
 export const getAddonsByUserIdHandler =
   (context: Context) =>
   async (request: object, session: SessionData): Promise<object> => {
-    const arguments_ = getAddonsByUserIdSchema.parse(request);
+    try {
+      const arguments_ = getAddonsByUserIdSchema.parse(request);
 
-    // Find or create the user document
-    let user = await context.users.findOne({ userId: session.userID });
-    if (!user) {
-      const document = {
-        installedAddons: [],
-        userId: session.userID
+      // Find or create the user document
+      let user = await context.users.findOne({ userId: session.userID });
+      if (!user) {
+        const document = {
+          installedAddons: [],
+          userId: session.userID
+        };
+        const { insertedId } = await context.users.insertOne(document);
+        user = { ...document, _id: insertedId };
+      }
+
+      // Create query filter for addons by installed addons and optional category
+      const queryFilter: AddonQueryFilter = {
+        _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
       };
-      const { insertedId } = await context.users.insertOne(document);
-      user = { ...document, _id: insertedId };
+
+      if (arguments_.category) {
+        queryFilter.category = arguments_.category;
+      }
+
+      const addons = await context.addons
+        .find(queryFilter)
+        .skip(arguments_.page * pageSize)
+        .limit(pageSize)
+        .toArray();
+
+      // Join each addon with its corresponding author
+      const joinedAddons = await Promise.all(
+        addons.map(async addon => {
+          const author =
+            (await context.authors.findOne({
+              _id: new ObjectId(addon.authorId)
+            })) ?? throwFunction(new AuthorNotFoundError(addon.authorId));
+
+          return { ...addon, author };
+        })
+      );
+
+      return { addons: joinedAddons };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromError(error);
+        throw new ValidationError(validationError.toString());
+      } else if (error instanceof CustomError) {
+        throw error;
+      } else {
+        throw new InternalServerError();
+      }
     }
-
-    // Create query filter for addons by installed addons and optional category
-    const queryFilter: AddonQueryFilter = {
-      _id: { $in: user.installedAddons.map(id => new ObjectId(id)) }
-    };
-
-    if (arguments_.category) {
-      queryFilter.category = arguments_.category;
-    }
-
-    const addons = await context.addons
-      .find(queryFilter)
-      .skip(arguments_.page * pageSize)
-      .limit(pageSize)
-      .toArray();
-
-    // Join each addon with its corresponding author
-    const joinedAddons = await Promise.all(
-      addons.map(async addon => {
-        const author =
-          (await context.authors.findOne({
-            _id: new ObjectId(addon.authorId)
-          })) ?? throwFunction(new Error("Could not find the addon's author"));
-        return { ...addon, author };
-      })
-    );
-
-    return { addons: joinedAddons };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
