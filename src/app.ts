@@ -16,6 +16,7 @@ import {
 } from "ts-amqp-socket";
 
 import { Context } from "./context";
+import { CustomError } from "./errors";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
@@ -75,7 +76,13 @@ export function buildExpress(context: Context): Express {
       next: NextFunction
     ): void => {
       console.error(error);
-      response.status(500).json({ error: "Internal server error" });
+
+      if (error instanceof CustomError) {
+        response.status(error.statusCode).json({ error: error.message });
+      } else {
+        response.status(500).json({ error: "Internal server error" });
+      }
+
       next();
     }
   );

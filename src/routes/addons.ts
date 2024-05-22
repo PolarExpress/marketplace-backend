@@ -15,12 +15,10 @@ import { Context } from "../context";
 import {
   AddonNotFoundError,
   AuthorNotFoundError,
-  CustomError,
-  InternalServerError,
   ValidationError
 } from "../errors";
 import { Addon, AddonCategory } from "../types";
-import { throwFunction } from "../utils";
+import { ensureCustomError, throwFunction } from "../utils";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -93,10 +91,8 @@ export const getAddonsHandler =
       if (error instanceof z.ZodError) {
         const validationError = fromError(error);
         throw new ValidationError(validationError.toString());
-      } else if (error instanceof CustomError) {
-        throw error;
       } else {
-        throw new InternalServerError();
+        throw ensureCustomError(error);
       }
     }
   };
@@ -141,10 +137,8 @@ export const getAddonByIdHandler =
       if (error instanceof z.ZodError) {
         const validationError = fromError(error);
         throw new ValidationError(validationError.toString());
-      } else if (error instanceof CustomError) {
-        throw error;
       } else {
-        throw new InternalServerError();
+        throw ensureCustomError(error);
       }
     }
   };
@@ -182,10 +176,8 @@ export const getAddonReadMeByIdHandler =
       if (error instanceof z.ZodError) {
         const validationError = fromError(error);
         throw new ValidationError(validationError.toString());
-      } else if (error instanceof CustomError) {
-        throw error;
       } else {
-        throw new InternalServerError();
+        throw ensureCustomError(error);
       }
     }
   };
@@ -275,10 +267,8 @@ export const getAddonsByUserIdHandler =
       if (error instanceof z.ZodError) {
         const validationError = fromError(error);
         throw new ValidationError(validationError.toString());
-      } else if (error instanceof CustomError) {
-        throw error;
       } else {
-        throw new InternalServerError();
+        throw ensureCustomError(error);
       }
     }
   };
