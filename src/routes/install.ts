@@ -9,10 +9,18 @@
 import { ObjectId, WithId } from "mongodb";
 import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
+import { fromError } from "zod-validation-error";
 
 import { Context } from "../context";
+import {
+  AddonAlreadyInstalledError,
+  AddonNotFoundError,
+  AddonNotInstalledError,
+  UserNotFoundError,
+  ValidationError
+} from "../errors";
 import { User } from "../types";
-import { throwFunction } from "../utils";
+import { ensureCustomError, throwFunction } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -31,46 +39,56 @@ const installSchema = z.object({
  */
 export const installHandler =
   (context: Context) => async (request: object, session: SessionData) => {
-    const arguments_ = installSchema.parse(request);
+    try {
+      const arguments_ = installSchema.parse(request);
 
-    // Find or create the user document
-    let user = await context.users.findOne({ userId: session.userID });
-    if (!user) {
-      const insertedUser = await context.users.insertOne({
-        installedAddons: [],
-        userId: session.userID
-      });
-      user = (await context.users.findOne({
-        _id: insertedUser.insertedId
-      })) as WithId<User>;
-    }
+      // Find or create the user document
+      let user = await context.users.findOne({ userId: session.userID });
+      if (!user) {
+        const insertedUser = await context.users.insertOne({
+          installedAddons: [],
+          userId: session.userID
+        });
+        user = (await context.users.findOne({
+          _id: insertedUser.insertedId
+        })) as WithId<User>;
+      }
 
-    // Ensure the addon exists
-    const addon =
-      (await context.addons.findOne({
-        _id: new ObjectId(arguments_.addonID)
-      })) ?? throwFunction(new Error("Could not find an addon with given id"));
+      // Ensure the addon exists
+      const addon =
+        (await context.addons.findOne({
+          _id: new ObjectId(arguments_.addonID)
+        })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
 
-    // Check if the addon is already installed
-    if (
-      user.installedAddons.some(installedAddon =>
-        addon._id.equals(installedAddon)
-      )
-    ) {
-      throw new Error(
-        `User "${session.userID}" already has addon "${addon._id}" installed`
+      // Check if the addon is already installed
+      if (
+        user.installedAddons.some(installedAddon =>
+          addon._id.equals(installedAddon)
+        )
+      ) {
+        throw new AddonAlreadyInstalledError(
+          session.userID,
+          addon._id.toString()
+        );
+      }
+
+      // Update the user's installed addons
+      const updatedInstalledAddons = [
+        ...user.installedAddons,
+        arguments_.addonID
+      ];
+      await context.users.updateOne(
+        { userId: session.userID },
+        { $set: { installedAddons: updatedInstalledAddons } }
       );
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromError(error);
+        throw new ValidationError(validationError.toString());
+      } else {
+        throw ensureCustomError(error);
+      }
     }
-
-    // Update the user's installed addons
-    const updatedInstalledAddons = [
-      ...user.installedAddons,
-      arguments_.addonID
-    ];
-    await context.users.updateOne(
-      { userId: session.userID },
-      { $set: { installedAddons: updatedInstalledAddons } }
-    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,38 +107,45 @@ const uninstallSchema = z.object({
  */
 export const uninstallHandler =
   (context: Context) => async (request: object, session: SessionData) => {
-    const arguments_ = uninstallSchema.parse(request);
+    try {
+      const arguments_ = uninstallSchema.parse(request);
 
-    // Find the user document
-    const user =
-      (await context.users.findOne({ userId: session.userID })) ??
-      throwFunction(new Error("Could not find the user in the session"));
+      // Find the user document
+      const user =
+        (await context.users.findOne({ userId: session.userID })) ??
+        throwFunction(new UserNotFoundError(session.userID));
 
-    // Ensure the addon exists
-    const addon =
-      (await context.addons.findOne({
-        _id: new ObjectId(arguments_.addonID)
-      })) ?? throwFunction(new Error("Could not find an addon with given id"));
+      // Ensure the addon exists
+      const addon =
+        (await context.addons.findOne({
+          _id: new ObjectId(arguments_.addonID)
+        })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
 
-    // Check if the addon is installed
-    if (
-      !user.installedAddons.some(installedAddon =>
-        addon._id.equals(installedAddon)
-      )
-    ) {
-      throw new Error(
-        `User "${session.userID}" does not have addon "${arguments_.addonID}" installed`
+      // Check if the addon is installed
+      if (
+        !user.installedAddons.some(installedAddon =>
+          addon._id.equals(installedAddon)
+        )
+      ) {
+        throw new AddonNotInstalledError(session.userID, arguments_.addonID);
+      }
+
+      // Update the user's installed addons
+      const updatedInstalledAddons = user.installedAddons.filter(
+        addon => addon !== arguments_.addonID
       );
+      await context.users.updateOne(
+        { userId: session.userID },
+        { $set: { installedAddons: updatedInstalledAddons } }
+      );
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromError(error);
+        throw new ValidationError(validationError.toString());
+      } else {
+        throw ensureCustomError(error);
+      }
     }
-
-    // Update the user's installed addons
-    const updatedInstalledAddons = user.installedAddons.filter(
-      addon => addon !== arguments_.addonID
-    );
-    await context.users.updateOne(
-      { userId: session.userID },
-      { $set: { installedAddons: updatedInstalledAddons } }
-    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////
