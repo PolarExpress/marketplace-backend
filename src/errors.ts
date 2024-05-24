@@ -32,6 +32,12 @@ export class ValidationError extends CustomError {
   }
 }
 
+export class EnvironmentValidationError extends CustomError {
+  constructor(message: string) {
+    super(message, 500);
+  }
+}
+
 export class MinioError extends CustomError {
   constructor(message: string) {
     super(message, 500);

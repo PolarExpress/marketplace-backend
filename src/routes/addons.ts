@@ -9,16 +9,11 @@
 import { Filter, ObjectId } from "mongodb";
 import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
-import { fromError } from "zod-validation-error";
 
 import { Context } from "../context";
-import {
-  AddonNotFoundError,
-  AuthorNotFoundError,
-  ValidationError
-} from "../errors";
+import { AddonNotFoundError, AuthorNotFoundError } from "../errors";
 import { Addon, AddonCategory } from "../types";
-import { ensureCustomError, throwFunction } from "../utils";
+import { handleRouteError, throwFunction } from "../utils";
 
 // TODO: move this to a better place
 const pageSize = 20;
@@ -88,12 +83,7 @@ export const getAddonsHandler =
 
       return { addons: joinedAddons, totalPages };
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromError(error);
-        throw new ValidationError(validationError.toString());
-      } else {
-        throw ensureCustomError(error);
-      }
+      throw handleRouteError(error);
     }
   };
 
@@ -134,12 +124,7 @@ export const getAddonByIdHandler =
 
       return { addon: { ...addon, author } };
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromError(error);
-        throw new ValidationError(validationError.toString());
-      } else {
-        throw ensureCustomError(error);
-      }
+      throw handleRouteError(error);
     }
   };
 
@@ -173,12 +158,7 @@ export const getAddonReadMeByIdHandler =
       );
       return { readme: buffer.toString() };
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromError(error);
-        throw new ValidationError(validationError.toString());
-      } else {
-        throw ensureCustomError(error);
-      }
+      throw handleRouteError(error);
     }
   };
 
@@ -264,12 +244,7 @@ export const getAddonsByUserIdHandler =
 
       return { addons: joinedAddons };
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromError(error);
-        throw new ValidationError(validationError.toString());
-      } else {
-        throw ensureCustomError(error);
-      }
+      throw handleRouteError(error);
     }
   };
 

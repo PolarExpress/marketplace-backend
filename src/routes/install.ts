@@ -9,18 +9,16 @@
 import { ObjectId, WithId } from "mongodb";
 import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
-import { fromError } from "zod-validation-error";
 
 import { Context } from "../context";
 import {
   AddonAlreadyInstalledError,
   AddonNotFoundError,
   AddonNotInstalledError,
-  UserNotFoundError,
-  ValidationError
+  UserNotFoundError
 } from "../errors";
 import { User } from "../types";
-import { ensureCustomError, throwFunction } from "../utils";
+import { handleRouteError, throwFunction } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -82,12 +80,7 @@ export const installHandler =
         { $set: { installedAddons: updatedInstalledAddons } }
       );
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromError(error);
-        throw new ValidationError(validationError.toString());
-      } else {
-        throw ensureCustomError(error);
-      }
+      throw handleRouteError(error);
     }
   };
 
@@ -139,12 +132,7 @@ export const uninstallHandler =
         { $set: { installedAddons: updatedInstalledAddons } }
       );
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationError = fromError(error);
-        throw new ValidationError(validationError.toString());
-      } else {
-        throw ensureCustomError(error);
-      }
+      throw handleRouteError(error);
     }
   };
 

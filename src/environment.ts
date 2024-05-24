@@ -7,6 +7,9 @@
  */
 
 import { z } from "zod";
+import { fromError } from "zod-validation-error";
+
+import { EnvironmentValidationError } from "./errors";
 
 /**
  * Environment variable schema containing all the environment variables in the
@@ -35,7 +38,8 @@ const environmentSchema = z.object({
 const parsedEnvironment = environmentSchema.safeParse(process.env);
 
 if (!parsedEnvironment.success) {
-  throw new Error("Invalid environment variables.");
+  const message = fromError(parsedEnvironment.error).message;
+  throw new EnvironmentValidationError(message);
 }
 
 /**

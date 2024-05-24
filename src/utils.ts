@@ -8,8 +8,10 @@
 
 import { NextFunction, Request, Response } from "express";
 import { Handler } from "ts-amqp-socket";
+import { z } from "zod";
+import { fromError } from "zod-validation-error";
 
-import { CustomError, InternalServerError } from "./errors";
+import { CustomError, InternalServerError, ValidationError } from "./errors";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
@@ -39,6 +41,23 @@ export const throwFunction = (error: Error): never => {
  */
 export const ensureCustomError = (error: unknown): CustomError => {
   return error instanceof CustomError ? error : new InternalServerError();
+};
+
+/**
+ * Handles errors by thrown by routes using zod.
+ *
+ * @param   error The error to be handled.
+ *
+ * @returns       ValidationError if the error is a ZodError, otherwise ensures
+ *   the error is a CustomError.
+ */
+export const handleRouteError = (error: unknown): CustomError => {
+  if (error instanceof z.ZodError) {
+    const validationError = fromError(error);
+    return new ValidationError(validationError.message);
+  } else {
+    return ensureCustomError(error);
+  }
 };
 
 /**
