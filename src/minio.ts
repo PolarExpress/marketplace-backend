@@ -9,6 +9,7 @@
 import { Request, Response } from "express";
 import mime from "mime-types";
 import { BucketItem, Client } from "minio";
+import { Readable } from "node:stream";
 
 import environment from "./environment";
 import {
@@ -133,7 +134,7 @@ export class MinioService {
    * Serves a file from MinIO. Streams the file directly to the provided
    * response object.
    */
-  public serveFile(request: Request, response: Response) {
+  public async serveFile(request: Request, response: Response): Promise<void> {
     const filepath = request.params.filepath;
     const [bucket, ...objectPath] = filepath.split("/");
 
@@ -141,17 +142,26 @@ export class MinioService {
       throw new InvalidFilePathError(filepath);
     }
 
-    // @ts-expect-error exported minio types are wrong
-    this.client.getObject(bucket, objectPath.join("/"), (error, stream) => {
-      if (error) {
-        throw error.message.includes("does not exist")
-          ? new FileNotFoundError(filepath)
-          : new MinioError(`Failed to serve file: ${filepath}`);
-      }
-      stream.pipe(response);
-    });
-
     const type = mime.lookup(filepath) || "text/plain";
     response.header("Content-Type", type);
+
+    const stream: Readable = await new Promise((resolve, reject) => {
+      // @ts-expect-error exported minio types are wrong
+      this.client.getObject(bucket, objectPath.join("/"), (error, stream) => {
+        if (error) {
+          reject(
+            error.message.includes("does not exist")
+              ? new FileNotFoundError(filepath)
+              : new MinioError(`Failed to serve file: ${filepath}`)
+          );
+        } else {
+          resolve(stream);
+        }
+      });
+    });
+
+    stream.pipe(response).on("error", () => {
+      throw new MinioError(`Failed to stream file: ${filepath}`);
+    });
   }
 }

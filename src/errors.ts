@@ -6,6 +6,10 @@
  * (Department of Information and Computing Sciences)
  */
 
+/**
+ * Extends the native Error class. It is intended to be the base class for all
+ * custom error types in the application.
+ */
 export abstract class CustomError extends Error {
   public statusCode: number;
 

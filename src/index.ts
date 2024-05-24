@@ -11,7 +11,6 @@ import "dotenv/config";
 import { buildApp } from "./app";
 import { createContext } from "./context";
 import environment from "./environment";
-import { ensureCustomError } from "./utils";
 
 (async () => {
   const app = await buildApp(await createContext());
@@ -19,5 +18,5 @@ import { ensureCustomError } from "./utils";
 
   app.listen(port);
 })().catch(error => {
-  console.error("Error starting the server:", ensureCustomError(error));
+  console.error("Error starting the server:", error);
 });
