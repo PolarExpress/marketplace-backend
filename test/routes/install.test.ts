@@ -7,6 +7,7 @@
  */
 
 import { ObjectId } from "mongodb";
+
 import {
   AddonAlreadyInstalledError,
   AddonNotFoundError,
