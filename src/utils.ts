@@ -29,22 +29,6 @@ export const throwFunction = (error: Error): never => {
   throw error;
 };
 
-export class PanicError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "PanicError";
-  }
-}
-
-/**
- * Throws a `PanicError` with the given message.
- *
- * @param message - The message to include in the error.
- */
-export const panic = (message: string): never => {
-  throw new PanicError(message);
-};
-
 /**
  * Ensures that the error thrown is a custom error with a status code.
  *
