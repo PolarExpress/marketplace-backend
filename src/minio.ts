@@ -34,13 +34,17 @@ export class MinioService {
   public client: Client;
 
   constructor() {
-    this.client = new Client({
-      accessKey: environment.MINIO_ACCESSKEY,
-      endPoint: environment.MINIO_ENDPOINT,
-      port: environment.MINIO_PORT,
-      secretKey: environment.MINIO_SECRETKEY,
-      useSSL: false
-    });
+    try {
+      this.client = new Client({
+        accessKey: environment.MINIO_ACCESSKEY,
+        endPoint: environment.MINIO_ENDPOINT,
+        port: environment.MINIO_PORT,
+        secretKey: environment.MINIO_SECRETKEY,
+        useSSL: false
+      });
+    } catch (error) {
+      throw new MinioError(`Failed to initialize MinIO client: ${error}`);
+    }
   }
 
   /**

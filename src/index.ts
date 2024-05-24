@@ -11,11 +11,13 @@ import "dotenv/config";
 import { buildApp } from "./app";
 import { createContext } from "./context";
 import environment from "./environment";
+import { ensureCustomError } from "./utils";
 
 (async () => {
-  // Create the app and start the server
   const app = await buildApp(await createContext());
   const port = environment.MP_BACKEND_PORT;
 
   app.listen(port);
-})();
+})().catch(error => {
+  console.error("Error starting the server:", ensureCustomError(error));
+});
