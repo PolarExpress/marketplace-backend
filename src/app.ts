@@ -23,7 +23,7 @@ import {
   getAddonsHandler
 } from "./routes/addons";
 import { installHandler, uninstallHandler } from "./routes/install";
-import { expressHandler } from "./utils";
+import { asyncCatch, ensureCustomError, expressHandler } from "./utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -75,7 +75,13 @@ export function buildExpress(context: Context): Express {
       next: NextFunction
     ): void => {
       console.error(error);
-      response.status(500).json({ error: "Internal server error" });
+
+      const customError = ensureCustomError(error);
+
+      response
+        .status(customError.statusCode)
+        .json({ error: customError.message });
+
       next();
     }
   );
@@ -83,7 +89,7 @@ export function buildExpress(context: Context): Express {
   app.get(
     "/store/:filepath(*)",
     cors(),
-    context.minio.serveFile.bind(context.minio)
+    asyncCatch(context.minio.serveFile.bind(context.minio))
   );
 
   return app;

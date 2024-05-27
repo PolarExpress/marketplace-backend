@@ -6,8 +6,14 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { WithId } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
+import { ZodError } from "zod";
 
+import {
+  AddonNotFoundError,
+  AuthorNotFoundError,
+  UserNotFoundError
+} from "../../src/errors";
 import {
   getAddonByIdHandler,
   getAddonReadMeByIdHandler,
@@ -57,7 +63,7 @@ test("get-addons::invalid-query-invalid-page", async () => {
     getAddonsHandler(context)({
       page: "invalidPage"
     })
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons::invalid-query-invalid-category", async () => {
@@ -67,7 +73,7 @@ test("get-addons::invalid-query-invalid-category", async () => {
     getAddonsHandler(context)({
       category: "invalidCategory"
     })
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons::invalid-query-invalid-searchterm", async () => {
@@ -77,7 +83,7 @@ test("get-addons::invalid-query-invalid-searchterm", async () => {
     getAddonsHandler(context)({
       searchTerm: 42
     })
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons::valid-query-case-insensitive", async () => {
@@ -114,6 +120,17 @@ test("get-addons::valid-query-partial-match", async () => {
   }
 });
 
+test("get-addons::author-not-found", async () => {
+  const [mockContext, context] = createMockContext();
+
+  // eslint-disable-next-line unicorn/no-useless-undefined -- mockRejectedValue needs a value
+  mockContext.authors.findOne = jest.fn().mockResolvedValueOnce(undefined);
+
+  await expect(getAddonsHandler(context)({})).rejects.toThrow(
+    AuthorNotFoundError
+  );
+});
+
 type GetAddonByIdResult = { addon: WithId<{ author: WithId<Author> } & Addon> };
 
 test("get-addon-by-id::valid-id", async () => {
@@ -132,9 +149,30 @@ test("get-addon-by-id::invalid-id", async () => {
 
   await expect(
     getAddonByIdHandler(context)({
-      id: "invalidId"
+      id: 42
     })
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
+});
+
+test("get-addon-by-id::addon-not-found", async () => {
+  const [, context] = createMockContext();
+
+  await expect(
+    getAddonByIdHandler(context)({
+      id: new ObjectId().toString()
+    })
+  ).rejects.toThrow(AddonNotFoundError);
+});
+
+test("get-addon-by-id::author-not-found", async () => {
+  const [mockContext, context] = createMockContext();
+
+  // eslint-disable-next-line unicorn/no-useless-undefined -- mockRejectedValue needs a value
+  mockContext.authors.findOne = jest.fn().mockResolvedValueOnce(undefined);
+
+  await expect(
+    getAddonByIdHandler(context)({ id: dummyAddons[0]._id.toString() })
+  ).rejects.toThrow(AuthorNotFoundError);
 });
 
 test("get-addon-readme::valid-id", async () => {
@@ -157,41 +195,49 @@ test("get-addon-readme::invalid-id", async () => {
 
   await expect(
     getAddonReadMeByIdHandler(context)({
-      id: "invalidId"
+      id: 42
     })
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
 });
 
 type GetAddonsByUserIdResult = {
   addons: WithId<{ author: WithId<Author> } & Addon>[];
 };
 
-// Find the expectedAddons via dummyUsers and their installedAddons when given a userId
-// Not sure if we can just hardcode the expectedAddons instead of functions like this
-function findExpectedAddonsByUserId(userId: string) {
+/**
+ * Finds the expected addons for a given user by their userId.
+ *
+ * @param   userId The ID of the user to find the expected addons for.
+ *
+ * @returns        An array of addons with their respective authors.
+ */
+const findExpectedAddonsByUserId = (userId: string) => {
   const user = dummyUsers.find(user => user.userId === userId);
   if (!user) {
-    throw new Error(`User with userId ${userId} not found`);
+    throw new UserNotFoundError(userId);
   }
 
-  // Construct expected addons for the user
   return user.installedAddons
-    .map(addonId => dummyAddons.find(addon => addon._id.toString() === addonId))
-    .filter((addon): addon is WithId<Addon> => !!addon) // Ensure addon is found
+    .map(addonId => {
+      const addon = dummyAddons.find(addon => addon._id.toString() === addonId);
+      if (!addon) {
+        throw new AddonNotFoundError(addonId);
+      }
+      return addon;
+    })
     .map(addon => {
-      // Addon existence is guaranteed by the previous filter step
       const author = dummyAuthors.find(
         author => author._id.toString() === addon.authorId
       );
       if (!author) {
-        throw new Error(`Author with id ${addon.authorId} not found`);
+        throw new AuthorNotFoundError(addon.authorId);
       }
       return {
         ...addon,
-        author: { ...author } // Append the found author object to the addon
+        author: { ...author }
       };
     });
-}
+};
 
 test("get-addons-by-userid::missing-user-in-database", async () => {
   const [, context] = createMockContext();
@@ -246,7 +292,7 @@ test("get-addons-by-userid::invalid-query-invalid-page", async () => {
       },
       mockSession("3")
     )
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons-by-userid::invalid-query-invalid-category", async () => {
@@ -259,5 +305,16 @@ test("get-addons-by-userid::invalid-query-invalid-category", async () => {
       },
       mockSession("3")
     )
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
+});
+
+test("get-addons-by-userid::author-not-found", async () => {
+  const [mockContext, context] = createMockContext();
+
+  // eslint-disable-next-line unicorn/no-useless-undefined -- mockRejectedValue needs a value
+  mockContext.authors.findOne = jest.fn().mockResolvedValueOnce(undefined);
+
+  await expect(
+    getAddonsByUserIdHandler(context)({}, mockSession("3"))
+  ).rejects.toThrow(AuthorNotFoundError);
 });
