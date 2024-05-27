@@ -7,12 +7,12 @@
  */
 
 import { ObjectId, WithId } from "mongodb";
+import { ZodError } from "zod";
 
 import {
   AddonNotFoundError,
   AuthorNotFoundError,
-  UserNotFoundError,
-  ValidationError
+  UserNotFoundError
 } from "../../src/errors";
 import {
   getAddonByIdHandler,
@@ -63,7 +63,7 @@ test("get-addons::invalid-query-invalid-page", async () => {
     getAddonsHandler(context)({
       page: "invalidPage"
     })
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons::invalid-query-invalid-category", async () => {
@@ -73,7 +73,7 @@ test("get-addons::invalid-query-invalid-category", async () => {
     getAddonsHandler(context)({
       category: "invalidCategory"
     })
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons::invalid-query-invalid-searchterm", async () => {
@@ -83,7 +83,7 @@ test("get-addons::invalid-query-invalid-searchterm", async () => {
     getAddonsHandler(context)({
       searchTerm: 42
     })
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons::valid-query-case-insensitive", async () => {
@@ -151,7 +151,7 @@ test("get-addon-by-id::invalid-id", async () => {
     getAddonByIdHandler(context)({
       id: 42
     })
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addon-by-id::addon-not-found", async () => {
@@ -197,7 +197,7 @@ test("get-addon-readme::invalid-id", async () => {
     getAddonReadMeByIdHandler(context)({
       id: 42
     })
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 type GetAddonsByUserIdResult = {
@@ -292,7 +292,7 @@ test("get-addons-by-userid::invalid-query-invalid-page", async () => {
       },
       mockSession("3")
     )
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons-by-userid::invalid-query-invalid-category", async () => {
@@ -305,7 +305,7 @@ test("get-addons-by-userid::invalid-query-invalid-category", async () => {
       },
       mockSession("3")
     )
-  ).rejects.toThrow(ValidationError);
+  ).rejects.toThrow(ZodError);
 });
 
 test("get-addons-by-userid::author-not-found", async () => {

@@ -7,11 +7,11 @@
  */
 
 import { ObjectId } from "mongodb";
+import { ZodError } from "zod";
 
 import {
   AddonAlreadyInstalledError,
-  AddonNotFoundError,
-  ValidationError
+  AddonNotFoundError
 } from "../../src/errors";
 import { installHandler, uninstallHandler } from "../../src/routes/install";
 import { createMockContext, dummyAddons, mockSession } from "../mockContext";
@@ -34,9 +34,7 @@ test("install::missing-args_should-throw", async () => {
   const [, context] = createMockContext();
   const session = mockSession("1");
 
-  await expect(installHandler(context)({}, session)).rejects.toThrow(
-    ValidationError
-  );
+  await expect(installHandler(context)({}, session)).rejects.toThrow(ZodError);
 });
 
 test("install::invalid-addon-id_should-throw", async () => {
@@ -95,7 +93,7 @@ test("uninstall::missing-args_should-throw", async () => {
   const session = mockSession("3");
 
   await expect(uninstallHandler(context)({}, session)).rejects.toThrow(
-    ValidationError
+    ZodError
   );
 });
 

@@ -7,11 +7,17 @@
  */
 
 import { NextFunction, Request, Response } from "express";
+import { MongoError } from "mongodb";
 import { Handler } from "ts-amqp-socket";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 
-import { CustomError, InternalServerError, ValidationError } from "./errors";
+import {
+  CustomError,
+  DatabaseError,
+  InternalServerError,
+  ValidationError
+} from "./errors";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
@@ -32,31 +38,22 @@ export const throwFunction = (error: Error): never => {
 };
 
 /**
- * Ensures that the error thrown is a custom error with a status code.
- *
- * @param   error The error to be transformed.
- *
- * @returns       The same error as its input if it was a CustomError and an
- *   InternalServerError otherwise.
- */
-export const ensureCustomError = (error: unknown): CustomError => {
-  return error instanceof CustomError ? error : new InternalServerError();
-};
-
-/**
- * Handles errors by thrown by routes using zod.
+ * Handles errors thrown by the backend.
  *
  * @param   error The error to be handled.
  *
- * @returns       ValidationError if the error is a ZodError, otherwise ensures
- *   the error is a CustomError.
+ * @returns       The custom error based on the type of error encountered.
  */
-export const handleRouteError = (error: unknown): CustomError => {
-  if (error instanceof z.ZodError) {
+export const ensureCustomError = (error: Error): CustomError => {
+  if (error instanceof CustomError) {
+    return error;
+  } else if (error instanceof z.ZodError) {
     const validationError = fromError(error);
     return new ValidationError(validationError.message);
+  } else if (error instanceof MongoError) {
+    return new DatabaseError(error.message);
   } else {
-    return ensureCustomError(error);
+    return new InternalServerError();
   }
 };
 

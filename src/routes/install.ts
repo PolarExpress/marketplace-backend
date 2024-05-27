@@ -18,7 +18,7 @@ import {
   UserNotFoundError
 } from "../errors";
 import { User } from "../types";
-import { handleRouteError, throwFunction } from "../utils";
+import { throwFunction } from "../utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,51 +37,47 @@ const installSchema = z.object({
  */
 export const installHandler =
   (context: Context) => async (request: object, session: SessionData) => {
-    try {
-      const arguments_ = installSchema.parse(request);
+    const arguments_ = installSchema.parse(request);
 
-      // Find or create the user document
-      let user = await context.users.findOne({ userId: session.userID });
-      if (!user) {
-        const insertedUser = await context.users.insertOne({
-          installedAddons: [],
-          userId: session.userID
-        });
-        user = (await context.users.findOne({
-          _id: insertedUser.insertedId
-        })) as WithId<User>;
-      }
-
-      // Ensure the addon exists
-      const addon =
-        (await context.addons.findOne({
-          _id: new ObjectId(arguments_.addonID)
-        })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
-
-      // Check if the addon is already installed
-      if (
-        user.installedAddons.some(installedAddon =>
-          addon._id.equals(installedAddon)
-        )
-      ) {
-        throw new AddonAlreadyInstalledError(
-          session.userID,
-          addon._id.toString()
-        );
-      }
-
-      // Update the user's installed addons
-      const updatedInstalledAddons = [
-        ...user.installedAddons,
-        arguments_.addonID
-      ];
-      await context.users.updateOne(
-        { userId: session.userID },
-        { $set: { installedAddons: updatedInstalledAddons } }
-      );
-    } catch (error) {
-      throw handleRouteError(error);
+    // Find or create the user document
+    let user = await context.users.findOne({ userId: session.userID });
+    if (!user) {
+      const insertedUser = await context.users.insertOne({
+        installedAddons: [],
+        userId: session.userID
+      });
+      user = (await context.users.findOne({
+        _id: insertedUser.insertedId
+      })) as WithId<User>;
     }
+
+    // Ensure the addon exists
+    const addon =
+      (await context.addons.findOne({
+        _id: new ObjectId(arguments_.addonID)
+      })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
+
+    // Check if the addon is already installed
+    if (
+      user.installedAddons.some(installedAddon =>
+        addon._id.equals(installedAddon)
+      )
+    ) {
+      throw new AddonAlreadyInstalledError(
+        session.userID,
+        addon._id.toString()
+      );
+    }
+
+    // Update the user's installed addons
+    const updatedInstalledAddons = [
+      ...user.installedAddons,
+      arguments_.addonID
+    ];
+    await context.users.updateOne(
+      { userId: session.userID },
+      { $set: { installedAddons: updatedInstalledAddons } }
+    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -100,40 +96,36 @@ const uninstallSchema = z.object({
  */
 export const uninstallHandler =
   (context: Context) => async (request: object, session: SessionData) => {
-    try {
-      const arguments_ = uninstallSchema.parse(request);
+    const arguments_ = uninstallSchema.parse(request);
 
-      // Find the user document
-      const user =
-        (await context.users.findOne({ userId: session.userID })) ??
-        throwFunction(new UserNotFoundError(session.userID));
+    // Find the user document
+    const user =
+      (await context.users.findOne({ userId: session.userID })) ??
+      throwFunction(new UserNotFoundError(session.userID));
 
-      // Ensure the addon exists
-      const addon =
-        (await context.addons.findOne({
-          _id: new ObjectId(arguments_.addonID)
-        })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
+    // Ensure the addon exists
+    const addon =
+      (await context.addons.findOne({
+        _id: new ObjectId(arguments_.addonID)
+      })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
 
-      // Check if the addon is installed
-      if (
-        !user.installedAddons.some(installedAddon =>
-          addon._id.equals(installedAddon)
-        )
-      ) {
-        throw new AddonNotInstalledError(session.userID, arguments_.addonID);
-      }
-
-      // Update the user's installed addons
-      const updatedInstalledAddons = user.installedAddons.filter(
-        addon => addon !== arguments_.addonID
-      );
-      await context.users.updateOne(
-        { userId: session.userID },
-        { $set: { installedAddons: updatedInstalledAddons } }
-      );
-    } catch (error) {
-      throw handleRouteError(error);
+    // Check if the addon is installed
+    if (
+      !user.installedAddons.some(installedAddon =>
+        addon._id.equals(installedAddon)
+      )
+    ) {
+      throw new AddonNotInstalledError(session.userID, arguments_.addonID);
     }
+
+    // Update the user's installed addons
+    const updatedInstalledAddons = user.installedAddons.filter(
+      addon => addon !== arguments_.addonID
+    );
+    await context.users.updateOne(
+      { userId: session.userID },
+      { $set: { installedAddons: updatedInstalledAddons } }
+    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////
