@@ -87,11 +87,12 @@ const Minio = require("minio");
     );
 
     const dist_path = resolve(dest, "dist");
-    for (const file of await readdir(dist_path, { recursive: true })) {
-      if (file.match(/\.\w+$/)) {
-        console.log(`Uploading ${id}/${file}`);
-        const buffer = await readFile(resolve(dist_path, file));
-        minio.putObject("addons", `${id}/${file}`, buffer);
+    for (const file_path of await readdir(dist_path, { recursive: true })) {
+      const normalised_file_path = file_path.replace("\\", "/");
+      if (normalised_file_path.match(/\.\w+$/)) {
+        console.log(`Uploading ${id}/${normalised_file_path}`);
+        const buffer = await readFile(resolve(dist_path, file_path));
+        minio.putObject("addons", `${id}/${normalised_file_path}`, buffer);
       }
     }
   }
@@ -105,12 +106,39 @@ const Minio = require("minio");
       category: "MACHINE_LEARNING",
       authorId: author.insertedId
     });
+
     console.log("Inserted document:", document.insertedId);
-    minio.putObject(
-      "addons",
-      `${addon.id}/README.md`,
-      "This is a placeholder README.md file."
-    );
+
+    if (addon.name === "Link Prediction") {
+      const id = addon.id;
+      const dest = resolve(__dirname, "addons", id);
+      console.log(`Cloning and building ${addon.name}`);
+      const url = `git@github.com:PolarExpress/graphpolaris-ml-settings-api.git`;
+      await pexec(`git clone ${url} ${dest}`);
+      await pexec(`cd ${dest} && pnpm i && pnpm build`);
+
+      minio.putObject(
+        "addons",
+        `${id}/README.md`,
+        await readFile(resolve(dest, "README.md"))
+      );
+
+      const dist_path = resolve(dest, "dist");
+      for (const file_path of await readdir(dist_path, { recursive: true })) {
+        const normalised_file_path = file_path.replace("\\", "/");
+        if (normalised_file_path.match(/\.\w+$/)) {
+          console.log(`Uploading ${id}/${normalised_file_path}`);
+          const buffer = await readFile(resolve(dist_path, file_path));
+          minio.putObject("addons", `${id}/${normalised_file_path}`, buffer);
+        }
+      }
+    } else {
+      minio.putObject(
+        "addons",
+        `${addon.id}/README.md`,
+        "This is a placeholder README.md file."
+      );
+    }
   }
 
   await mongo.close();
