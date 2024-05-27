@@ -32,7 +32,7 @@ export const dummyAddons: WithId<Addon>[] = [
     default: false,
     icon: "icon.png",
     name: "Addon A",
-    summary: "This is A",
+    summary: "This is A"
   },
   {
     authorId: dummyAuthors[0]._id.toString(),
@@ -40,7 +40,7 @@ export const dummyAddons: WithId<Addon>[] = [
     default: false,
     icon: "icon.png",
     name: "Addon B",
-    summary: "This is B",
+    summary: "This is B"
   },
   {
     authorId: dummyAuthors[1]._id.toString(),

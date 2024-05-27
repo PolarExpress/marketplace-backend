@@ -28,7 +28,6 @@ export interface Author {
 export interface User {
   installedAddons: string[];
   userId: string;
-
 }
 
 /**

@@ -197,11 +197,11 @@ test("get-addons-by-userid::missing-user-in-database", async () => {
   const [, context] = createMockContext();
 
   await getAddonsByUserIdHandler(context)({}, mockSession("4"));
-   
-  expect(await context.users.findOne({ userId: "4" }))
-    .toMatchObject({ installedAddons: [
-      dummyAddons[2]._id.toString()
-    ], userId: "4" });
+
+  expect(await context.users.findOne({ userId: "4" })).toMatchObject({
+    installedAddons: [dummyAddons[2]._id.toString()],
+    userId: "4"
+  });
 });
 
 test("get-addons-by-userid::valid-query-required-params", async () => {
