@@ -100,7 +100,7 @@ async function main() {
 
   console.log("Creating addons...");
   const addons: Seeded<Addon>[] = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 120; i++) {
     const random = Math.floor(Math.random() * authors.length);
     const addon = seedAddon(authors[random]);
     addons.push(addon);
