@@ -28,6 +28,7 @@ export interface Author {
 export interface User {
   installedAddons: string[];
   userId: string;
+
 }
 
 /**
@@ -37,6 +38,7 @@ export interface User {
 export interface Addon {
   authorId: string;
   category: AddonCategory;
+  default: boolean;
   icon: string;
   name: string;
   summary: string;

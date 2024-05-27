@@ -57,6 +57,7 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
     _id: new ObjectId(),
     authorId: author._id.toString(),
     category: chooseFrom(Object.values(AddonCategory)),
+    default: false,
     icon: "icon.png",
     name: randCompanyName(),
     summary: randText({ charCount: 50 })

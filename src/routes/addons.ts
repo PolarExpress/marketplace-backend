@@ -194,8 +194,12 @@ export const getAddonsByUserIdHandler =
     // Find or create the user document
     let user = await context.users.findOne({ userId: session.userID });
     if (!user) {
+      const defaultAddons = await context.addons.find({ default: true })
+        .map(addon => addon._id.toString())
+        .toArray();
+
       const document = {
-        installedAddons: [],
+        installedAddons: defaultAddons,
         userId: session.userID
       };
       const { insertedId } = await context.users.insertOne(document);
@@ -231,4 +235,5 @@ export const getAddonsByUserIdHandler =
     return { addons: joinedAddons };
   };
 
+  
 ////////////////////////////////////////////////////////////////////////////////
