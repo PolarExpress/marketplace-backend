@@ -38,6 +38,9 @@ importers:
       zod:
         specifier: ^3.22.4
         version: 3.23.5
+      zod-validation-error:
+        specifier: ^3.3.0
+        version: 3.3.0(zod@3.23.5)
     devDependencies:
       '@graphpolaris/ts-configs':
         specifier: github:PolarExpress/ts-configs
@@ -2766,6 +2769,12 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
+  zod-validation-error@3.3.0:
+    resolution: {integrity: sha512-Syib9oumw1NTqEv4LT0e6U83Td9aVRk9iTXPUQr1otyV1PuXQKOvOwhMNqZIq5hluzHP2pMgnOmHEo7kPdI2mw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      zod: ^3.18.0
+
   zod@3.23.5:
     resolution: {integrity: sha512-fkwiq0VIQTksNNA131rDOsVJcns0pfVUjHzLrNBiF/O/Xxb5lQyEXkhZWcJ7npWsYlvs+h0jFWXXy4X46Em1JA==}
 
@@ -5411,7 +5420,9 @@ snapshots:
       is-core-module: 2.13.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
+
   reusify@1.0.4: {}
+
   rimraf@3.0.2:
     dependencies:
       glob: 7.2.3
@@ -5880,5 +5891,9 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  zod-validation-error@3.3.0(zod@3.23.5):
+    dependencies:
+      zod: 3.23.5
 
   zod@3.23.5: {}
