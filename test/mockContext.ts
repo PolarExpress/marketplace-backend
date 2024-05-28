@@ -29,6 +29,7 @@ export const dummyAddons: WithId<Addon>[] = [
   {
     authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.VISUALISATION,
+    default: false,
     icon: "icon.png",
     name: "Addon A",
     summary: "This is A"
@@ -36,6 +37,7 @@ export const dummyAddons: WithId<Addon>[] = [
   {
     authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.MACHINE_LEARNING,
+    default: false,
     icon: "icon.png",
     name: "Addon B",
     summary: "This is B"
@@ -43,6 +45,7 @@ export const dummyAddons: WithId<Addon>[] = [
   {
     authorId: dummyAuthors[1]._id.toString(),
     category: AddonCategory.DATA_SOURCE,
+    default: true,
     icon: "icon.png",
     name: "Addon C",
     summary: "This is C"
