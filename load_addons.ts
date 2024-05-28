@@ -95,7 +95,7 @@ const Minio = require("minio");
       await readFile(resolve(destination, "README.md"))
     );
 
-    const dist_path = resolve(dest, "dist");
+    const dist_path = resolve(destination, "dist");
     for (const file_path of await readdir(dist_path, { recursive: true })) {
       const normalised_file_path = file_path.replace("\\", "/");
       if (normalised_file_path.match(/\.\w+$/)) {
