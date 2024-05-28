@@ -1,9 +1,18 @@
+/*
+ * This program has been developed by students from the bachelor
+ * Computer Science at Utrecht University within the Software Project course.
+ *
+ * © Copyright Utrecht University
+ * (Department of Information and Computing Sciences)
+ */
+
 require("dotenv/config");
+import environment from "./src/environment";
 
 const { promisify } = require("node:util");
 const { resolve } = require("node:path");
 const { exec } = require("node:child_process");
-const { readFile, mkdir, readdir, rm } = require("node:fs/promises");
+const { mkdir, readFile, readdir, rm } = require("node:fs/promises");
 
 const { MongoClient, ObjectId } = require("mongodb");
 const Minio = require("minio");
@@ -31,20 +40,20 @@ const Minio = require("minio");
 
   const pexec = promisify(exec);
 
-  const mongo = await MongoClient.connect(process.env.MONGO_URI);
-  const db = mongo.db(process.env.MP_DATABASE_NAME);
-  const collection = db.collection("addons");
+  const mongo = await MongoClient.connect(environment.MONGO_URI);
+  const database = mongo.db(environment.MP_DATABASE_NAME);
+  const collection = database.collection("addons");
 
-  const author = await db.collection("authors").insertOne({
+  const author = await database.collection("authors").insertOne({
     userId: ""
   });
 
   const minio = new Minio.Client({
-    endPoint: process.env.MINIO_ENDPOINT,
-    port: Number(process.env.MINIO_PORT),
-    useSSL: false,
-    accessKey: process.env.MINIO_ACCESSKEY,
-    secretKey: process.env.MINIO_SECRETKEY
+    accessKey: environment.MINIO_ACCESSKEY,
+    endPoint: environment.MINIO_ENDPOINT,
+    port: environment.MINIO_PORT,
+    secretKey: environment.MINIO_SECRETKEY,
+    useSSL: false
   });
 
   const addons_dir = resolve(__dirname, "addons");
@@ -62,34 +71,35 @@ const Minio = require("minio");
 
   for (const addon of visAddons) {
     const document = await collection.insertOne({
-      name: addon,
-      summary: "",
-      icon: "icon.png",
+      authorId: author.insertedId,
       category: "VISUALISATION",
-      authorId: author.insertedId
+      default: true,
+      icon: "icon.png",
+      name: addon,
+      summary: ""
     });
 
     const id = document.insertedId.toString();
 
-    const dest = resolve(__dirname, "addons", id);
+    const destination = resolve(__dirname, "addons", id);
     console.log(`Cloning and building ${addon}`);
     const url = `git@github.com:PolarExpress/${addon}.git`;
-    await pexec(`git clone ${url} ${dest}`);
+    await pexec(`git clone ${url} ${destination}`);
 
-    const icon_path = resolve(__dirname, "icon.png");
-    await pexec(`cd ${dest} && pnpm i && pnpm build`);
+    const iconPath = resolve(__dirname, "icon.png");
+    await pexec(`cd ${destination} && pnpm i && pnpm build`);
 
     minio.putObject(
       "addons",
       `${id}/README.md`,
-      await readFile(resolve(dest, "README.md"))
+      await readFile(resolve(destination, "README.md"))
     );
 
-    const dist_path = resolve(dest, "dist");
-    for (const file of await readdir(dist_path, { recursive: true })) {
-      if (file.match(/\.\w+$/)) {
+    const distribution_path = resolve(destination, "dist");
+    for (const file of await readdir(distribution_path, { recursive: true })) {
+      if (/\.\w+$/.test(file)) {
         console.log(`Uploading ${id}/${file}`);
-        const buffer = await readFile(resolve(dist_path, file));
+        const buffer = await readFile(resolve(distribution_path, file));
         minio.putObject("addons", `${id}/${file}`, buffer);
       }
     }
@@ -97,11 +107,11 @@ const Minio = require("minio");
 
   for (const addon of mlAddons) {
     const document = await collection.insertOne({
-      name: addon.name,
-      summary: "",
-      icon: "icon.png",
+      authorId: author.insertedId,
       category: "MACHINE_LEARNING",
-      authorId: author.insertedId
+      icon: "icon.png",
+      name: addon.name,
+      summary: ""
     });
     console.log("Inserted document:", document.insertedId);
 
@@ -125,7 +135,7 @@ const Minio = require("minio");
 
     minio.putObject(
       "addons",
-      `${addon.id}/README.md`,
+      `${id}/README.md`,
       "This is a placeholder README.md file."
     );
   }

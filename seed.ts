@@ -10,6 +10,7 @@ import { randCompanyName, randText, randUuid, seed } from "@ngneat/falso";
 import "dotenv/config";
 import { MongoClient, ObjectId, WithId } from "mongodb";
 
+import environment from "./src/environment";
 import { MinioService } from "./src/minio";
 import { Addon, AddonCategory, Author, User } from "./src/types";
 
@@ -56,6 +57,7 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
     _id: new ObjectId(),
     authorId: author._id.toString(),
     category: chooseFrom(Object.values(AddonCategory)),
+    default: false,
     icon: "icon.png",
     name: randCompanyName(),
     summary: randText({ charCount: 50 })
@@ -69,9 +71,9 @@ async function main() {
   seed(process.argv[2]);
 
   const minio = new MinioService();
-  const mongo = await MongoClient.connect(process.env.MONGO_URI!);
+  const mongo = await MongoClient.connect(environment.MONGO_URI);
 
-  const database = mongo.db(process.env.MP_DATABASE_NAME!);
+  const database = mongo.db(environment.MP_DATABASE_NAME);
   const colAddons = database.collection("addons");
   const colAuthors = database.collection("authors");
   const colUsers = database.collection("users");
@@ -98,7 +100,7 @@ async function main() {
 
   console.log("Creating addons...");
   const addons: Seeded<Addon>[] = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 120; i++) {
     const random = Math.floor(Math.random() * authors.length);
     const addon = seedAddon(authors[random]);
     addons.push(addon);

@@ -23,7 +23,7 @@ import {
   getAddonsHandler
 } from "./routes/addons";
 import { installHandler, uninstallHandler } from "./routes/install";
-import { expressHandler } from "./utils";
+import { asyncCatch, ensureCustomError, expressHandler } from "./utils";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +33,11 @@ export class App {
     public amqp: AmqpSocket
   ) {}
 
+  /**
+   * Starts the server to listen for HTTP and AMQP requests.
+   *
+   * @param port The port number to listen on.
+   */
   public listen(port: number): void {
     this.express.listen(port, () => {
       console.log(`Server running on http://localhost:${port}`);
@@ -70,7 +75,13 @@ export function buildExpress(context: Context): Express {
       next: NextFunction
     ): void => {
       console.error(error);
-      response.status(500).json({ error: "Internal server error" });
+
+      const customError = ensureCustomError(error);
+
+      response
+        .status(customError.statusCode)
+        .json({ error: customError.message });
+
       next();
     }
   );
@@ -78,7 +89,7 @@ export function buildExpress(context: Context): Express {
   app.get(
     "/store/:filepath(*)",
     cors(),
-    context.minio.serveFile.bind(context.minio)
+    asyncCatch(context.minio.serveFile.bind(context.minio))
   );
 
   return app;
