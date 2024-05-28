@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
-    "prepare": "husky || echo \"Skipping husky in production\""
+    "prepare": "husky || echo \"Skipping husky in production\"",
+    "cli": "ts-node cli/index.ts"
   },
   "dependencies": {
     "amqplib": "^0.10.3",
@@ -36,6 +37,7 @@
     "@types/mime-types": "^2.1.4",
     "@types/node": "20.11.19",
     "@types/supertest": "^6.0.2",
+    "@types/yargs": "^17.0.32",
     "eslint": "^8.57.0",
     "eslint-plugin-jest": "^28.2.0",
     "eslint-plugin-jest-formatting": "^3.1.0",
@@ -51,6 +53,7 @@
     "ts-jest": "^29.1.2",
     "ts-node": "10.9.2",
     "typescript": "5.3.3",
-    "typescript-eslint": "^7.1.0"
+    "typescript-eslint": "^7.1.0",
+    "yargs": "^17.7.2"
   }
 }
