@@ -38,11 +38,10 @@ export async function reset() {
     useSSL: false
   });
 
-  minioClient.listObjects("addons")
-    .on("data", async object => {
-      console.log(`Deleting addons/${object.prefix}`);
-      await minioClient.removeObject("addons", object.prefix!);
-    })
+  minioClient.listObjects("addons").on("data", async object => {
+    console.log(`Deleting addons/${object.prefix}`);
+    await minioClient.removeObject("addons", object.prefix!);
+  });
 
   for (const addon of addons) {
     await publish({

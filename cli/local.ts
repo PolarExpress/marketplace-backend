@@ -18,7 +18,7 @@ import environment from "../src/environment";
 import { AddonCategory } from "../src/types";
 
 interface LocalArgv {
-    path: string;
+  path: string;
 }
 
 const pexec = promisify(exec);
