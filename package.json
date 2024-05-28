@@ -24,7 +24,8 @@
     "mongodb": "^6.5.0",
     "redis": "^4.6.13",
     "ts-amqp-socket": "github:PolarExpress/ts-amqp-socket",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-validation-error": "^3.3.0"
   },
   "devDependencies": {
     "@graphpolaris/ts-configs": "github:PolarExpress/ts-configs",

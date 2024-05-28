@@ -7,7 +7,17 @@
  */
 
 import { NextFunction, Request, Response } from "express";
+import { MongoError } from "mongodb";
 import { Handler } from "ts-amqp-socket";
+import { z } from "zod";
+import { fromError } from "zod-validation-error";
+
+import {
+  CustomError,
+  DatabaseError,
+  InternalServerError,
+  ValidationError
+} from "./errors";
 
 // type hack to allow express-validator to sanitize query parameters
 declare module "express" {
@@ -27,20 +37,24 @@ export const throwFunction = (error: Error): never => {
   throw error;
 };
 
-export class PanicError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "PanicError";
-  }
-}
-
 /**
- * Throws a `PanicError` with the given message.
+ * Handles errors thrown by the backend.
  *
- * @param message - The message to include in the error.
+ * @param   error The error to be handled.
+ *
+ * @returns       The custom error based on the type of error encountered.
  */
-export const panic = (message: string): never => {
-  throw new PanicError(message);
+export const ensureCustomError = (error: Error): CustomError => {
+  if (error instanceof CustomError) {
+    return error;
+  } else if (error instanceof z.ZodError) {
+    const validationError = fromError(error);
+    return new ValidationError(validationError.message);
+  } else if (error instanceof MongoError) {
+    return new DatabaseError(error.message);
+  } else {
+    return new InternalServerError();
+  }
 };
 
 /**

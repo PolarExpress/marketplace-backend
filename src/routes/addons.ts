@@ -11,6 +11,7 @@ import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
 
 import { Context } from "../context";
+import { AddonNotFoundError, AuthorNotFoundError } from "../errors";
 import { Addon, AddonCategory } from "../types";
 import { throwFunction } from "../utils";
 
@@ -73,7 +74,8 @@ export const getAddonsHandler =
         const author =
           (await context.authors.findOne({
             _id: new ObjectId(addon.authorId)
-          })) ?? throwFunction(new Error("Could not find the addon's author"));
+          })) ?? throwFunction(new AuthorNotFoundError(addon.authorId));
+
         return { ...addon, author };
       })
     );
@@ -105,13 +107,15 @@ export const getAddonByIdHandler =
 
     // Find the addon by its ID
     const addon =
-      (await context.addons.findOne({ _id: new ObjectId(arguments_.id) })) ??
-      throwFunction(new Error("Could not find the addon with given id"));
+      (await context.addons.findOne({
+        _id: new ObjectId(arguments_.id)
+      })) ?? throwFunction(new AddonNotFoundError(arguments_.id));
 
     // Find the author of the addon
     const author =
-      (await context.authors.findOne({ _id: new ObjectId(addon.authorId) })) ??
-      throwFunction(new Error("Could nnot find  the addon's author"));
+      (await context.authors.findOne({
+        _id: new ObjectId(addon.authorId)
+      })) ?? throwFunction(new AuthorNotFoundError(addon.authorId));
 
     return { addon: { ...addon, author } };
   };
@@ -138,16 +142,12 @@ export const getAddonReadMeByIdHandler =
   async (request: object): Promise<object> => {
     const arguments_ = getAddonReadMeByIdSchema.parse(request);
 
-    try {
-      // Read README file from MinIO storage
-      const buffer = await context.minio.readFile(
-        context.minio.addonBucket,
-        `${arguments_.id}/README.md`
-      );
-      return { readme: buffer.toString() };
-    } catch {
-      throw new Error("Could not load addon data from file store");
-    }
+    // Read README file from MinIO storage
+    const buffer = await context.minio.readFile(
+      context.minio.addonBucket,
+      `${arguments_.id}/README.md`
+    );
+    return { readme: buffer.toString() };
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -194,8 +194,13 @@ export const getAddonsByUserIdHandler =
     // Find or create the user document
     let user = await context.users.findOne({ userId: session.userID });
     if (!user) {
+      const defaultAddons = await context.addons
+        .find({ default: true })
+        .map(addon => addon._id.toString())
+        .toArray();
+
       const document = {
-        installedAddons: [],
+        installedAddons: defaultAddons,
         userId: session.userID
       };
       const { insertedId } = await context.users.insertOne(document);
@@ -223,7 +228,8 @@ export const getAddonsByUserIdHandler =
         const author =
           (await context.authors.findOne({
             _id: new ObjectId(addon.authorId)
-          })) ?? throwFunction(new Error("Could not find the addon's author"));
+          })) ?? throwFunction(new AuthorNotFoundError(addon.authorId));
+
         return { ...addon, author };
       })
     );

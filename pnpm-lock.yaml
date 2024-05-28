@@ -5411,9 +5411,7 @@ snapshots:
       is-core-module: 2.13.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
-
   reusify@1.0.4: {}
-
   rimraf@3.0.2:
     dependencies:
       glob: 7.2.3

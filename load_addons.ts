@@ -1,10 +1,18 @@
+/*
+ * This program has been developed by students from the bachelor
+ * Computer Science at Utrecht University within the Software Project course.
+ *
+ * © Copyright Utrecht University
+ * (Department of Information and Computing Sciences)
+ */
+
 require("dotenv/config");
 import environment from "./src/environment";
 
 const { promisify } = require("node:util");
 const { resolve } = require("node:path");
 const { exec } = require("node:child_process");
-const { readFile, mkdir, readdir, rm } = require("node:fs/promises");
+const { mkdir, readFile, readdir, rm } = require("node:fs/promises");
 
 const { MongoClient, ObjectId } = require("mongodb");
 const Minio = require("minio");
@@ -13,39 +21,39 @@ const Minio = require("minio");
   const visAddons = ["rawjsonvis"];
   const mlAddons = [
     {
-      name: "Centrality",
-      id: "ffff00000000000000000000"
+      id: "ffff00000000000000000000",
+      name: "Centrality"
     },
     {
-      name: "Community Detection",
-      id: "ffff00000000000000000001"
+      id: "ffff00000000000000000001",
+      name: "Community Detection"
     },
     {
-      name: "Link Prediction",
-      id: "ffff00000000000000000002"
+      id: "ffff00000000000000000002",
+      name: "Link Prediction"
     },
     {
-      name: "Shortest Path",
-      id: "ffff00000000000000000003"
+      id: "ffff00000000000000000003",
+      name: "Shortest Path"
     }
   ];
 
   const pexec = promisify(exec);
 
   const mongo = await MongoClient.connect(environment.MONGO_URI);
-  const db = mongo.db(environment.MP_DATABASE_NAME);
-  const collection = db.collection("addons");
+  const database = mongo.db(environment.MP_DATABASE_NAME);
+  const collection = database.collection("addons");
 
-  const author = await db.collection("authors").insertOne({
+  const author = await database.collection("authors").insertOne({
     userId: ""
   });
 
   const minio = new Minio.Client({
+    accessKey: environment.MINIO_ACCESSKEY,
     endPoint: environment.MINIO_ENDPOINT,
     port: environment.MINIO_PORT,
-    useSSL: false,
-    accessKey: environment.MINIO_ACCESSKEY,
-    secretKey: environment.MINIO_SECRETKEY
+    secretKey: environment.MINIO_SECRETKEY,
+    useSSL: false
   });
 
   const addons_dir = resolve(__dirname, "addons");
@@ -63,34 +71,35 @@ const Minio = require("minio");
 
   for (const addon of visAddons) {
     const document = await collection.insertOne({
-      name: addon,
-      summary: "",
-      icon: "icon.png",
+      authorId: author.insertedId,
       category: "VISUALISATION",
-      authorId: author.insertedId
+      default: true,
+      icon: "icon.png",
+      name: addon,
+      summary: ""
     });
 
     const id = document.insertedId.toString();
 
-    const dest = resolve(__dirname, "addons", id);
+    const destination = resolve(__dirname, "addons", id);
     console.log(`Cloning and building ${addon}`);
     const url = `git@github.com:PolarExpress/${addon}.git`;
-    await pexec(`git clone ${url} ${dest}`);
+    await pexec(`git clone ${url} ${destination}`);
 
-    const icon_path = resolve(__dirname, "icon.png");
-    await pexec(`cd ${dest} && pnpm i && pnpm build`);
+    const iconPath = resolve(__dirname, "icon.png");
+    await pexec(`cd ${destination} && pnpm i && pnpm build`);
 
     minio.putObject(
       "addons",
       `${id}/README.md`,
-      await readFile(resolve(dest, "README.md"))
+      await readFile(resolve(destination, "README.md"))
     );
 
-    const dist_path = resolve(dest, "dist");
-    for (const file of await readdir(dist_path, { recursive: true })) {
-      if (file.match(/\.\w+$/)) {
+    const distribution_path = resolve(destination, "dist");
+    for (const file of await readdir(distribution_path, { recursive: true })) {
+      if (/\.\w+$/.test(file)) {
         console.log(`Uploading ${id}/${file}`);
-        const buffer = await readFile(resolve(dist_path, file));
+        const buffer = await readFile(resolve(distribution_path, file));
         minio.putObject("addons", `${id}/${file}`, buffer);
       }
     }
@@ -99,11 +108,11 @@ const Minio = require("minio");
   for (const addon of mlAddons) {
     const document = await collection.insertOne({
       _id: new ObjectId(addon.id),
-      name: addon.name,
-      summary: "",
-      icon: "icon.png",
+      authorId: author.insertedId,
       category: "MACHINE_LEARNING",
-      authorId: author.insertedId
+      icon: "icon.png",
+      name: addon.name,
+      summary: ""
     });
     console.log("Inserted document:", document.insertedId);
     minio.putObject(

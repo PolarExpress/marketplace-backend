@@ -57,6 +57,7 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
     _id: new ObjectId(),
     authorId: author._id.toString(),
     category: chooseFrom(Object.values(AddonCategory)),
+    default: false,
     icon: "icon.png",
     name: randCompanyName(),
     summary: randText({ charCount: 50 })
@@ -99,7 +100,7 @@ async function main() {
 
   console.log("Creating addons...");
   const addons: Seeded<Addon>[] = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 120; i++) {
     const random = Math.floor(Math.random() * authors.length);
     const addon = seedAddon(authors[random]);
     addons.push(addon);

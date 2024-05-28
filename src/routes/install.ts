@@ -11,6 +11,12 @@ import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
 
 import { Context } from "../context";
+import {
+  AddonAlreadyInstalledError,
+  AddonNotFoundError,
+  AddonNotInstalledError,
+  UserNotFoundError
+} from "../errors";
 import { User } from "../types";
 import { throwFunction } from "../utils";
 
@@ -49,7 +55,7 @@ export const installHandler =
     const addon =
       (await context.addons.findOne({
         _id: new ObjectId(arguments_.addonID)
-      })) ?? throwFunction(new Error("Could not find an addon with given id"));
+      })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
 
     // Check if the addon is already installed
     if (
@@ -57,8 +63,9 @@ export const installHandler =
         addon._id.equals(installedAddon)
       )
     ) {
-      throw new Error(
-        `User "${session.userID}" already has addon "${addon._id}" installed`
+      throw new AddonAlreadyInstalledError(
+        session.userID,
+        addon._id.toString()
       );
     }
 
@@ -94,13 +101,13 @@ export const uninstallHandler =
     // Find the user document
     const user =
       (await context.users.findOne({ userId: session.userID })) ??
-      throwFunction(new Error("Could not find the user in the session"));
+      throwFunction(new UserNotFoundError(session.userID));
 
     // Ensure the addon exists
     const addon =
       (await context.addons.findOne({
         _id: new ObjectId(arguments_.addonID)
-      })) ?? throwFunction(new Error("Could not find an addon with given id"));
+      })) ?? throwFunction(new AddonNotFoundError(arguments_.addonID));
 
     // Check if the addon is installed
     if (
@@ -108,9 +115,7 @@ export const uninstallHandler =
         addon._id.equals(installedAddon)
       )
     ) {
-      throw new Error(
-        `User "${session.userID}" does not have addon "${arguments_.addonID}" installed`
-      );
+      throw new AddonNotInstalledError(session.userID, arguments_.addonID);
     }
 
     // Update the user's installed addons

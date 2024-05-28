@@ -6,6 +6,13 @@
  * (Department of Information and Computing Sciences)
  */
 
+import { ObjectId } from "mongodb";
+import { ZodError } from "zod";
+
+import {
+  AddonAlreadyInstalledError,
+  AddonNotFoundError
+} from "../../src/errors";
 import { installHandler, uninstallHandler } from "../../src/routes/install";
 import { createMockContext, dummyAddons, mockSession } from "../mockContext";
 
@@ -27,7 +34,7 @@ test("install::missing-args_should-throw", async () => {
   const [, context] = createMockContext();
   const session = mockSession("1");
 
-  await expect(installHandler(context)({}, session)).rejects.toBeDefined();
+  await expect(installHandler(context)({}, session)).rejects.toThrow(ZodError);
 });
 
 test("install::invalid-addon-id_should-throw", async () => {
@@ -35,11 +42,11 @@ test("install::invalid-addon-id_should-throw", async () => {
   const session = mockSession("1");
 
   const response = installHandler(context)(
-    { addonID: "invalid-addon-id" },
+    { addonID: new ObjectId().toString() },
     session
   );
 
-  await expect(response).rejects.toBeDefined();
+  await expect(response).rejects.toThrow(AddonNotFoundError);
 });
 
 test("install::invalid-user-id_should-create-new-user", async () => {
@@ -64,7 +71,7 @@ test("install::already-installed-addon_should-throw", async () => {
 
   await expect(
     installHandler(context)({ addonID: dummyAddons[0]._id.toString() }, session)
-  ).rejects.toBeDefined();
+  ).rejects.toThrow(AddonAlreadyInstalledError);
 });
 
 test("uninstall::valid-query_correct-return", async () => {
@@ -85,7 +92,9 @@ test("uninstall::missing-args_should-throw", async () => {
   const [, context] = createMockContext();
   const session = mockSession("3");
 
-  await expect(uninstallHandler(context)({}, session)).rejects.toBeDefined();
+  await expect(uninstallHandler(context)({}, session)).rejects.toThrow(
+    ZodError
+  );
 });
 
 test("uninstall::invalid-addon-id_should-throw", async () => {
@@ -93,8 +102,8 @@ test("uninstall::invalid-addon-id_should-throw", async () => {
   const session = mockSession("3");
 
   await expect(
-    uninstallHandler(context)({ addonID: "invalid-addon-id" }, session)
-  ).rejects.toBeDefined();
+    uninstallHandler(context)({ addonID: new ObjectId().toString() }, session)
+  ).rejects.toThrow(AddonNotFoundError);
 });
 
 test("uninstall::invalid-user-id_should-throw", async () => {
