@@ -122,7 +122,7 @@ const Minio = require("minio");
       const id = addon.id;
       const dest = resolve(__dirname, "addons", id);
       console.log(`Cloning and building ${addon.name}`);
-      const url = `git@github.com:PolarExpress/graphpolaris-ml-settings-api.git`;
+      const url = `git@github.com:PolarExpress/link-prediction.git`;
       await pexec(`git clone ${url} ${dest}`);
       await pexec(`cd ${dest} && pnpm i && pnpm build`);
 
