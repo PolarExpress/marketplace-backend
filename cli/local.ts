@@ -25,14 +25,14 @@ const pexec = promisify(exec);
 
 async function createAuthor(database: Db) {
   const authors = database.collection("authors");
-  try {
-    const author = await authors.findOne();
-    return author;
-  } catch {
+  const author = await authors.findOne();
+  if (author === null) {
     const insertedDocument = await authors.insertOne({
       userId: ""
     });
     return { _id: insertedDocument.insertedId, userId: "" };
+  } else {
+    return author;
   }
 }
 
