@@ -6,10 +6,11 @@
  * (Department of Information and Computing Sciences)
  */
 
+import { glob } from "glob";
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
 import { exec } from "node:child_process";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
@@ -82,11 +83,12 @@ export async function local(argv: LocalArgv) {
   );
 
   const buildPath = path.join(argv.path, "dist");
-  for (const file of await readdir(buildPath, { recursive: true })) {
+  for (const file of await glob(path.join(buildPath, "**", "*"))) {
     if (/\.\w+$/.test(file)) {
-      console.log(`Uploading ${id}/${file}`);
-      const buffer = await readFile(path.join(buildPath, file));
-      await minioClient.putObject("addons", `${id}/${file}`, buffer);
+      const relativePath = file.slice(buildPath.length);
+      console.log(`Uploading ${id}${relativePath}`);
+      const buffer = await readFile(file);
+      await minioClient.putObject("addons", `${id}${relativePath}`, buffer);
     }
   }
 
