@@ -9,6 +9,7 @@
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
 import { exec } from "node:child_process";
+import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -25,15 +26,14 @@ const pexec = promisify(exec);
 
 async function createAuthor(database: Db) {
   const authors = database.collection("authors");
-  try {
-    const author = await authors.findOne();
-    return author;
-  } catch {
+  const author = await authors.findOne();    
+  if (author === null) {
     const insertedDocument = await authors.insertOne({
       userId: ""
     });
     return { _id: insertedDocument.insertedId, userId: "" };
   }
+  return author;
 }
 
 export async function local(argv: LocalArgv) {
@@ -71,8 +71,28 @@ export async function local(argv: LocalArgv) {
   });
   const id = insertedDocument.insertedId;
 
-  console.log("Installing dependencies and building project");
-  await pexec(`cd ${argv.path} && pnpm i && pnpm build`);
+  const nodePath = manifest.category === AddonCategory.MACHINE_LEARNING
+                 ? path.join(argv.path, "settings")
+                 : argv.path;
+
+  if (existsSync(nodePath)) {
+    console.log("Installing dependencies and building project");
+    await pexec(`cd ${nodePath} && pnpm i && pnpm build`);
+    
+    const buildPath = path.join(argv.path, "dist");
+    for (const file of await readdir(buildPath, { recursive: true })) {
+      if (/\.\w+$/.test(file)) {
+        console.log(`Uploading ${id}/${file}`);
+        const buffer = await readFile(path.join(buildPath, file));
+        await minioClient.putObject("addons", `${id}/${file}`, buffer);
+      }
+    }
+  } else {
+    if (manifest.category === AddonCategory.VISUALISATION) {
+      throw new Error("node directory not found in visualization addon");
+    }
+    console.log("No node project directory found, skipping build");
+  }
 
   const readmePath = path.join(argv.path, "README.md");
   await minioClient.putObject(
@@ -80,18 +100,25 @@ export async function local(argv: LocalArgv) {
     `${id}/README.md`,
     await readFile(readmePath)
   );
+  
+  if (manifest.category === AddonCategory.MACHINE_LEARNING) {
+    const adapterDestination = path.resolve(__dirname, "../../ml-addon-adapter");
+    const environmentFilePath = path.resolve(__dirname, "../../../deployment/dockercompose/.env");
+    const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
-  const buildPath = path.join(argv.path, "dist");
-  for (const file of await readdir(buildPath, { recursive: true })) {
-    if (/\.\w+$/.test(file)) {
-      console.log(`Uploading ${id}/${file}`);
-      const buffer = await readFile(path.join(buildPath, file));
-      await minioClient.putObject("addons", `${id}/${file}`, buffer);
-    }
+    await pexec(`cd ${path.join(argv.path, "addon")} && docker build -t ml-${id}-service .`);
+    await pexec(
+      `docker run -d --name ml-${id}-service --network=${network} ml-${id}-service --prod true`
+    );
+
+    await pexec(`cd ${adapterDestination} && docker build -t ml-addon-adapter .`);
+    await pexec(
+      `docker run -d --name ml-${id}-adapter --env-file ${environmentFilePath} --network=${network} -e ADDON_ID=${id} ml-addon-adapter`
+    );
   }
-
   await mongo.close();
 }
+
 
 interface Manifest {
   category: AddonCategory;
