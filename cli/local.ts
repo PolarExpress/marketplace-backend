@@ -6,11 +6,10 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { glob } from "glob";
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
 import { exec } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
@@ -34,6 +33,18 @@ async function createAuthor(database: Db) {
     return { _id: insertedDocument.insertedId, userId: "" };
   } else {
     return author;
+  }
+}
+
+async function* getFiles(directory: string): AsyncGenerator<string> {
+  const dirents = await readdir(directory, { withFileTypes: true });
+  for (const dirent of dirents) {
+    const resource = path.resolve(directory, dirent.name);
+    if (dirent.isDirectory()) {
+      yield* getFiles(resource);
+    } else {
+      yield resource;
+    }
   }
 }
 
@@ -82,10 +93,12 @@ export async function local(argv: LocalArgv) {
     await readFile(readmePath)
   );
 
+
   const buildPath = path.join(argv.path, "dist");
-  for (const file of await glob(path.join(buildPath, "**", "*"))) {
+  for await (const file of getFiles(buildPath)) {
     if (/\.\w+$/.test(file)) {
-      const relativePath = file.slice(buildPath.length);
+      // eslint-disable-next-line unicorn/prefer-string-replace-all
+      const relativePath = file.slice(buildPath.length).replace(/\\/g, "/");
       console.log(`Uploading ${id}${relativePath}`);
       const buffer = await readFile(file);
       await minioClient.putObject("addons", `${id}${relativePath}`, buffer);
