@@ -6,7 +6,13 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { randCompanyName, randText, randUuid, seed } from "@ngneat/falso";
+import {
+  randCompanyName,
+  randNumber,
+  randText,
+  randUuid,
+  seed
+} from "@ngneat/falso";
 import "dotenv/config";
 import { MongoClient, ObjectId, WithId } from "mongodb";
 
@@ -148,7 +154,7 @@ main();
  * @returns         A random element from the list.
  */
 function chooseFrom<T>(choices: Readonly<T[]>): T {
-  return choices[Math.floor(Math.random() * choices.length)];
+  return choices[randNumber({ max: choices.length, min: 0 })];
 }
 
 /**
@@ -164,7 +170,7 @@ function chooseFromN<T>(choices: Readonly<T[]>, n: number): T[] {
     result = [];
   for (let index = 0; index < n; index++)
     result.push(
-      indices.splice(Math.floor(Math.random() * indices.length), 1)[0]
+      indices.splice(randNumber({ max: indices.length, min: 0 }), 1)[0]
     );
   return result.map(index => choices[index]);
 }
