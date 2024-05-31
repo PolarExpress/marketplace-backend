@@ -93,7 +93,6 @@ export async function local(argv: LocalArgv) {
     await readFile(readmePath)
   );
 
-
   const buildPath = path.join(argv.path, "dist");
   for await (const file of getFiles(buildPath)) {
     if (/\.\w+$/.test(file)) {
