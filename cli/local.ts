@@ -26,7 +26,7 @@ const pexec = promisify(exec);
 
 async function createAuthor(database: Db) {
   const authors = database.collection("authors");
-  const author = await authors.findOne();    
+  const author = await authors.findOne();
   if (author === null) {
     const insertedDocument = await authors.insertOne({
       userId: ""
@@ -71,14 +71,15 @@ export async function local(argv: LocalArgv) {
   });
   const id = insertedDocument.insertedId;
 
-  const nodePath = manifest.category === AddonCategory.MACHINE_LEARNING
-                 ? path.join(argv.path, "settings")
-                 : argv.path;
+  const nodePath =
+    manifest.category === AddonCategory.MACHINE_LEARNING
+      ? path.join(argv.path, "settings")
+      : argv.path;
 
   if (existsSync(nodePath)) {
     console.log("Installing dependencies and building project");
     await pexec(`cd ${nodePath} && pnpm i && pnpm build`);
-    
+
     const buildPath = path.join(argv.path, "dist");
     for (const file of await readdir(buildPath, { recursive: true })) {
       if (/\.\w+$/.test(file)) {
@@ -100,25 +101,37 @@ export async function local(argv: LocalArgv) {
     `${id}/README.md`,
     await readFile(readmePath)
   );
-  
+
   if (manifest.category === AddonCategory.MACHINE_LEARNING) {
-    const adapterDestination = path.resolve(__dirname, "../../ml-addon-adapter");
-    const environmentFilePath = path.resolve(__dirname, "../../../deployment/dockercompose/.env");
+    // eslint-disable-next-line unicorn/prefer-module
+    const deploymentRoot = path.resolve(__dirname, "../../../");
+    const adapterDestination = path.resolve(
+      deploymentRoot,
+      "microservices/ml-addon-adapter"
+    );
+    const environmentFilePath = path.resolve(
+      deploymentRoot,
+      "deployment/dockercompose/.env"
+    );
     const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
-    await pexec(`cd ${path.join(argv.path, "addon")} && docker build -t ml-${id}-service .`);
+    await pexec(
+      `cd ${path.join(argv.path, "addon")} && docker build -t ml-${id}-service .`
+    );
     await pexec(
       `docker run -d --name ml-${id}-service --network=${network} ml-${id}-service --prod true`
     );
 
-    await pexec(`cd ${adapterDestination} && docker build -t ml-addon-adapter .`);
+    await pexec(
+      `cd ${adapterDestination} && docker build -t ml-addon-adapter .`
+    );
     await pexec(
       `docker run -d --name ml-${id}-adapter --env-file ${environmentFilePath} --network=${network} -e ADDON_ID=${id} ml-addon-adapter`
     );
   }
+
   await mongo.close();
 }
-
 
 interface Manifest {
   category: AddonCategory;
