@@ -78,6 +78,12 @@ export const installHandler =
       { userId: session.userID },
       { $set: { installedAddons: updatedInstalledAddons } }
     );
+
+    // Increment the addon's install count
+    await context.addons.updateOne(
+      { _id: addon._id },
+      { $inc: { installCount: 1 } }
+    );
   };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +131,12 @@ export const uninstallHandler =
     await context.users.updateOne(
       { userId: session.userID },
       { $set: { installedAddons: updatedInstalledAddons } }
+    );
+
+    // Decrement the addon's installCount
+    await context.addons.updateOne(
+      { _id: new ObjectId(arguments_.addonID) },
+      { $inc: { installCount: -1 } }
     );
   };
 

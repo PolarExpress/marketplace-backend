@@ -39,6 +39,7 @@ export interface Addon {
   category: AddonCategory;
   default: boolean;
   icon: string;
+  installCount: number;
   name: string;
   summary: string;
 }
