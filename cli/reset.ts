@@ -19,7 +19,8 @@ const addons = [
   "semanticsubstratesvis",
   "nodelinkvis",
   "paohvis",
-  "tablevis"
+  "tablevis",
+  "link-prediction"
 ];
 
 export async function reset() {
@@ -45,6 +46,7 @@ export async function reset() {
 
   for (const addon of addons) {
     await publish({
+      isDefault: true,
       url: `git@github.com:PolarExpress/${addon}.git`
     });
   }

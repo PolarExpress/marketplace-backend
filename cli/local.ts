@@ -6,6 +6,7 @@
  * (Department of Information and Computing Sciences)
  */
 
+import e from "express";
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
 import { exec } from "node:child_process";
@@ -19,6 +20,7 @@ import environment from "../src/environment";
 import { AddonCategory } from "../src/types";
 
 interface LocalArgv {
+  isDefault: boolean;
   path: string;
 }
 
@@ -79,21 +81,22 @@ export async function local(argv: LocalArgv) {
   const insertedDocument = await collection.insertOne({
     authorId: author!._id,
     category: manifest.category,
+    isDefault: argv.isDefault,
     name: manifest.name,
-    summary: manifest.summary
+    summary: manifest.summary,
   });
   const id = insertedDocument.insertedId;
+    
 
-  const nodePath =
-    manifest.category === AddonCategory.MACHINE_LEARNING
-      ? path.join(argv.path, "settings")
-      : argv.path;
+  if (!existsSync(argv.path)) {
+    throw new Error("Could not clone repository");
+  }
+  console.log("Installing dependencies and building project");
 
-  if (existsSync(nodePath)) {
-    console.log("Installing dependencies and building project");
-    await pexec(`cd ${nodePath} && pnpm i && pnpm build`);
+  if (existsSync(path.join(argv.path, "pnpm-lock.yaml"))) {
+    await pexec(`cd ${argv.path} && pnpm i && pnpm build`);
 
-    const buildPath = path.join(nodePath, "dist");
+    const buildPath = path.join(argv.path, "dist");
     for await (const file of getFiles(buildPath)) {
       if (/\.\w+$/.test(file)) {
         // eslint-disable-next-line unicorn/prefer-string-replace-all
@@ -102,13 +105,14 @@ export async function local(argv: LocalArgv) {
         const buffer = await readFile(file);
         await minioClient.putObject("addons", `${id}${relativePath}`, buffer);
       }
-    }
-  } else {
-    if (manifest.category === AddonCategory.VISUALISATION) {
-      throw new Error("node directory not found in visualization addon");
-    }
-    console.log("No node project directory found, skipping build");
+    }  
   }
+  else {
+    if (manifest.category === AddonCategory.MACHINE_LEARNING) {
+      console.warn("No settings found, skipping");
+    }
+    throw new Error("Node project missing (no pnpm-lock.yaml found)");
+  }  
 
   const readmePath = path.join(argv.path, "README.md");
   await minioClient.putObject(
@@ -130,6 +134,7 @@ export async function local(argv: LocalArgv) {
     );
     const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
+    console.log("Building and deploying ML addon container...");
     await pexec(
       `cd ${path.join(argv.path, "addon")} && docker build -t ml-${id}-service .`
     );
@@ -137,6 +142,7 @@ export async function local(argv: LocalArgv) {
       `docker run -d --name ml-${id}-service --network=${network} ml-${id}-service --prod true`
     );
 
+    console.log("Building and deploying ml-addon-adapter...");
     await pexec(
       `cd ${adapterDestination} && docker build -t ml-addon-adapter .`
     );
