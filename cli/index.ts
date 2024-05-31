@@ -19,9 +19,9 @@ import { reset } from "./reset";
     .command(
       "publish <url>",
       "Publish an addon",
-      { 
-        isDefault: { boolean: true, default: false, required: false },       
-        url: { required: true, string: true } 
+      {
+        isDefault: { boolean: true, default: false, required: false },
+        url: { required: true, string: true }
       },
       publish
     )
@@ -34,9 +34,9 @@ import { reset } from "./reset";
     .command(
       "local <path>",
       "Publish a local addon",
-      { 
+      {
         isDefault: { boolean: true, default: false, required: false },
-        path: { required: true, string: true } 
+        path: { required: true, string: true }
       },
       local
     )

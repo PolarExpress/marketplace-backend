@@ -5,8 +5,6 @@
  * © Copyright Utrecht University
  * (Department of Information and Computing Sciences)
  */
-
-import e from "express";
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
 import { exec } from "node:child_process";
@@ -83,10 +81,9 @@ export async function local(argv: LocalArgv) {
     category: manifest.category,
     isDefault: argv.isDefault,
     name: manifest.name,
-    summary: manifest.summary,
+    summary: manifest.summary
   });
   const id = insertedDocument.insertedId;
-    
 
   if (!existsSync(argv.path)) {
     throw new Error("Could not clone repository");
@@ -105,14 +102,13 @@ export async function local(argv: LocalArgv) {
         const buffer = await readFile(file);
         await minioClient.putObject("addons", `${id}${relativePath}`, buffer);
       }
-    }  
-  }
-  else {
+    }
+  } else {
     if (manifest.category === AddonCategory.MACHINE_LEARNING) {
       console.warn("No settings found, skipping");
     }
     throw new Error("Node project missing (no pnpm-lock.yaml found)");
-  }  
+  }
 
   const readmePath = path.join(argv.path, "README.md");
   await minioClient.putObject(
