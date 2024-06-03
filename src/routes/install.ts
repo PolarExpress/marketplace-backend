@@ -81,7 +81,7 @@ export const installHandler =
 
     // Increment the addon's install count
     await context.addons.updateOne(
-      { _id: addon._id },
+      { _id: new ObjectId(arguments_.addonID) },
       { $inc: { installCount: 1 } }
     );
   };
