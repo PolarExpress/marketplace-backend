@@ -31,7 +31,7 @@ export const dummyAddons: WithId<Addon>[] = [
     category: AddonCategory.VISUALISATION,
     default: false,
     icon: "icon.png",
-    installCount: 0,
+    installCount: 1,
     name: "Addon A",
     summary: "This is A"
   },
@@ -49,7 +49,7 @@ export const dummyAddons: WithId<Addon>[] = [
     category: AddonCategory.DATA_SOURCE,
     default: true,
     icon: "icon.png",
-    installCount: 0,
+    installCount: 1,
     name: "Addon C",
     summary: "This is C"
   }
