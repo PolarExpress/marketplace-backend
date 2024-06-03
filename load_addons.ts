@@ -21,20 +21,20 @@ const Minio = require("minio");
   const visAddons = ["rawjsonvis"];
   const mlAddons = [
     {
-      id: "ffff00000000000000000000",
-      name: "Centrality"
+      name: "Centrality",
+      repo: "https://github.com/PolarExpress/centrality"
     },
     {
-      id: "ffff00000000000000000001",
-      name: "Community Detection"
+      name: "Community Detection",
+      repo: "https://github.com/PolarExpress/community-detection"
     },
     {
-      id: "ffff00000000000000000002",
-      name: "Link Prediction"
+      name: "Link Prediction",
+      repo: "https://github.com/PolarExpress/link-prediction"
     },
     {
-      id: "ffff00000000000000000003",
-      name: "Shortest Path"
+      name: "Shortest Path",
+      repo: "https://github.com/PolarExpress/shortest-path"
     }
   ];
 
@@ -107,7 +107,6 @@ const Minio = require("minio");
 
   for (const addon of mlAddons) {
     const document = await collection.insertOne({
-      _id: new ObjectId(addon.id),
       authorId: author.insertedId,
       category: "MACHINE_LEARNING",
       icon: "icon.png",
@@ -115,9 +114,28 @@ const Minio = require("minio");
       summary: ""
     });
     console.log("Inserted document:", document.insertedId);
+
+    const id = document.insertedId.toString();
+    const adapterDest = "../ml-addon-adapter";
+    const envFilePath = "../../deployment/dockercompose/.env";
+    const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
+
+    const serviceDest = resolve(__dirname, "addons", `${id}-service`);
+    console.log(`Cloning and building ${addon.name}`);
+    await pexec(`git clone ${addon.repo} ${serviceDest}`);
+    await pexec(`cd ${serviceDest} && docker build -t ${id}-service .`);
+    await pexec(
+      `docker run -d --name ${id}-service --network=${network} ${id}-service --prod true`
+    );
+
+    await pexec(`cd ${adapterDest} && docker build -t ${id}-adapter .`);
+    await pexec(
+      `docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=${network} -e ADDON_ID=${id} ${id}-adapter`
+    );
+
     minio.putObject(
       "addons",
-      `${addon.id}/README.md`,
+      `${id}/README.md`,
       "This is a placeholder README.md file."
     );
   }
