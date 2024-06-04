@@ -70,7 +70,10 @@ export class AddonAlreadyInstalledError extends CustomError {
 
 export class AddonNotInstalledError extends CustomError {
   constructor(username: string, addonName: string) {
-    super(`User "${username}" does not have addon "${addonName}" installed`, 400);
+    super(
+      `User "${username}" does not have addon "${addonName}" installed`,
+      400
+    );
   }
 }
 
