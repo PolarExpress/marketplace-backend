@@ -98,7 +98,9 @@ export async function local(argv: LocalArgv) {
       if (/\.\w+$/.test(file)) {
         // eslint-disable-next-line unicorn/prefer-string-replace-all
         const relativePath = path.relative(buildPath, file);
-        const minioPath = path.join(id.toString(), relativePath).replace(/\\/g, "/");
+        const minioPath = path
+          .join(id.toString(), relativePath)
+          .replaceAll("\\", "/");
         console.log(`Uploading ${minioPath}`);
         const buffer = await readFile(file);
         await minioClient.putObject("addons", minioPath, buffer);
