@@ -16,10 +16,10 @@ import { publish } from "./publish";
 const addons = [
   "rawjsonvis",
   "matrixvis",
-  "semanticsubstratesvis",
-  "nodelinkvis",
-  "paohvis",
-  "tablevis",
+  //"semanticsubstratesvis",
+  //"nodelinkvis",
+  //"paohvis",
+  //"tablevis",
   "link-prediction"
 ];
 

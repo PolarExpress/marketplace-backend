@@ -96,11 +96,12 @@ export async function local(argv: LocalArgv) {
     const buildPath = path.join(argv.path, "dist");
     for await (const file of getFiles(buildPath)) {
       if (/\.\w+$/.test(file)) {
-        // eslint-disable-next-line unicorn/prefer-string-replace-all
+
         const relativePath = path.relative(buildPath, file);
         const minioPath = path
           .join(id.toString(), relativePath)
-          .replaceAll("\\", "/");
+          // eslint-disable-next-line unicorn/prefer-string-replace-all
+          .replace(/\\/g, "/");
         console.log(`Uploading ${minioPath}`);
         const buffer = await readFile(file);
         await minioClient.putObject("addons", minioPath, buffer);
