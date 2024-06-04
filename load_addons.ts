@@ -21,20 +21,20 @@ const Minio = require("minio");
   const visAddons = ["rawjsonvis"];
   const mlAddons = [
     {
-      id: "ffff00000000000000000000",
-      name: "Centrality"
+      name: "Centrality",
+      repo: "https://github.com/PolarExpress/centrality"
     },
     {
-      id: "ffff00000000000000000001",
-      name: "Community Detection"
+      name: "Community Detection",
+      repo: "https://github.com/PolarExpress/community-detection"
     },
     {
-      id: "ffff00000000000000000002",
-      name: "Link Prediction"
+      name: "Link Prediction",
+      repo: "https://github.com/PolarExpress/link-prediction"
     },
     {
-      id: "ffff00000000000000000003",
-      name: "Shortest Path"
+      name: "Shortest Path",
+      repo: "https://github.com/PolarExpress/shortest-path"
     }
   ];
 
@@ -108,7 +108,6 @@ const Minio = require("minio");
 
   for (const addon of mlAddons) {
     const document = await collection.insertOne({
-      _id: new ObjectId(addon.id),
       authorId: author.insertedId,
       category: "MACHINE_LEARNING",
       icon: "icon.png",
@@ -118,36 +117,29 @@ const Minio = require("minio");
 
     console.log("Inserted document:", document.insertedId);
 
-    if (addon.name === "Link Prediction") {
-      const id = addon.id;
-      const dest = resolve(__dirname, "addons", id);
-      console.log(`Cloning and building ${addon.name}`);
-      const url = `git@github.com:PolarExpress/link-prediction.git`;
-      await pexec(`git clone ${url} ${dest}`);
-      await pexec(`cd ${dest} && pnpm i && pnpm build`);
+    const id = document.insertedId.toString();
+    const adapterDest = "../ml-addon-adapter";
+    const envFilePath = "../../deployment/dockercompose/.env";
+    const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
-      minio.putObject(
-        "addons",
-        `${id}/README.md`,
-        await readFile(resolve(dest, "README.md"))
-      );
+    const serviceDest = resolve(__dirname, "addons", `${id}-service`);
+    console.log(`Cloning and building ${addon.name}`);
+    await pexec(`git clone ${addon.repo} ${serviceDest}`);
+    await pexec(`cd ${serviceDest} && docker build -t ${id}-service .`);
+    await pexec(
+      `docker run -d --name ${id}-service --network=${network} ${id}-service --prod true`
+    );
 
-      const dist_path = resolve(dest, "dist");
-      for (const file_path of await readdir(dist_path, { recursive: true })) {
-        const normalised_file_path = file_path.replace("\\", "/");
-        if (normalised_file_path.match(/\.\w+$/)) {
-          console.log(`Uploading ${id}/${normalised_file_path}`);
-          const buffer = await readFile(resolve(dist_path, file_path));
-          minio.putObject("addons", `${id}/${normalised_file_path}`, buffer);
-        }
-      }
-    } else {
-      minio.putObject(
-        "addons",
-        `${addon.id}/README.md`,
-        "This is a placeholder README.md file."
-      );
-    }
+    await pexec(`cd ${adapterDest} && docker build -t ${id}-adapter .`);
+    await pexec(
+      `docker run -d --name ${id}-adapter --env-file ${envFilePath} --network=${network} -e ADDON_ID=${id} ${id}-adapter`
+    );
+
+    minio.putObject(
+      "addons",
+      `${id}/README.md`,
+      "This is a placeholder README.md file."
+    );
   }
 
   await mongo.close();

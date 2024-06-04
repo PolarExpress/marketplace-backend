@@ -15,6 +15,7 @@ import { promisify } from "node:util";
 import { local } from "./local";
 
 type PublishArguments = {
+  isDefault: boolean;
   url: string;
 };
 
@@ -30,6 +31,6 @@ export async function publish(argv: PublishArguments) {
   } finally {
     console.log(`Cloning ${argv.url} to ${cloneDestination}`);
     await pexec(`git clone ${argv.url} ${cloneDestination}`);
-    await local({ path: cloneDestination });
+    await local({ isDefault: argv.isDefault, path: cloneDestination });
   }
 }

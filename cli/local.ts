@@ -5,10 +5,10 @@
  * © Copyright Utrecht University
  * (Department of Information and Computing Sciences)
  */
-
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
 import { exec } from "node:child_process";
+import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -18,6 +18,7 @@ import environment from "../src/environment";
 import { AddonCategory } from "../src/types";
 
 interface LocalArgv {
+  isDefault: boolean;
   path: string;
 }
 
@@ -78,13 +79,37 @@ export async function local(argv: LocalArgv) {
   const insertedDocument = await collection.insertOne({
     authorId: author!._id,
     category: manifest.category,
+    isDefault: argv.isDefault,
     name: manifest.name,
     summary: manifest.summary
   });
   const id = insertedDocument.insertedId;
 
+  if (!existsSync(argv.path)) {
+    throw new Error("Could not clone repository");
+  }
   console.log("Installing dependencies and building project");
-  await pexec(`cd ${argv.path} && pnpm i && pnpm build`);
+
+  if (existsSync(path.join(argv.path, "pnpm-lock.yaml"))) {
+    await pexec(`cd ${argv.path} && pnpm i && pnpm build`);
+
+    const buildPath = path.join(argv.path, "dist");
+    for await (const file of getFiles(buildPath)) {
+      if (/\.\w+$/.test(file)) {
+        // eslint-disable-next-line unicorn/prefer-string-replace-all
+        const relativePath = path.relative(buildPath, file);
+        const minioPath = path.join(id.toString(), relativePath).replace(/\\/g, "/");
+        console.log(`Uploading ${minioPath}`);
+        const buffer = await readFile(file);
+        await minioClient.putObject("addons", minioPath, buffer);
+      }
+    }
+  } else {
+    if (manifest.category === AddonCategory.MACHINE_LEARNING) {
+      console.warn("No settings found, skipping");
+    }
+    throw new Error("Node project missing (no pnpm-lock.yaml found)");
+  }
 
   const readmePath = path.join(argv.path, "README.md");
   await minioClient.putObject(
@@ -93,16 +118,34 @@ export async function local(argv: LocalArgv) {
     await readFile(readmePath)
   );
 
+  if (manifest.category === AddonCategory.MACHINE_LEARNING) {
+    // eslint-disable-next-line unicorn/prefer-module
+    const deploymentRoot = path.resolve(__dirname, "../../../");
+    const adapterDestination = path.resolve(
+      deploymentRoot,
+      "microservices/ml-addon-adapter"
+    );
+    const environmentFilePath = path.resolve(
+      deploymentRoot,
+      "deployment/dockercompose/.env"
+    );
+    const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
-  const buildPath = path.join(argv.path, "dist");
-  for await (const file of getFiles(buildPath)) {
-    if (/\.\w+$/.test(file)) {
-      // eslint-disable-next-line unicorn/prefer-string-replace-all
-      const relativePath = file.slice(buildPath.length).replace(/\\/g, "/");
-      console.log(`Uploading ${id}${relativePath}`);
-      const buffer = await readFile(file);
-      await minioClient.putObject("addons", `${id}${relativePath}`, buffer);
-    }
+    console.log("Building and deploying ML addon container...");
+    await pexec(
+      `cd ${path.join(argv.path, "addon")} && docker build -t ml-${id}-service .`
+    );
+    await pexec(
+      `docker run -d --name ml-${id}-service --network=${network} ml-${id}-service --prod true`
+    );
+
+    console.log("Building and deploying ml-addon-adapter...");
+    await pexec(
+      `cd ${adapterDestination} && docker build -t ml-addon-adapter .`
+    );
+    await pexec(
+      `docker run -d --name ml-${id}-adapter --env-file ${environmentFilePath} --network=${network} -e ADDON_ID=${id} ml-addon-adapter`
+    );
   }
 
   await mongo.close();

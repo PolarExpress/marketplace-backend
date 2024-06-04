@@ -64,8 +64,8 @@ export const installHandler =
       )
     ) {
       throw new AddonAlreadyInstalledError(
-        session.userID,
-        addon._id.toString()
+        session.username,
+        addon.name.toString()
       );
     }
 
@@ -115,7 +115,7 @@ export const uninstallHandler =
         addon._id.equals(installedAddon)
       )
     ) {
-      throw new AddonNotInstalledError(session.userID, arguments_.addonID);
+      throw new AddonNotInstalledError(session.username, addon.name);
     }
 
     // Update the user's installed addons
