@@ -79,8 +79,8 @@ export async function local(argv: LocalArgv) {
   const insertedDocument = await collection.insertOne({
     authorId: author!._id,
     category: manifest.category,
-    isDefault: argv.isDefault,
     installCount: 0,
+    isDefault: argv.isDefault,
     name: manifest.name,
     summary: manifest.summary
   });
