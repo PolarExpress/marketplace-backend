@@ -97,10 +97,11 @@ export async function local(argv: LocalArgv) {
     for await (const file of getFiles(buildPath)) {
       if (/\.\w+$/.test(file)) {
         // eslint-disable-next-line unicorn/prefer-string-replace-all
-        const relativePath = file.slice(buildPath.length).replace(/\\/g, "/");
-        console.log(`Uploading ${id}${relativePath}`);
+        const relativePath = path.relative(buildPath, file).replace(/\\/g, "/");
+        const minioPath = path.join(id.toString(), relativePath);
+        console.log(`Uploading ${minioPath}`);
         const buffer = await readFile(file);
-        await minioClient.putObject("addons", `${id}${relativePath}`, buffer);
+        await minioClient.putObject("addons", minioPath, buffer);
       }
     }
   } else {
