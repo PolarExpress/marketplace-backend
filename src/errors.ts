@@ -63,14 +63,14 @@ export class UserNotFoundError extends CustomError {
 }
 
 export class AddonAlreadyInstalledError extends CustomError {
-  constructor(userId: string, addonId: string) {
-    super(`User "${userId}" already has addon "${addonId}" installed`, 409);
+  constructor(username: string, addonName: string) {
+    super(`User "${username}" already has addon "${addonName}" installed`, 409);
   }
 }
 
 export class AddonNotInstalledError extends CustomError {
-  constructor(userId: string, addonId: string) {
-    super(`User "${userId}" does not have addon "${addonId}" installed`, 400);
+  constructor(username: string, addonName: string) {
+    super(`User "${username}" does not have addon "${addonName}" installed`, 400);
   }
 }
 
