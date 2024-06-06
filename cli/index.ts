@@ -28,7 +28,9 @@ import { reset } from "./reset";
     .command(
       "reset",
       "Resets the database and minio with default addons",
-      {},
+      {
+        all: { boolean: true, default: false, required: false }
+      },
       reset
     )
     .command(
