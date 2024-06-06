@@ -104,8 +104,7 @@ export async function local(argv: LocalArgv) {
   } else {
     if (manifest.category === AddonCategory.MACHINE_LEARNING) {
       console.warn("No settings found, skipping");
-    }
-    else {
+    } else {
       throw new Error("Node project missing (no pnpm-lock.yaml found)");
     }
   }

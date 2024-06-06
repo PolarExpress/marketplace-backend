@@ -19,7 +19,7 @@ const addons = [
   "rawjsonvis",
   "matrixvis",
   "link-prediction",
-  "community-detection",
+  "community-detection"
 ];
 
 interface ResetArgv {
@@ -27,20 +27,23 @@ interface ResetArgv {
 }
 
 export async function reset(argv: ResetArgv) {
-
   if (argv.all) {
-    console.error("WARNING: This will delete ALL DATA from the marketplace database and minio. DO NOT RUN THIS ON THE PRODUCTION DATABASE. THIS CANNOT BE UNDONE. ")
+    console.error(
+      "WARNING: This will delete ALL DATA from the marketplace database and minio. DO NOT RUN THIS ON THE PRODUCTION DATABASE. THIS CANNOT BE UNDONE. "
+    );
   } else {
-    console.error("WARNING: This will delete ALL addons from the marketplace database and minio. DO NOT RUN THIS ON THE PRODUCTION DATABASE. THIS CANNOT BE UNDONE. ")
+    console.error(
+      "WARNING: This will delete ALL addons from the marketplace database and minio. DO NOT RUN THIS ON THE PRODUCTION DATABASE. THIS CANNOT BE UNDONE. "
+    );
   }
 
   const input = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
-  
-  const answer = await new Promise((resolve) => {
-    input.question("Are you sure you want to continue? (y/N) ", (answer) => {
+
+  const answer = await new Promise(resolve => {
+    input.question("Are you sure you want to continue? (y/N) ", answer => {
       resolve(answer);
       input.close();
     });
@@ -50,7 +53,7 @@ export async function reset(argv: ResetArgv) {
     console.info("Aborting...");
     return;
   }
-  
+
   console.log("Cleaning up docker containers...");
   const { stdout } = await pexec("docker ps --format '{{.Names}}'");
   const containers = stdout.split("\n");
@@ -69,10 +72,14 @@ export async function reset(argv: ResetArgv) {
   await collection.deleteMany();
 
   if (argv.all) {
-    console.log(`Deleting documents from ${environment.MP_DATABASE_NAME}/authors`);
+    console.log(
+      `Deleting documents from ${environment.MP_DATABASE_NAME}/authors`
+    );
     await database.collection("authors").deleteMany();
 
-    console.log(`Deleting documents from ${environment.MP_DATABASE_NAME}/users`);
+    console.log(
+      `Deleting documents from ${environment.MP_DATABASE_NAME}/users`
+    );
     await database.collection("users").deleteMany();
   }
 
