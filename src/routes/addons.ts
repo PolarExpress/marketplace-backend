@@ -6,13 +6,13 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Filter, ObjectId } from "mongodb";
+import { Filter, ObjectId, Sort } from "mongodb";
 import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
 
 import { Context } from "../context";
 import { AddonNotFoundError, AuthorNotFoundError } from "../errors";
-import { Addon, AddonCategory } from "../types";
+import { Addon, AddonCategory, SortOptions } from "../types";
 import { throwFunction } from "../utils";
 
 // TODO: move this to a better place
@@ -32,12 +32,16 @@ const getAddonsSchema = z.object({
   /**
    * Search term submitted.
    */
-  searchTerm: z.string().default("")
+  searchTerm: z.string().default(""),
+  /**
+   * Sorting option.
+   */
+  sort: z.nativeEnum(SortOptions).default(SortOptions.NONE)
 });
 
 /**
- * Handler to get a paginated list of addons with optional filtering by category
- * and search term.
+ * Handler to get a paginated list of addons with optional filtering by
+ * category, search term and sorting.
  *
  * @param   context The context object containing database collections and the
  *   MinIO service.
@@ -58,12 +62,30 @@ export const getAddonsHandler =
       queryFilter.category = arguments_.category;
     }
 
+    // Determine the sorting criteria
+    let sortCriteria: Sort = {};
+    switch (arguments_.sort) {
+      case SortOptions.ALPHABETICAL: {
+        sortCriteria = { name: 1 }; // Sort by name in ascending order
+        break;
+      }
+      case SortOptions.INSTALL_COUNT: {
+        sortCriteria = { installCount: -1 }; // Sort by install count in descending order
+        break;
+      }
+      case SortOptions.NONE: {
+        sortCriteria = {}; // No sorting
+        break;
+      }
+    }
+
     // Pagination logic
     const totalCount = await context.addons.countDocuments(queryFilter);
     const totalPages = Math.ceil(totalCount / pageSize);
 
     const addons = await context.addons
       .find(queryFilter)
+      .sort(sortCriteria)
       .skip(arguments_.page * pageSize)
       .limit(pageSize)
       .toArray();

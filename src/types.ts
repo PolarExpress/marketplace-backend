@@ -43,3 +43,12 @@ export interface Addon {
   name: string;
   summary: string;
 }
+
+/**
+ * Defines the sorting options that can be used to retrieve addons.
+ */
+export enum SortOptions {
+  ALPHABETICAL = "alphabetical",
+  INSTALL_COUNT = "installCount",
+  NONE = "none"
+}
