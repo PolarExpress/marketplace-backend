@@ -37,7 +37,7 @@ export interface User {
 export interface Addon {
   authorId: string;
   category: AddonCategory;
-  default: boolean;
+  isDefault: boolean;
   icon: string;
   name: string;
   summary: string;
