@@ -195,9 +195,12 @@ export const getAddonsByUserIdHandler =
     let user = await context.users.findOne({ userId: session.userID });
     if (!user) {
       const defaultAddons = await context.addons
-        .find({ default: true })
+        .find({ isDefault: true })
         .map(addon => addon._id.toString())
         .toArray();
+
+      console.log("Creating user document for", session.userID);
+      console.log("Default addons:", defaultAddons);
 
       const document = {
         installedAddons: defaultAddons,

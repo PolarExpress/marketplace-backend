@@ -29,27 +29,27 @@ export const dummyAddons: WithId<Addon>[] = [
   {
     authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.VISUALISATION,
-    default: false,
     icon: "icon.png",
     installCount: 1,
+    isDefault: false,
     name: "Addon A",
     summary: "This is A"
   },
   {
     authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.MACHINE_LEARNING,
-    default: false,
     icon: "icon.png",
     installCount: 0,
+    isDefault: false,
     name: "Addon B",
     summary: "This is B"
   },
   {
     authorId: dummyAuthors[1]._id.toString(),
     category: AddonCategory.DATA_SOURCE,
-    default: true,
     icon: "icon.png",
     installCount: 1,
+    isDefault: true,
     name: "Addon C",
     summary: "This is C"
   }
