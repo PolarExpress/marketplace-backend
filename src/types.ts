@@ -38,6 +38,7 @@ export interface Addon {
   authorId: string;
   category: AddonCategory;
   icon: string;
+  installCount: number;
   isDefault: boolean;
   name: string;
   summary: string;

@@ -30,6 +30,7 @@ export const dummyAddons: WithId<Addon>[] = [
     authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.VISUALISATION,
     icon: "icon.png",
+    installCount: 1,
     isDefault: false,
     name: "Addon A",
     summary: "This is A"
@@ -38,6 +39,7 @@ export const dummyAddons: WithId<Addon>[] = [
     authorId: dummyAuthors[0]._id.toString(),
     category: AddonCategory.MACHINE_LEARNING,
     icon: "icon.png",
+    installCount: 0,
     isDefault: false,
     name: "Addon B",
     summary: "This is B"
@@ -46,6 +48,7 @@ export const dummyAddons: WithId<Addon>[] = [
     authorId: dummyAuthors[1]._id.toString(),
     category: AddonCategory.DATA_SOURCE,
     icon: "icon.png",
+    installCount: 1,
     isDefault: true,
     name: "Addon C",
     summary: "This is C"
@@ -87,6 +90,15 @@ beforeAll(async () => {
   await addons.insertMany(dummyAddons);
   await authors.insertMany(dummyAuthors);
   await users.insertMany(dummyUsers);
+
+  await addons.updateOne(
+    { _id: dummyAddons[0]._id },
+    { $set: { installCount: 1 } }
+  );
+  await addons.updateOne(
+    { _id: dummyAddons[2]._id },
+    { $set: { installCount: 1 } }
+  );
 }, 20_000);
 
 // Clean up the in-memory MongoDB server after all tests have run.
