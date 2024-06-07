@@ -140,6 +140,28 @@ test("get-addons::sort-alphabetically", async () => {
   );
 });
 
+test("get-addons::sort-by-relevance", async () => {
+  const [mockContext, context] = createMockContext();
+
+  const searchTerm = dummyAddons[0].name.toLowerCase();
+
+  const response = (await getAddonsHandler(context)({
+    searchTerm,
+    sort: SortOptions.RELEVANCE
+  })) as GetAddonsResult;
+
+  const expectedSortedAddons = await mockContext.addons
+    .find({
+      $text: { $search: searchTerm }
+    })
+    .sort({ name: 1, score: { $meta: "textScore" } })
+    .toArray();
+
+  expect(response.addons.map(addon => addon._id)).toStrictEqual(
+    expectedSortedAddons.map(addon => addon._id)
+  );
+});
+
 test("get-addons::author-not-found", async () => {
   const [mockContext, context] = createMockContext();
 
