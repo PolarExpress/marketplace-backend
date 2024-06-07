@@ -50,5 +50,6 @@ export interface Addon {
 export enum SortOptions {
   ALPHABETICAL = "alphabetical",
   INSTALL_COUNT = "installCount",
-  NONE = "none"
+  NONE = "none",
+  RELEVANCE = "relevance"
 }

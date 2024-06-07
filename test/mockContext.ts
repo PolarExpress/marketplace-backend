@@ -32,7 +32,7 @@ export const dummyAddons: WithId<Addon>[] = [
     icon: "icon.png",
     installCount: 1,
     isDefault: false,
-    name: "Addon A",
+    name: "AddonA",
     summary: "This is A"
   },
   {
@@ -41,7 +41,7 @@ export const dummyAddons: WithId<Addon>[] = [
     icon: "icon.png",
     installCount: 0,
     isDefault: false,
-    name: "Addon B",
+    name: "AddonB",
     summary: "This is B"
   },
   {
@@ -50,7 +50,7 @@ export const dummyAddons: WithId<Addon>[] = [
     icon: "icon.png",
     installCount: 1,
     isDefault: true,
-    name: "Addon C",
+    name: "AddonC",
     summary: "This is C"
   }
 ].map(addon => ({ _id: new ObjectId(), ...addon }));
@@ -86,6 +86,11 @@ beforeAll(async () => {
   await addons.deleteMany();
   await authors.deleteMany();
   await users.deleteMany();
+
+  await addons.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
 
   await addons.insertMany(dummyAddons);
   await authors.insertMany(dummyAuthors);

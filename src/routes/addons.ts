@@ -32,7 +32,7 @@ const getAddonsSchema = z.object({
   /**
    * Search term submitted.
    */
-  searchTerm: z.string().default(""),
+  searchTerm: z.string().optional(),
   /**
    * Sorting option.
    */
@@ -54,9 +54,11 @@ export const getAddonsHandler =
     const arguments_ = getAddonsSchema.parse(request);
 
     // Create query filter based on search term and optional category
-    const queryFilter: Filter<Addon> = {
-      name: { $options: "i", $regex: arguments_.searchTerm }
-    };
+    const queryFilter: Filter<Addon> = {};
+
+    if (arguments_.searchTerm) {
+      queryFilter.$text = { $search: arguments_.searchTerm };
+    }
 
     if (arguments_.category) {
       queryFilter.category = arguments_.category;
@@ -71,6 +73,10 @@ export const getAddonsHandler =
       }
       case SortOptions.INSTALL_COUNT: {
         sortCriteria = { installCount: -1 }; // Sort by install count in descending order
+        break;
+      }
+      case SortOptions.RELEVANCE: {
+        sortCriteria = { name: 1, score: { $meta: "textScore" } }; // Sort by relevance using text search score
         break;
       }
       case SortOptions.NONE: {

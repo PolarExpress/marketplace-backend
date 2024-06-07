@@ -108,29 +108,6 @@ test("get-addons::valid-query-case-insensitive", async () => {
   expect(response.addons[0].author).toStrictEqual(dummyAuthors[0]);
 });
 
-test("get-addons::valid-query-partial-match", async () => {
-  const [, context] = createMockContext();
-
-  const response = (await getAddonsHandler(context)({
-    searchTerm: "addon"
-  })) as GetAddonsResult;
-
-  expect(response.addons).toMatchObject([
-    dummyAddons[0],
-    dummyAddons[1],
-    dummyAddons[2]
-  ]);
-
-  for (const addon of response.addons) {
-    const authorId = addon.authorId;
-    const author = dummyAuthors.find(
-      author => author._id.toString() === authorId
-    );
-
-    expect(addon.author).toStrictEqual(author);
-  }
-});
-
 test("get-addons::sort-by-install-count", async () => {
   const [, context] = createMockContext();
 
