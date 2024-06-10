@@ -97,6 +97,16 @@ test("get-addons::invalid-query-invalid-sortoption", async () => {
   ).rejects.toThrow(ZodError);
 });
 
+test("get-addons::invalid-query-relevance-without-search", async () => {
+  const [, context] = createMockContext();
+
+  await expect(
+    getAddonsHandler(context)({
+      sort: SortOptions.RELEVANCE
+    })
+  ).rejects.toThrow(ZodError);
+});
+
 test("get-addons::valid-query-case-insensitive", async () => {
   const [, context] = createMockContext();
 
