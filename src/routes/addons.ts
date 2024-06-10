@@ -20,24 +20,36 @@ const pageSize = 20;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const getAddonsSchema = z.object({
-  /**
-   * Optional category filter.
-   */
-  category: z.nativeEnum(AddonCategory).optional(),
-  /**
-   * Page number requested.
-   */
-  page: z.coerce.number().int().gte(0).default(0),
-  /**
-   * Search term submitted.
-   */
-  searchTerm: z.string().optional(),
-  /**
-   * Sorting option.
-   */
-  sort: z.nativeEnum(SortOptions).default(SortOptions.NONE)
-});
+const getAddonsSchema = z
+  .object({
+    /**
+     * Optional category filter.
+     */
+    category: z.nativeEnum(AddonCategory).optional(),
+    /**
+     * Page number requested.
+     */
+    page: z.coerce.number().int().gte(0).default(0),
+    /**
+     * Search term submitted.
+     */
+    searchTerm: z.string().optional(),
+    /**
+     * Sorting option.
+     */
+    sort: z.nativeEnum(SortOptions).default(SortOptions.NONE)
+  })
+  .refine(
+    data => {
+      if (data.sort === SortOptions.RELEVANCE && !data.searchTerm) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Relevance sort requires a search term."
+    }
+  );
 
 /**
  * Handler to get a paginated list of addons with optional filtering by
@@ -80,8 +92,7 @@ export const getAddonsHandler =
         break;
       }
       case SortOptions.NONE: {
-        sortCriteria = {}; // No sorting
-        break;
+        break; // No sorting
       }
     }
 
