@@ -26,8 +26,10 @@ test("install::valid-query_correct-return", async () => {
   await expect(response).resolves.not.toBeDefined();
 
   const user = await context.users.findOne({ userId: "1" });
+  const addon = await context.addons.findOne({ _id: new ObjectId(addonID) });
 
   expect(user?.installedAddons).toContain(addonID);
+  expect(addon?.installCount).toBe(dummyAddons[0].installCount + 1);
 });
 
 test("install::missing-args_should-throw", async () => {
@@ -53,16 +55,16 @@ test("install::invalid-user-id_should-create-new-user", async () => {
   const [, context] = createMockContext();
   const session = mockSession("4");
 
-  const response = installHandler(context)(
-    { addonID: dummyAddons[0]._id.toString() },
-    session
-  );
+  const addonID = dummyAddons[1]._id.toString();
+  const response = installHandler(context)({ addonID }, session);
 
   await expect(response).resolves.not.toBeDefined();
 
   const newUser = await context.users.findOne({ userId: "4" });
+  const addon = await context.addons.findOne({ _id: new ObjectId(addonID) });
 
   expect(newUser).not.toBeNull();
+  expect(addon?.installCount).toBe(dummyAddons[1].installCount + 1);
 });
 
 test("install::already-installed-addon_should-throw", async () => {
@@ -84,8 +86,10 @@ test("uninstall::valid-query_correct-return", async () => {
   await expect(response).resolves.not.toBeDefined();
 
   const user = await context.users.findOne({ userId: "3" });
+  const addon = await context.addons.findOne({ _id: new ObjectId(addonID) });
 
   expect(user?.installedAddons).not.toContain(addonID);
+  expect(addon?.installCount).toBe(dummyAddons[2].installCount - 1);
 });
 
 test("uninstall::missing-args_should-throw", async () => {

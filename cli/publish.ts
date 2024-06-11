@@ -6,20 +6,17 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { exec } from "node:child_process";
 import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { promisify } from "node:util";
 
 import { local } from "./local";
+import { pexec } from "./utils";
 
 type PublishArguments = {
   isDefault: boolean;
   url: string;
 };
-
-const pexec = promisify(exec);
 
 export async function publish(argv: PublishArguments) {
   const addonName = argv.url.match(/\/([^/\\]*)\.git$/)![1];

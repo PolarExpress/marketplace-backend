@@ -7,22 +7,19 @@
  */
 import * as minio from "minio";
 import { Db, MongoClient } from "mongodb";
-import { exec } from "node:child_process";
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { promisify } from "node:util";
 import { z } from "zod";
 
 import environment from "../src/environment";
 import { AddonCategory } from "../src/types";
+import { pexec } from "./utils";
 
 interface LocalArgv {
   isDefault: boolean;
   path: string;
 }
-
-const pexec = promisify(exec);
 
 async function createAuthor(database: Db) {
   const authors = database.collection("authors");
@@ -79,6 +76,7 @@ export async function local(argv: LocalArgv) {
   const insertedDocument = await collection.insertOne({
     authorId: author!._id,
     category: manifest.category,
+    installCount: 0,
     isDefault: argv.isDefault,
     name: manifest.name,
     summary: manifest.summary
@@ -110,8 +108,9 @@ export async function local(argv: LocalArgv) {
   } else {
     if (manifest.category === AddonCategory.MACHINE_LEARNING) {
       console.warn("No settings found, skipping");
+    } else {
+      throw new Error("Node project missing (no pnpm-lock.yaml found)");
     }
-    throw new Error("Node project missing (no pnpm-lock.yaml found)");
   }
 
   const readmePath = path.join(argv.path, "README.md");
@@ -134,7 +133,7 @@ export async function local(argv: LocalArgv) {
     );
     const network = "graphpolaris_network"; //Dit kan beter in een .env file waarschijnlijk
 
-    console.log("Building and deploying ML addon container...");
+    console.log(`Building and deploying ml-${id}-service...`);
     await pexec(
       `cd ${path.join(argv.path, "addon")} && docker build -t ml-${id}-service .`
     );
@@ -142,7 +141,7 @@ export async function local(argv: LocalArgv) {
       `docker run -d --name ml-${id}-service --network=${network} ml-${id}-service --prod true`
     );
 
-    console.log("Building and deploying ml-addon-adapter...");
+    console.log(`Building and deploying ml-${id}-adapter...`);
     await pexec(
       `cd ${adapterDestination} && docker build -t ml-addon-adapter .`
     );

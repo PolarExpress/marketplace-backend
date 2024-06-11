@@ -63,8 +63,9 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
     _id: new ObjectId(),
     authorId: author._id.toString(),
     category: chooseFrom(Object.values(AddonCategory)),
-    default: false,
     icon: "icon.png",
+    installCount: 0,
+    isDefault: false,
     name: randCompanyName(),
     summary: randText({ charCount: 50 })
   };
@@ -128,14 +129,23 @@ async function main() {
   console.log("Creating installs...");
   for (const user of users) {
     const installs = chooseFrom([0, 1, 1, 2, 2, 3]);
+    const userAddons = chooseFromN(addons, installs);
+
     await colUsers.updateOne(
       { _id: user._id },
       {
         $set: {
-          installedAddons: chooseFromN(addons, installs).map(addon => addon._id)
+          installedAddons: userAddons.map(addon => addon._id)
         }
       }
     );
+
+    for (const addon of userAddons) {
+      await colAddons.updateOne(
+        { _id: addon._id },
+        { $inc: { installCount: 1 } }
+      );
+    }
   }
 
   await mongo.close();

@@ -1,7 +1,8 @@
 FROM node:21-bookworm AS base
 
 RUN apt update && apt install -y git
-RUN npm install -g pnpm
+RUN corepack enable
+
 # ------------------------------------------------------------------------------
 
 FROM base AS dependencies
@@ -22,7 +23,7 @@ WORKDIR /app
 COPY . .
 COPY --from=dependencies /deps/dev/node_modules ./node_modules
 
-RUN npm run build
+RUN pnpm build
 
 # ------------------------------------------------------------------------------
 
