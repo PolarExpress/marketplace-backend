@@ -94,7 +94,6 @@ export async function local(argv: LocalArgv) {
     const buildPath = path.join(argv.path, "dist");
     for await (const file of getFiles(buildPath)) {
       if (/\.\w+$/.test(file)) {
-
         const relativePath = path.relative(buildPath, file);
         const minioPath = path
           .join(id.toString(), relativePath)

@@ -21,7 +21,7 @@ const addons = [
   //"semanticsubstratesvis",
   //"nodelinkvis",
   //"paohvis",
-  //"tablevis",  
+  //"tablevis",
   "link-prediction",
   "community-detection"
 ];
