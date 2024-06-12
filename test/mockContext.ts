@@ -78,6 +78,13 @@ beforeAll(async () => {
 
   connection = await MongoClient.connect(mongo.getUri());
   database = connection.db("test");
+
+  const addons = database.collection("addons");
+
+  await addons.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
 }, 20_000);
 
 // Clean up the in-memory MongoDB server after all tests have run.
