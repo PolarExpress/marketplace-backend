@@ -91,10 +91,12 @@ export async function reset(argv: ResetArgv) {
     useSSL: false
   });
 
-  minioClient.listObjects("addons").on("data", async object => {
-    console.log(`Deleting addons/${object.prefix}`);
-    await minioClient.removeObject("addons", object.prefix!);
-  });
+  if (await minioClient.bucketExists("addons")) {
+    minioClient.listObjects("addons").on("data", async object => {
+      console.log(`Deleting addons/${object.prefix}`);
+      await minioClient.removeObject("addons", object.prefix!);
+    });
+  }
 
   for (const addon of addons) {
     await publish({
