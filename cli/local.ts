@@ -71,6 +71,11 @@ export async function local(argv: LocalArgv) {
   const database = mongo.db(environment.MP_DATABASE_NAME);
   const collection = database.collection("addons");
 
+  await collection.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
+
   const author = await createAuthor(database);
 
   const insertedDocument = await collection.insertOne({
