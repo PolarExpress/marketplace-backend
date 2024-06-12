@@ -262,7 +262,6 @@ test("get-addons-by-userid::valid-query-required-params", async () => {
   const [, context] = createMockContext();
   const userId = "3";
 
-
   const response = (await getAddonsByUserIdHandler(context)(
     {},
     mockSession(userId)
