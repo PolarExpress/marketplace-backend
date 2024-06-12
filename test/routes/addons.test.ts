@@ -20,7 +20,7 @@ import {
   getAddonsByUserIdHandler,
   getAddonsHandler
 } from "../../src/routes/addons";
-import { Addon, AddonCategory, Author } from "../../src/types";
+import { Addon, AddonCategory, Author, SortOptions } from "../../src/types";
 import {
   createMockContext,
   dummyAddons,
@@ -49,7 +49,8 @@ test("get-addons::valid-query-all-params", async () => {
   const response = (await getAddonsHandler(context)({
     category: AddonCategory.VISUALISATION,
     page: 0,
-    searchTerm: dummyAddons[0].name
+    searchTerm: dummyAddons[0].name,
+    sort: SortOptions.NONE
   })) as GetAddonsResult;
 
   expect(response.addons).toMatchObject([dummyAddons[0]]);
@@ -86,6 +87,26 @@ test("get-addons::invalid-query-invalid-searchterm", async () => {
   ).rejects.toThrow(ZodError);
 });
 
+test("get-addons::invalid-query-invalid-sortoption", async () => {
+  const [, context] = createMockContext();
+
+  await expect(
+    getAddonsHandler(context)({
+      sort: "invalidSort"
+    })
+  ).rejects.toThrow(ZodError);
+});
+
+test("get-addons::invalid-query-relevance-without-search", async () => {
+  const [, context] = createMockContext();
+
+  await expect(
+    getAddonsHandler(context)({
+      sort: SortOptions.RELEVANCE
+    })
+  ).rejects.toThrow(ZodError);
+});
+
 test("get-addons::valid-query-case-insensitive", async () => {
   const [, context] = createMockContext();
 
@@ -97,27 +118,58 @@ test("get-addons::valid-query-case-insensitive", async () => {
   expect(response.addons[0].author).toStrictEqual(dummyAuthors[0]);
 });
 
-test("get-addons::valid-query-partial-match", async () => {
+test("get-addons::sort-by-install-count", async () => {
   const [, context] = createMockContext();
 
+  const sortedAddonsByInstallCount = [...dummyAddons].sort(
+    (a, b) => b.installCount - a.installCount
+  );
+
   const response = (await getAddonsHandler(context)({
-    searchTerm: "addon"
+    sort: SortOptions.INSTALL_COUNT
   })) as GetAddonsResult;
 
-  expect(response.addons).toMatchObject([
-    dummyAddons[0],
-    dummyAddons[1],
-    dummyAddons[2]
-  ]);
+  expect(response.addons.map(addon => addon._id)).toStrictEqual(
+    sortedAddonsByInstallCount.map(addon => addon._id)
+  );
+});
 
-  for (const addon of response.addons) {
-    const authorId = addon.authorId;
-    const author = dummyAuthors.find(
-      author => author._id.toString() === authorId
-    );
+test("get-addons::sort-alphabetically", async () => {
+  const [, context] = createMockContext();
 
-    expect(addon.author).toStrictEqual(author);
-  }
+  const sortedAddonsAlphabetically = [...dummyAddons].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  const response = (await getAddonsHandler(context)({
+    sort: SortOptions.ALPHABETICAL
+  })) as GetAddonsResult;
+
+  expect(response.addons.map(addon => addon._id)).toStrictEqual(
+    sortedAddonsAlphabetically.map(addon => addon._id)
+  );
+});
+
+test("get-addons::sort-by-relevance", async () => {
+  const [mockContext, context] = createMockContext();
+
+  const searchTerm = dummyAddons[0].name.toLowerCase();
+
+  const response = (await getAddonsHandler(context)({
+    searchTerm,
+    sort: SortOptions.RELEVANCE
+  })) as GetAddonsResult;
+
+  const expectedSortedAddons = await mockContext.addons
+    .find({
+      $text: { $search: searchTerm }
+    })
+    .sort({ name: 1, score: { $meta: "textScore" } })
+    .toArray();
+
+  expect(response.addons.map(addon => addon._id)).toStrictEqual(
+    expectedSortedAddons.map(addon => addon._id)
+  );
 });
 
 test("get-addons::author-not-found", async () => {

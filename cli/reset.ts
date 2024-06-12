@@ -68,6 +68,11 @@ export async function reset(argv: ResetArgv) {
   const database = mongo.db(environment.MP_DATABASE_NAME);
   const collection = database.collection("addons");
 
+  await collection.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
+
   console.log(`Deleting documents from ${environment.MP_DATABASE_NAME}/addons`);
   await collection.deleteMany();
 
@@ -91,10 +96,12 @@ export async function reset(argv: ResetArgv) {
     useSSL: false
   });
 
-  minioClient.listObjects("addons").on("data", async object => {
-    console.log(`Deleting addons/${object.prefix}`);
-    await minioClient.removeObject("addons", object.prefix!);
-  });
+  if (await minioClient.bucketExists("addons")) {
+    minioClient.listObjects("addons").on("data", async object => {
+      console.log(`Deleting addons/${object.prefix}`);
+      await minioClient.removeObject("addons", object.prefix!);
+    });
+  }
 
   for (const addon of addons) {
     await publish({
