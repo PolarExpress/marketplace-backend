@@ -73,7 +73,7 @@ export const dummyUsers: WithId<User>[] = [
 let mongo: MongoMemoryServer, connection: MongoClient, database: Db;
 
 // Set up the in-memory MongoDB server and populate it with dummy data.
-beforeAll(async () => {
+beforeEach(async () => {
   mongo = await MongoMemoryServer.create();
 
   connection = await MongoClient.connect(mongo.getUri());
@@ -102,7 +102,7 @@ beforeAll(async () => {
 }, 20_000);
 
 // Clean up the in-memory MongoDB server after all tests have run.
-afterAll(async () => {
+afterEach(async () => {
   await connection.close();
   await mongo.stop();
 }, 10_000);
