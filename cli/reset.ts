@@ -22,6 +22,7 @@ const addons = [
   //"nodelinkvis",
   //"paohvis",
   //"tablevis",
+  //"ml-plugin-template",
   "link-prediction",
   "community-detection"
 ];
@@ -95,10 +96,21 @@ export async function reset(argv: ResetArgv) {
     useSSL: false
   });
 
-  minioClient.listObjects("addons").on("data", async object => {
-    console.log(`Deleting addons/${object.prefix}`);
-    await minioClient.removeObject("addons", object.prefix!);
-  });
+  // First, check if the bucket exists
+  const bucketExists = await minioClient.bucketExists('addons');
+  if (!bucketExists) {
+    console.error('Bucket "addons" does not exist.');
+  } else {
+    minioClient.listObjects('addons').on('data', async object => {
+      try {
+        console.log(`Deleting addons/${object.prefix}`);
+        await minioClient.removeObject('addons', object.prefix!);
+      } catch (error) {
+        console.error(`Failed to delete addons/${object.prefix}: ${error}`);
+      }
+    });
+  }
+  
 
   for (const addon of addons) {
     await publish({
