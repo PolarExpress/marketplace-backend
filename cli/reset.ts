@@ -97,20 +97,19 @@ export async function reset(argv: ResetArgv) {
   });
 
   // First, check if the bucket exists
-  const bucketExists = await minioClient.bucketExists('addons');
-  if (!bucketExists) {
-    console.error('Bucket "addons" does not exist.');
-  } else {
-    minioClient.listObjects('addons').on('data', async object => {
+  const bucketExists = await minioClient.bucketExists("addons");
+  if (bucketExists) {
+    minioClient.listObjects("addons").on("data", async object => {
       try {
         console.log(`Deleting addons/${object.prefix}`);
-        await minioClient.removeObject('addons', object.prefix!);
+        await minioClient.removeObject("addons", object.prefix!);
       } catch (error) {
         console.error(`Failed to delete addons/${object.prefix}: ${error}`);
       }
     });
+  } else {
+    console.error('Bucket "addons" does not exist.');
   }
-  
 
   for (const addon of addons) {
     await publish({
