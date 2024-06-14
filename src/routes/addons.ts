@@ -246,6 +246,11 @@ export const getAddonsByUserIdHandler =
         userId: session.userID
       };
       const { insertedId } = await context.users.insertOne(document);
+      context.addons.updateMany(
+        { isDefault: true },
+        { $inc: { installCount: 1 } }
+      );
+
       user = { ...document, _id: insertedId };
     }
 

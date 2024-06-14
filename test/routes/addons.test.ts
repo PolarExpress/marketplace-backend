@@ -293,24 +293,33 @@ const findExpectedAddonsByUserId = (userId: string) => {
 
 test("get-addons-by-userid::missing-user-in-database", async () => {
   const [, context] = createMockContext();
+  const userId = "4";
 
-  await getAddonsByUserIdHandler(context)({}, mockSession("4"));
+  const dummyAddon = dummyAddons[2];
 
-  expect(await context.users.findOne({ userId: "4" })).toMatchObject({
-    installedAddons: [dummyAddons[2]._id.toString()],
-    userId: "4"
+  await getAddonsByUserIdHandler(context)({}, mockSession(userId));
+
+  expect(await context.users.findOne({ userId: userId })).toMatchObject({
+    installedAddons: [dummyAddon._id.toString()],
+    userId: userId
+  });
+
+  expect(await context.addons.findOne({ _id: dummyAddon._id })).toMatchObject({
+    ...dummyAddon,
+    installCount: dummyAddon.installCount + 1
   });
 });
 
 test("get-addons-by-userid::valid-query-required-params", async () => {
   const [, context] = createMockContext();
+  const userId = "3";
 
   const response = (await getAddonsByUserIdHandler(context)(
     {},
-    mockSession("3")
+    mockSession(userId)
   )) as GetAddonsByUserIdResult;
 
-  const expectedAddons = findExpectedAddonsByUserId("3");
+  const expectedAddons = findExpectedAddonsByUserId(userId);
 
   expect(response.addons).toMatchObject(expectedAddons); // hardcoded option: [dummyAddons[0], dummyAddons[2]]
 
