@@ -88,7 +88,8 @@ export const getAddonsHandler =
         break;
       }
       case SortOptions.RELEVANCE: {
-        sortCriteria = { name: 1, score: { $meta: "textScore" } }; // Sort by relevance using text search score
+        // eslint-disable-next-line perfectionist/sort-objects -- Alphabetical sorting needs to come after relevance
+        sortCriteria = { score: { $meta: "textScore" }, name: 1 }; // Sort by relevance using text search score
         break;
       }
       case SortOptions.NONE: {
