@@ -63,7 +63,7 @@ function seedAddon(author: WithId<Author>): Seeded<Addon> {
     _id: new ObjectId(),
     authorId: author._id.toString(),
     category: chooseFrom(Object.values(AddonCategory)),
-    icon: "icon.png",
+    icon: undefined,
     installCount: 0,
     isDefault: false,
     name: randCompanyName(),
