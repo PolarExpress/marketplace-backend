@@ -6,13 +6,13 @@
  * (Department of Information and Computing Sciences)
  */
 
-import { Filter, ObjectId } from "mongodb";
+import { Filter, ObjectId, Sort } from "mongodb";
 import { SessionData } from "ts-amqp-socket";
 import { z } from "zod";
 
 import { Context } from "../context";
 import { AddonNotFoundError, AuthorNotFoundError } from "../errors";
-import { Addon, AddonCategory } from "../types";
+import { Addon, AddonCategory, SortOptions } from "../types";
 import { throwFunction } from "../utils";
 
 // TODO: move this to a better place
@@ -20,24 +20,40 @@ const pageSize = 20;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const getAddonsSchema = z.object({
-  /**
-   * Optional category filter.
-   */
-  category: z.nativeEnum(AddonCategory).optional(),
-  /**
-   * Page number requested.
-   */
-  page: z.coerce.number().int().gte(0).default(0),
-  /**
-   * Search term submitted.
-   */
-  searchTerm: z.string().default("")
-});
+const getAddonsSchema = z
+  .object({
+    /**
+     * Optional category filter.
+     */
+    category: z.nativeEnum(AddonCategory).optional(),
+    /**
+     * Page number requested.
+     */
+    page: z.coerce.number().int().gte(0).default(0),
+    /**
+     * Search term submitted.
+     */
+    searchTerm: z.string().optional(),
+    /**
+     * Sorting option.
+     */
+    sort: z.nativeEnum(SortOptions).default(SortOptions.NONE)
+  })
+  .refine(
+    data => {
+      if (data.sort === SortOptions.RELEVANCE && !data.searchTerm) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Relevance sort requires a search term."
+    }
+  );
 
 /**
- * Handler to get a paginated list of addons with optional filtering by category
- * and search term.
+ * Handler to get a paginated list of addons with optional filtering by
+ * category, search term and sorting.
  *
  * @param   context The context object containing database collections and the
  *   MinIO service.
@@ -50,12 +66,35 @@ export const getAddonsHandler =
     const arguments_ = getAddonsSchema.parse(request);
 
     // Create query filter based on search term and optional category
-    const queryFilter: Filter<Addon> = {
-      name: { $options: "i", $regex: arguments_.searchTerm }
-    };
+    const queryFilter: Filter<Addon> = {};
+
+    if (arguments_.searchTerm) {
+      queryFilter.$text = { $search: arguments_.searchTerm };
+    }
 
     if (arguments_.category) {
       queryFilter.category = arguments_.category;
+    }
+
+    // Determine the sorting criteria
+    let sortCriteria: Sort = {};
+    switch (arguments_.sort) {
+      case SortOptions.ALPHABETICAL: {
+        sortCriteria = { name: 1 }; // Sort by name in ascending order
+        break;
+      }
+      case SortOptions.INSTALL_COUNT: {
+        sortCriteria = { installCount: -1 }; // Sort by install count in descending order
+        break;
+      }
+      case SortOptions.RELEVANCE: {
+        // eslint-disable-next-line perfectionist/sort-objects -- Alphabetical sorting needs to come after relevance
+        sortCriteria = { score: { $meta: "textScore" }, name: 1 }; // Sort by relevance using text search score
+        break;
+      }
+      case SortOptions.NONE: {
+        break; // No sorting
+      }
     }
 
     // Pagination logic
@@ -64,6 +103,7 @@ export const getAddonsHandler =
 
     const addons = await context.addons
       .find(queryFilter)
+      .sort(sortCriteria)
       .skip(arguments_.page * pageSize)
       .limit(pageSize)
       .toArray();
@@ -207,6 +247,11 @@ export const getAddonsByUserIdHandler =
         userId: session.userID
       };
       const { insertedId } = await context.users.insertOne(document);
+      context.addons.updateMany(
+        { isDefault: true },
+        { $inc: { installCount: 1 } }
+      );
+
       user = { ...document, _id: insertedId };
     }
 

@@ -71,6 +71,11 @@ export async function local(argv: LocalArgv) {
   const database = mongo.db(environment.MP_DATABASE_NAME);
   const collection = database.collection("addons");
 
+  await collection.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
+
   const author = await createAuthor(database);
 
   const insertedDocument = await collection.insertOne({
@@ -89,7 +94,7 @@ export async function local(argv: LocalArgv) {
   console.log("Installing dependencies and building project");
 
   if (existsSync(path.join(argv.path, "pnpm-lock.yaml"))) {
-    await pexec(`cd ${argv.path} && pnpm i && pnpm build`);
+    await pexec(`cd ${argv.path} && pnpm i --frozen-lockfile && pnpm build`);
 
     const buildPath = path.join(argv.path, "dist");
     for await (const file of getFiles(buildPath)) {
@@ -112,12 +117,39 @@ export async function local(argv: LocalArgv) {
     }
   }
 
+  // Upload readme.
   const readmePath = path.join(argv.path, "README.md");
   await minioClient.putObject(
     "addons",
     `${id}/README.md`,
     await readFile(readmePath)
   );
+
+  // Upload icon.
+  // eslint-disable-next-line unicorn/no-await-expression-member
+  const iconPath = (await readdir(argv.path)).find(file =>
+    path.basename(file).startsWith("icon.")
+  );
+
+  if (iconPath) {
+    const validExtensions = ["png", "jpg", "jpeg", "webp", "svg", "bmp"];
+    const extension = path.extname(iconPath).slice(1);
+    const addonUrl = `${id}/${path.basename(iconPath)}`;
+
+    if (validExtensions.includes(extension)) {
+      await minioClient.putObject(
+        "addons",
+        addonUrl,
+        await readFile(path.resolve(argv.path, iconPath))
+      );
+      await collection.updateMany(
+        {
+          _id: id
+        },
+        { $set: { icon: path.basename(addonUrl) } }
+      );
+    }
+  }
 
   if (manifest.category === AddonCategory.MACHINE_LEARNING) {
     // eslint-disable-next-line unicorn/prefer-module

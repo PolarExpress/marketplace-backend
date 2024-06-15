@@ -32,7 +32,7 @@ export const dummyAddons: WithId<Addon>[] = [
     icon: "icon.png",
     installCount: 1,
     isDefault: false,
-    name: "Addon A",
+    name: "AddonA",
     summary: "This is A"
   },
   {
@@ -41,7 +41,7 @@ export const dummyAddons: WithId<Addon>[] = [
     icon: "icon.png",
     installCount: 0,
     isDefault: false,
-    name: "Addon B",
+    name: "AddonB",
     summary: "This is B"
   },
   {
@@ -50,7 +50,7 @@ export const dummyAddons: WithId<Addon>[] = [
     icon: "icon.png",
     installCount: 1,
     isDefault: true,
-    name: "Addon C",
+    name: "AddonC",
     summary: "This is C"
   }
 ].map(addon => ({ _id: new ObjectId(), ...addon }));
@@ -72,7 +72,7 @@ export const dummyUsers: WithId<User>[] = [
 
 let mongo: MongoMemoryServer, connection: MongoClient, database: Db;
 
-// Set up the in-memory MongoDB server and populate it with dummy data.
+// Create an in-memory MongoDB server before running tests.
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
 
@@ -80,12 +80,24 @@ beforeAll(async () => {
   database = connection.db("test");
 
   const addons = database.collection("addons");
+
+  await addons.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
+}, 20_000);
+
+// Clean up the in-memory MongoDB server after all tests have run.
+afterAll(async () => {
+  await connection.close();
+  await mongo.stop();
+}, 10_000);
+
+// Populate the in-memory MongoDB server with dummy data before each test.
+beforeEach(async () => {
+  const addons = database.collection("addons");
   const authors = database.collection("authors");
   const users = database.collection("users");
-
-  await addons.deleteMany();
-  await authors.deleteMany();
-  await users.deleteMany();
 
   await addons.insertMany(dummyAddons);
   await authors.insertMany(dummyAuthors);
@@ -99,13 +111,18 @@ beforeAll(async () => {
     { _id: dummyAddons[2]._id },
     { $set: { installCount: 1 } }
   );
-}, 20_000);
+}, 5000);
 
-// Clean up the in-memory MongoDB server after all tests have run.
-afterAll(async () => {
-  await connection.close();
-  await mongo.stop();
-}, 10_000);
+// Clean up the in-memory MongoDB server after each test.
+afterEach(async () => {
+  const addons = database.collection("addons");
+  const authors = database.collection("authors");
+  const users = database.collection("users");
+
+  await addons.deleteMany();
+  await authors.deleteMany();
+  await users.deleteMany();
+}, 5000);
 
 /**
  * Mock context type that extends the real context with mocked Minio service.

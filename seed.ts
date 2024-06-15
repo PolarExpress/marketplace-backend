@@ -91,6 +91,12 @@ async function main() {
   await colAuthors.deleteMany();
   await colUsers.deleteMany();
 
+  // Create text index on the 'name' field
+  await colAddons.createIndex(
+    { name: "text", summary: "text" },
+    { weights: { name: 3, summary: 1 } }
+  );
+
   const exists = await minio.client.bucketExists(minio.addonBucket);
   exists
     ? await minio.emptyBucket(minio.addonBucket)
