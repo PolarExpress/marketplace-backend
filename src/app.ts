@@ -66,6 +66,7 @@ export function buildExpress(context: Context): Express {
     "/addons/get-readme",
     expressHandler(getAddonReadMeByIdHandler(context))
   );
+  app.get("/health", (_, response) => response.send("OK"));
 
   app.use(
     (
