@@ -18,6 +18,11 @@ import { pexec } from "./utils";
 const addons = [
   "rawjsonvis",
   "matrixvis",
+  //"semanticsubstratesvis",
+  //"nodelinkvis",
+  //"paohvis",
+  //"tablevis",
+  //"ml-plugin-template",
   "link-prediction",
   "community-detection"
 ];
@@ -96,11 +101,19 @@ export async function reset(argv: ResetArgv) {
     useSSL: false
   });
 
-  if (await minioClient.bucketExists("addons")) {
+  // First, check if the bucket exists
+  const bucketExists = await minioClient.bucketExists("addons");
+  if (bucketExists) {
     minioClient.listObjects("addons").on("data", async object => {
-      console.log(`Deleting addons/${object.prefix}`);
-      await minioClient.removeObject("addons", object.prefix!);
+      try {
+        console.log(`Deleting addons/${object.prefix}`);
+        await minioClient.removeObject("addons", object.prefix!);
+      } catch (error) {
+        console.error(`Failed to delete addons/${object.prefix}: ${error}`);
+      }
     });
+  } else {
+    console.error('Bucket "addons" does not exist.');
   }
 
   for (const addon of addons) {
