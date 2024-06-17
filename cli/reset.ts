@@ -29,6 +29,7 @@ const addons = [
 
 interface ResetArgv {
   all: boolean;
+  stdin: boolean;
 }
 
 export async function reset(argv: ResetArgv) {
@@ -42,21 +43,23 @@ export async function reset(argv: ResetArgv) {
     );
   }
 
-  const input = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  const answer = await new Promise(resolve => {
-    input.question("Are you sure you want to continue? (y/N) ", answer => {
-      resolve(answer);
-      input.close();
+  if (argv.stdin) {
+    const input = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
     });
-  });
 
-  if (answer !== "y") {
-    console.info("Aborting...");
-    return;
+    const answer = await new Promise(resolve => {
+      input.question("Are you sure you want to continue? (y/N) ", answer => {
+        resolve(answer);
+        input.close();
+      });
+    });
+
+    if (answer !== "y") {
+      console.info("Aborting...");
+      return;
+    }
   }
 
   console.log("Cleaning up docker containers...");
