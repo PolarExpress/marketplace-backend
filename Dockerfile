@@ -29,6 +29,9 @@ RUN pnpm build
 
 FROM node:21-alpine AS prod
 
+# Needed for healthcheck
+RUN apk update && apk add --no-cache curl
+
 WORKDIR /app
 
 COPY --from=build /app/build ./build
